@@ -9,7 +9,7 @@ They are named after the game (`<date>-<opponent>`), matching `data/games/<team>
 
 ## Games with no original file
 
-These came over from v4, which only kept its own game data, so no export exists for them yet. Re-exporting them from EasyStats and running `tools/migrate_v4.py` (see the main README) would fill them in.
+These came over from v4, which only kept its own game data, so no export exists for them yet. If you re-export one from EasyStats, add it with `python tools/add_game.py <file>.html --replace` (plus `--opp-score` and, for Chuckers, `--team-score`). That updates the game with the real names and saves the file here.
 
 ### all-stars (2)
 
