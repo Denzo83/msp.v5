@@ -200,7 +200,8 @@ def main():
             save_json(out, game)
             keep = DATA.parent / 'exports' / tid / f'{gid}.html'
             keep.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(path, keep)
+            if Path(path).resolve() != keep.resolve():
+                shutil.copyfile(path, keep)
             saved += 1
 
     if args.dry_run:
@@ -327,7 +328,8 @@ def add_tracker_game(path, args, teams, players, roster):
     save_json(out, game)
     keep = DATA.parent / 'exports' / tid / f'{gid}.mstat.json'
     keep.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(path, keep)
+    if Path(path).resolve() != keep.resolve():
+        shutil.copyfile(path, keep)
     return 'saved+players' if new_players else 'saved'
 
 

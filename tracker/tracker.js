@@ -419,9 +419,9 @@ function vCourt() {
   const total = pd.made ? 3 : 2;
   let mk = '';
   if (d.x != null) {
-    mk = '<circle cx="' + d.x + '" cy="' + d.y + '" r="7" style="fill:none;stroke:' + (pd.made ? '#5B9BFF' : '#FBBF24') + ';stroke-width:0.6;opacity:0.7"></circle>' +
-      (pd.made ? '<circle cx="' + d.x + '" cy="' + d.y + '" r="3.4" style="fill:#2F6BFF;stroke:#fff;stroke-width:0.8"></circle>' :
-        '<path d="M' + (d.x - 2.6) + ' ' + (d.y - 2.6) + 'L' + (d.x + 2.6) + ' ' + (d.y + 2.6) + 'M' + (d.x - 2.6) + ' ' + (d.y + 2.6) + 'L' + (d.x + 2.6) + ' ' + (d.y - 2.6) + '" style="stroke:#FBBF24;stroke-width:1.5;stroke-linecap:round"></path>');
+    mk = '<circle cx="' + d.x + '" cy="' + d.y + '" r="7" style="fill:none;stroke:' + (pd.made ? '#4ADE80' : '#F87171') + ';stroke-width:0.6;opacity:0.7"></circle>' +
+      (pd.made ? '<circle cx="' + d.x + '" cy="' + d.y + '" r="3.2" style="fill:none;stroke:#4ADE80;stroke-width:1.3"></circle>' :
+        '<path d="M' + (d.x - 2.6) + ' ' + (d.y - 2.6) + 'L' + (d.x + 2.6) + ' ' + (d.y + 2.6) + 'M' + (d.x - 2.6) + ' ' + (d.y + 2.6) + 'L' + (d.x + 2.6) + ' ' + (d.y - 2.6) + '" style="stroke:#F87171;stroke-width:1.6;stroke-linecap:round"></path>');
   }
   const mismatch = d.x != null && d.three !== (pd.pts === 3);
   return '<div class="scr">' + flowHeader(pd.pts + 'PT ' + (pd.made ? 'make' : 'miss'), pname(g, pd.p) + ' · step 1 of ' + total, 'cancelShot') +
@@ -556,8 +556,8 @@ function vBox() {
   ].map((x) => '<div class="stile"><b>' + x[0] + '</b><span>' + x[1] + '</span><i>' + esc(x[2]) + '</i></div>').join('');
   // shot chart
   const shots = S.shots.filter((s) => ui.who === 'all' || s.p === ui.who);
-  const dots = shots.filter((s) => !s.made).map((s) => '<path d="M' + (s.x - 1.8) + ' ' + (s.y - 1.8) + 'L' + (s.x + 1.8) + ' ' + (s.y + 1.8) + 'M' + (s.x - 1.8) + ' ' + (s.y + 1.8) + 'L' + (s.x + 1.8) + ' ' + (s.y - 1.8) + '" style="fill:none;stroke:#FBBF24;stroke-width:1.1;stroke-linecap:round"></path>').join('') +
-    shots.filter((s) => s.made).map((s) => '<circle cx="' + s.x + '" cy="' + s.y + '" r="2.3" style="fill:#2F6BFF;stroke:#fff;stroke-width:0.5"></circle>').join('');
+  const dots = shots.filter((s) => !s.made).map((s) => '<path d="M' + (s.x - 1.8) + ' ' + (s.y - 1.8) + 'L' + (s.x + 1.8) + ' ' + (s.y + 1.8) + 'M' + (s.x - 1.8) + ' ' + (s.y + 1.8) + 'L' + (s.x + 1.8) + ' ' + (s.y - 1.8) + '" style="fill:none;stroke:#F87171;stroke-width:1.1;stroke-linecap:round"></path>').join('') +
+    shots.filter((s) => s.made).map((s) => '<circle cx="' + s.x + '" cy="' + s.y + '" r="2.1" style="fill:none;stroke:#4ADE80;stroke-width:0.9"></circle>').join('');
   const zones = ZGROUPS.map((z) => {
     const zs = shots.filter((s) => s.g === z[0]), m = zs.filter((s) => s.made).length, a = zs.length, p = a ? Math.round(m / a * 100) : 0;
     return '<div class="zrow"><span style="font-weight:600">' + z[1] + '</span><span style="text-align:right;color:#D2D7E0">' + m + '/' + a + '</span><span class="row"><span class="bar"><i style="width:' + p + '%"></i></span><b style="width:34px;font-size:12px;text-align:right">' + (a ? p + '%' : '–') + '</b></span></div>';
@@ -579,7 +579,7 @@ function vBox() {
     (g.trackAll ? '' : '<span class="small muted">Only tracked players are shown. The score includes everyone.</span>') + '</div>' +
     '<div class="sec"><div class="between"><h2 class="h2">Shot chart</h2><span class="small muted">' + shots.filter((s) => s.made).length + ' of ' + shots.length + ' with a spot</span></div><div class="scroller">' + pickers + '</div>' +
     '<svg viewBox="0 0 150 100" style="width:100%;display:block;background:var(--card);border-radius:14px" role="img" aria-label="Shot chart"><g class="lines">' + COURT_LINES + '</g>' + dots + '</svg>' +
-    '<div class="row small muted" style="gap:16px"><span class="row" style="gap:6px"><span style="width:10px;height:10px;border-radius:5px;background:#2F6BFF;display:inline-block"></span>Made</span><span class="row" style="gap:6px"><b style="color:#FBBF24;font-size:14px">×</b>Missed</span></div>' +
+    '<div class="row small muted" style="gap:16px"><span class="row" style="gap:6px"><span style="width:10px;height:10px;border-radius:5px;border:2px solid #4ADE80;box-sizing:border-box;display:inline-block"></span>Made</span><span class="row" style="gap:6px"><b style="color:#F87171;font-size:14px">×</b>Missed</span></div>' +
     '<div class="card" style="padding:4px 12px">' + zones + '</div></div>' +
     (lus ? '<div class="sec"><h2 class="h2">Lineups</h2>' + lus + '</div>' : '') +
     (done ? '' : '<button class="btn ghost full" data-act="finish">Finish game</button>') +

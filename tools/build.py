@@ -64,7 +64,7 @@ def build(quiet=False):
             games[-1]['N'] = g['official']
         if g.get('tracked'):
             tr = g['tracked']
-            games[-1]['X'] = {k: tr[k] for k in ('trackAll', 'periods', 'clock', 'byPeriod', 'starters', 'pm', 'min', 'dunks', 'shots',
+            games[-1]['X'] = {k: tr[k] for k in ('trackAll', 'periods', 'clock', 'byPeriod', 'starters', 'pm', 'min', 'dunks', 'assisted', 'types', 'shots',
                                                   'assists', 'extras', 'lineups', 'flow', 'leadChanges', 'ties', 'maxLead', 'maxDeficit', 'bestRun') if k in tr}
 
     order = {'summer': 0, 'autumn': 1, 'fall': 1, 'winter': 2, 'spring': 3}

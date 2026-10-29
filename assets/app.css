@@ -272,8 +272,20 @@ img { display: block; }
 .court-key { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
 .court-key span { display: inline-flex; align-items: center; gap: 6px; }
 .court-key span:last-child { margin-left: auto; }
-.kdot { width: 10px; height: 10px; border-radius: 5px; background: var(--p2); display: inline-block; }
-.kx { font-style: normal; font-weight: 800; color: #F59E0B; font-size: 15px; line-height: 1; }
+.court .so { fill: none; stroke: var(--win); stroke-width: .9; }
+.court .sx { fill: none; stroke: var(--loss); stroke-width: 1.1; stroke-linecap: round; }
+.court .hl { font-family: var(--body); font-size: 4.4px; font-weight: 800; text-anchor: middle; fill: #fff; stroke: rgba(0,0,0,.6); stroke-width: .7px; paint-order: stroke; }
+.court .hl .hs { font-size: 3.3px; font-weight: 600; }
+.court .hl.sm { font-size: 3.2px; }
+.ko { width: 10px; height: 10px; border-radius: 5px; border: 2px solid var(--win); display: inline-block; box-sizing: border-box; }
+.kx { font-style: normal; font-weight: 800; color: var(--loss); font-size: 15px; line-height: 1; }
+.heat-key { display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: 12px; color: var(--sub); }
+.heat-key span { display: inline-flex; align-items: center; gap: 6px; }
+.heat-key i { width: 14px; height: 10px; border-radius: 3px; display: inline-block; }
+.best { display: flex; flex-direction: column; gap: 2px; background: var(--card2); border-radius: 14px; padding: 12px 14px; }
+.best b { font-family: var(--display); font-size: 24px; line-height: 1.1; }
+.best span:last-child { font-size: 13px; color: var(--sub); }
+.legend small { font-size: 11px; }
 .flow { width: 100%; display: block; }
 .pm.up { color: var(--win); }
 .pm.dn { color: var(--loss); }

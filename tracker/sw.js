@@ -1,6 +1,6 @@
 // Offline support: the app files are cached, so the tracker opens with no signal.
 // Bump VERSION whenever tracker files change so phones pick up the new copy.
-const VERSION = 'mstat-v4';
+const VERSION = 'mstat-v5';
 const FILES = ['./', 'index.html', 'tracker.js', 'tracker.css', 'manifest.webmanifest', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', (e) => {

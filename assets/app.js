@@ -519,7 +519,7 @@
         const same = nums.every((n) => n === nums[0]);
         return '<div class="pills">' + teamsPlayed.map((t) => '<a class="pill" href="' + href(['team', t], {}) + '">' + teamBadge(t, 's26') + (same ? '' : '#' + esc(P.teams[t].number) + ' ') + esc(D.teams[t].name) + '</a>').join('') + '</div>';
       })() + '</header>';
-    h += '<nav class="tabs" aria-label="Player sections">' + [['ov', 'Overview'], ['stats', 'Stats'], ['log', 'Game Log'], ['opp', 'Versus']].map((v) => '<a class="' + (view === v[0] ? 'on' : '') + '" ' + tog({ tab: v[0] === 'ov' ? null : v[0], sel: null }) + '>' + v[1] + '</a>').join('') + '</nav>';
+    h += '<nav class="tabs" aria-label="Player sections">' + [['ov', 'Overview'], ['stats', 'Stats'], ['shots', 'Shooting'], ['log', 'Game Log'], ['opp', 'Versus']].map((v) => '<a class="' + (view === v[0] ? 'on' : '') + '" ' + tog({ tab: v[0] === 'ov' ? null : v[0], sel: null, sg: null, sv: null, sk: null }) + '>' + v[1] + '</a>').join('') + '</nav>';
     h += filterBlock({ teams: teamsPlayed.length > 1 ? teamsPlayed : null, team, seasons, season, phase, scope: teamName + ' · ' + (season === 'all' ? 'All seasons' : D.seasonName(season)) + ' · ' + phaseName(phase) + ' · ' + A.n + ' GP' })
       .replace('</section>', (view === 'log' || view === 'opp' ? '<div class="scope">Tap a game to see its box score.</div>' : '') + '</section>');
     if (!A.n) return shell(accentTid, h + '<div class="wrap"><div class="empty">No games match these filters yet.</div></div>', 'players', team);
@@ -528,6 +528,7 @@
     if (view === 'ov') h += playerOverview(pid, list, A, team, teamsPlayed, season, inPhase, teamGames);
     else if (view === 'stats') h += playerStats(pid, list, A, team, teamName, phase, teamGames, inPhase);
     else if (view === 'log') h += playerLog(list);
+    else if (view === 'shots') h += playerShooting(pid, list);
     else h += playerVersus(list, A);
     h += '</div>';
     return shell(accentTid, h, 'players', team);
@@ -889,20 +890,86 @@
 
   // ---------- box score
   // ------------------------------------------------------------------ tracked games (MyStat Tracker)
-  // shots: [player, x, y, made, pts, zone, shotType, fastBreak, secondChance, assist]
+  // shots: [player, x, y, made, pts, zoneGroup, shotType, fastBreak, secondChance, assist]
+  // Court units are decimetres of a FIBA half court; the basket sits near the top.
   const ZONES = [['paint', 'At the rim and paint'], ['mid', 'Mid-range'], ['c3', 'Corner 3'], ['w3', 'Wing 3'], ['t3', 'Top of the arc 3']];
+  // the 12 detailed zones, with where their label sits on the court
+  const Z12 = {
+    rim: { name: 'At the rim', x: 75, y: 21 }, paint: { name: 'Paint', x: 75, y: 45 },
+    lbase: { name: 'Left baseline', x: 30, y: 15 }, rbase: { name: 'Right baseline', x: 120, y: 15 },
+    lelb: { name: 'Left elbow', x: 33, y: 47 }, relb: { name: 'Right elbow', x: 117, y: 47 }, topk: { name: 'Top of the key', x: 75, y: 72 },
+    lc3: { name: 'Left corner 3', x: 4.5, y: 10, small: true }, rc3: { name: 'Right corner 3', x: 145.5, y: 10, small: true },
+    lw3: { name: 'Left wing 3', x: 14, y: 72 }, rw3: { name: 'Right wing 3', x: 136, y: 72 }, t3: { name: 'Top of the arc 3', x: 75, y: 94 }
+  };
+  function zone12(x, y) {
+    const dx = x - 75, dy = y - 15.75, d = Math.sqrt(dx * dx + dy * dy), ang = Math.atan2(dx, dy) * 180 / Math.PI, L = dx < 0;
+    if ((x < 9 || x > 141) && y <= 29.9) return L ? 'lc3' : 'rc3';
+    if (y > 29.9 && d > 67.5) return Math.abs(ang) < 22 ? 't3' : (L ? 'lw3' : 'rw3');
+    if (d <= 12.5) return 'rim';
+    if (x >= 50.5 && x <= 99.5 && y <= 58) return 'paint';
+    if (y <= 29.9) return L ? 'lbase' : 'rbase';
+    return Math.abs(ang) < 22 ? 'topk' : (L ? 'lelb' : 'relb');
+  }
   const pmTxt = (v) => (v > 0 ? '+' + v : v < 0 ? '−' + (-v) : '0');
+  const pal = () => (isDark() ? ['#5B9BFF', '#F59E0B', '#4ADE80', '#A78BFA', '#F472B6', '#8FD0FF', '#94A3B8'] : ['#1F4FD8', '#D97706', '#16A34A', '#7C3AED', '#DB2777', '#0EA5E9', '#64748B']);
+  const COURT_LINES = '<g style="fill:none;stroke:var(--sub);stroke-opacity:.55;stroke-width:.6">' +
+    '<rect x="50.5" y="0" width="49" height="58"/><path d="M9 0 L9 29.9 A67.5 67.5 0 0 0 141 29.9 L141 0"/><path d="M57 58 A18 18 0 0 0 93 58"/>' +
+    '<path d="M62.5 15.75 A12.5 12.5 0 0 0 87.5 15.75"/><path d="M66 12 L84 12" style="stroke-width:1.1;stroke-opacity:.9"/><circle cx="75" cy="15.75" r="2.25" style="stroke:#F59E0B;stroke-opacity:1;stroke-width:.9"/></g>';
   function courtSvg(shots, aria) {
-    const lines = '<g style="fill:none;stroke:var(--sub);stroke-opacity:.5;stroke-width:.6"><rect x="50.5" y="0" width="49" height="58" style="fill:var(--card)"/>' +
-      '<path d="M9 0 L9 29.9 A67.5 67.5 0 0 0 141 29.9 L141 0"/><path d="M57 58 A18 18 0 0 0 93 58"/><path d="M62.5 15.75 A12.5 12.5 0 0 0 87.5 15.75"/>' +
-      '<path d="M66 12 L84 12" style="stroke-width:1.1;stroke-opacity:.8"/><circle cx="75" cy="15.75" r="2.25" style="stroke:#F59E0B;stroke-opacity:1;stroke-width:.9"/></g>';
-    const miss = shots.filter((s) => !s[3]).map((s) => '<path d="M' + (s[1] - 1.8) + ' ' + (s[2] - 1.8) + 'L' + (s[1] + 1.8) + ' ' + (s[2] + 1.8) + 'M' + (s[1] - 1.8) + ' ' + (s[2] + 1.8) + 'L' + (s[1] + 1.8) + ' ' + (s[2] - 1.8) + '" style="fill:none;stroke:#F59E0B;stroke-width:1.1;stroke-linecap:round"/>').join('');
-    const made = shots.filter((s) => s[3]).map((s) => '<circle cx="' + s[1] + '" cy="' + s[2] + '" r="2.3" style="fill:var(--p2);stroke:var(--card);stroke-width:.5"/>').join('');
-    return '<svg class="court" viewBox="0 0 150 100" role="img" aria-label="' + esc(aria) + '">' + lines + miss + made + '</svg>' +
-      '<div class="note small court-key"><span><i class="kdot"></i>Made</span><span><i class="kx">×</i>Missed</span><span>' + shots.filter((s) => s[3]).length + ' of ' + shots.length + ' with a spot</span></div>';
+    const miss = shots.filter((s) => !s[3]).map((s) => '<path d="M' + (s[1] - 1.7) + ' ' + (s[2] - 1.7) + 'L' + (s[1] + 1.7) + ' ' + (s[2] + 1.7) + 'M' + (s[1] - 1.7) + ' ' + (s[2] + 1.7) + 'L' + (s[1] + 1.7) + ' ' + (s[2] - 1.7) + '" class="sx"/>').join('');
+    const made = shots.filter((s) => s[3]).map((s) => '<circle cx="' + s[1] + '" cy="' + s[2] + '" r="2.1" class="so"/>').join('');
+    return '<svg class="court" viewBox="0 0 150 100" role="img" aria-label="' + esc(aria) + '"><rect x="50.5" y="0" width="49" height="58" style="fill:var(--card)"/>' + COURT_LINES + miss + made + '</svg>' +
+      '<div class="note small court-key"><span><i class="ko"></i>Made</span><span><i class="kx">×</i>Missed</span><span>' + shots.filter((s) => s[3]).length + ' of ' + shots.length + ' shots</span></div>';
+  }
+  // hot zones: each zone coloured by its FG%
+  const HEAT = [[0, '#1D4ED8', 'Under 25%'], [25, '#60A5FA', '25–35%'], [35, '#94A3B8', '35–45%'], [45, '#FB923C', '45–55%'], [55, '#DC2626', '55% +']];
+  const heatColor = (p) => HEAT.filter((h) => p >= h[0]).pop()[1];
+  function zoneStats(shots) {
+    const z = {};
+    Object.keys(Z12).forEach((k) => { z[k] = { m: 0, a: 0, pts: 0 }; });
+    shots.forEach((s) => { const k = zone12(s[1], s[2]); z[k].a++; if (s[3]) { z[k].m++; z[k].pts += s[4]; } });
+    return z;
+  }
+  let heatCells = null;
+  function heatSvg(shots, aria) {
+    const z = zoneStats(shots);
+    if (!heatCells) { // runs of half-unit rows that share a zone, grouped by zone, worked out once
+      heatCells = {};
+      for (let y = 0; y < 100; y += 0.5) {
+        let start = 0, cur = zone12(0.25, y + 0.25);
+        for (let x = 0.5; x <= 150; x += 0.5) {
+          const k = x < 150 ? zone12(x + 0.25, y + 0.25) : null;
+          if (k !== cur) { (heatCells[cur] = heatCells[cur] || []).push('M' + start + ' ' + y + 'h' + (x - start) + 'v0.5h' + (start - x) + 'z'); start = x; cur = k; }
+        }
+      }
+      Object.keys(heatCells).forEach((k) => { heatCells[k] = heatCells[k].join(''); });
+    }
+    const rects = Object.keys(heatCells).map((k) => { const s = z[k]; const fill = s.a ? heatColor(s.m / s.a * 100) : 'var(--card)'; return '<path d="' + heatCells[k] + '" style="fill:' + fill + ';fill-opacity:' + (s.a ? Math.min(0.9, 0.45 + s.a * 0.08).toFixed(2) : 1) + '" shape-rendering="crispEdges"/>'; }).join('');
+    const labels = Object.keys(Z12).map((k) => { const s = z[k], L = Z12[k]; if (!s.a) return ''; return '<text x="' + L.x + '" y="' + L.y + '" class="hl' + (L.small ? ' sm' : '') + '">' + (L.small ? Math.round(s.m / s.a * 100) + '%' : '<tspan x="' + L.x + '">' + Math.round(s.m / s.a * 100) + '%</tspan><tspan x="' + L.x + '" dy="4.6" class="hs">' + s.m + '/' + s.a + '</tspan>') + '</text>'; }).join('');
+    return '<svg class="court" viewBox="0 0 150 100" role="img" aria-label="' + esc(aria) + '">' + rects + COURT_LINES + labels + '</svg>' +
+      '<div class="heat-key">' + HEAT.map((h) => '<span><i style="background:' + h[1] + '"></i>' + h[2] + '</span>').join('') + '</div>';
   }
   function zoneBars(shots) {
     return ZONES.map((z) => { const zs = shots.filter((s) => s[5] === z[0]), m = zs.filter((s) => s[3]).length; return zs.length ? shotBar(z[1], m, zs.length, m + '/' + zs.length) : ''; }).join('');
+  }
+  function bestArea(shots) {
+    const z = zoneStats(shots);
+    const ok = Object.keys(z).filter((k) => z[k].a >= 3).map((k) => ({ k, s: z[k], p: z[k].m / z[k].a, pps: z[k].pts / z[k].a }));
+    if (!ok.length) return null;
+    ok.sort((a, b) => b.pps - a.pps || b.s.a - a.s.a);
+    return ok[0];
+  }
+  // the shot chart card: view (dots or hot zones) and 2PT/3PT filter, plus a player or game picker
+  function shotPanel(all, o) {
+    const sv = qv('sv', 'dots'), sk = qv('sk', 'all');
+    const shots = all.filter((s) => sk === 'all' || String(s[4]) === sk);
+    const best = bestArea(shots);
+    return '<div class="head" style="flex-wrap:wrap">' + seg([['dots', 'Shots'], ['heat', 'Hot zones']].map((x) => ({ label: x[1], on: sv === x[0], attr: tog({ sv: x[0] === 'dots' ? null : x[0] }) })), 'inline') +
+      seg([['all', 'All'], ['2', '2PT'], ['3', '3PT']].map((x) => ({ label: x[1], on: sk === x[0], attr: tog({ sk: x[0] === 'all' ? null : x[0] }) })), 'inline') + '</div>' +
+      (o.picker || '') +
+      (shots.length ? (sv === 'heat' ? heatSvg(shots, o.aria + ', hot zones') : courtSvg(shots, o.aria)) : '<div class="empty">No shots match.</div>') +
+      (best ? '<div class="best"><span class="note small">Best shot area</span><b>' + esc(Z12[best.k].name) + '</b><span>' + Math.round(best.p * 100) + '% · ' + best.s.m + '/' + best.s.a + ' · ' + best.pps.toFixed(2) + ' pts a shot</span></div>' : '') +
+      zoneBars(shots);
   }
   function flowSvg(flow, us, them) {
     const n = flow.length - 1;
@@ -914,14 +981,23 @@
       '<text x="6" y="11" style="fill:var(--sub);font-size:10px">' + esc(us) + ' ahead</text><text x="6" y="' + (H - 3) + '" style="fill:var(--sub);font-size:10px">' + esc(them) + ' ahead</text>' +
       '<polyline points="' + flow.map((v, i) => px(i).toFixed(1) + ',' + py(v).toFixed(1)).join(' ') + '" style="fill:none;stroke:var(--acc);stroke-width:2.2;stroke-linejoin:round;stroke-linecap:round"/></svg>';
   }
-  function nameOf(pid) { return pid === 'rest' ? 'An untracked teammate' : ((D.players[pid] || { name: pid }).name); }
-  function shortOf(pid) { const p = D.players[pid]; return p ? p.short || p.name : pid; }
+  function nameOf(pid) { return pid === 'rest' ? 'Untracked teammates' : ((D.players[pid] || { name: pid }).name); }
+  function shortOf(pid) { return pid === 'rest' ? 'Untracked' : (D.players[pid] ? D.players[pid].short || D.players[pid].name : pid); }
+  // a donut with a legend, NBA style. segs: [{label, v, sub?}]
+  function donutCard(title, segs, center, centerLbl, foot) {
+    const P = pal();
+    const ss = segs.filter((s) => s.v > 0).map((s, i) => Object.assign({ color: P[i % P.length] }, s));
+    if (!ss.length) return '';
+    const tot = ss.reduce((a, s) => a + s.v, 0);
+    return '<div class="card"><h2>' + esc(title) + '</h2><div class="donut-row">' + donut(ss, center, centerLbl) + '<div class="legend">' +
+      ss.map((s) => '<div class="li"><span class="dot" style="background:' + s.color + '"></span><span>' + esc(s.label) + (s.sub ? '<small class="note"> ' + esc(s.sub) + '</small>' : '') + '</span><b>' + s.v + '</b><small class="note" style="width:38px;text-align:right">' + Math.round(s.v / tot * 100) + '%</small></div>').join('') +
+      (foot ? '<div class="note small">' + esc(foot) + '</div>' : '') + '</div></div></div>';
+  }
 
   function trackedGameCards(g) {
     const X = g.X, T = D.teams[g.t];
     const ql = X.periods === 2 ? 'H' : 'Q';
     let h = '';
-    // flow
     const qs = X.byPeriod || [];
     const qcols = 'grid-template-columns:minmax(0,1fr) repeat(' + (qs.length + 1) + ',40px)';
     h += '<div class="card"><h2 style="font-size:18px">Game Flow</h2>' +
@@ -931,7 +1007,6 @@
       flowSvg(X.flow || [], T.name, g.o) +
       '<div class="tiles">' + tile(X.leadChanges || 0, 'Lead changes') + tile(X.ties || 0, 'Ties') + tile(pmTxt(X.maxLead || 0), 'Largest lead') +
       tile(((X.bestRun || {}).us || 0) + '–0', 'Best run') + tile(X.maxDeficit ? '−' + X.maxDeficit : '0', 'Biggest deficit') + tile(((X.bestRun || {}).them || 0) + '–0', 'Their best run') + '</div></div>';
-    // extras
     const x = X.extras || {};
     const made = g.lines.reduce((a, l) => a + l.fgm, 0);
     h += '<div class="card"><h2 style="font-size:18px">Team Extras</h2><div class="tiles">' +
@@ -939,27 +1014,22 @@
       tile(made ? Math.round((x.astFg || 0) / made * 100) + '%' : '–', 'Assisted FG', '<div class="s">' + (x.astFg || 0) + ' of ' + made + ' makes</div>') +
       (X.trackAll === false ? tile(x.rest || 0, 'Rest of team', '<div class="s">Untracked players</div>') : tile(x.bench || 0, 'Bench pts')) + '</div>' +
       '<div class="note small">Points in the paint only count shots that were given a spot on the court.</div></div>';
-    // shot chart
     const all = X.shots || [];
     if (all.length) {
       const shooters = Array.from(new Set(all.map((s) => s[0])));
       const sp = shooters.indexOf(qv('sp')) >= 0 ? qv('sp') : 'all';
-      const shots = all.filter((s) => sp === 'all' || s[0] === sp);
-      h += '<div class="card"><h2 style="font-size:18px">Shot Chart</h2>' + (shooters.length > 1 ? '<div class="scroller">' +
-        chips([{ label: 'Everyone', on: sp === 'all', attr: tog({ sp: null }) }].concat(shooters.map((pid) => ({ label: shortOf(pid), on: sp === pid, attr: tog({ sp: pid }) })))) + '</div>' : '') +
-        courtSvg(shots, 'Shot chart') + zoneBars(shots) + '</div>';
+      const picker = shooters.length > 1 ? '<div class="scroller">' + chips([{ label: 'Everyone', on: sp === 'all', attr: tog({ sp: null }) }].concat(shooters.map((pid) => ({ label: shortOf(pid), on: sp === pid, attr: tog({ sp: pid }) })))) + '</div>' : '';
+      h += '<div class="card"><h2 style="font-size:18px">Shot Chart</h2>' + shotPanel(all.filter((s) => sp === 'all' || s[0] === sp), { aria: 'Shot chart', picker }) + '</div>';
     }
-    // assists
     const passers = Object.entries(X.assists || {}).map(([a, m]) => {
       const to = Object.entries(m).sort((p, q) => q[1] - p[1]);
-      return { a, n: to.reduce((t, x) => t + x[1], 0), to };
-    }).filter((x) => x.n).sort((p, q) => q.n - p.n);
+      return { a, n: to.reduce((t, y) => t + y[1], 0), to };
+    }).filter((y) => y.n).sort((p, q) => q.n - p.n);
     if (passers.length) {
-      h += '<div class="card list"><div class="head"><h2 style="font-size:18px">Who Assisted Who</h2></div>' + passers.map((x) =>
-        '<a class="lrow" style="min-height:62px" href="' + href(['player', x.a], { team: g.t }) + '">' + avatar(x.a, 's40', g.t) + '<span class="grow"><b style="font-size:14px">' + esc(nameOf(x.a)) + '</b><span class="note small" style="line-height:1.35">to ' +
-        esc(x.to.map((t) => (t[0] === 'rest' ? 'untracked teammates' : shortOf(t[0])) + (t[1] > 1 ? ' ×' + t[1] : '')).join(', ')) + '</span></span><span class="big" style="font-size:24px">' + x.n + '</span></a>').join('') + '</div>';
+      h += '<div class="card list"><div class="head"><h2 style="font-size:18px">Who Assisted Who</h2></div>' + passers.map((y) =>
+        '<a class="lrow" style="min-height:62px" href="' + href(['player', y.a], { team: g.t }) + '">' + avatar(y.a, 's40', g.t) + '<span class="grow"><b style="font-size:14px">' + esc(nameOf(y.a)) + '</b><span class="note small" style="line-height:1.35">to ' +
+        esc(y.to.map((t) => shortOf(t[0]) + (t[1] > 1 ? ' ×' + t[1] : '')).join(', ')) + '</span></span><span class="big" style="font-size:24px">' + y.n + '</span></a>').join('') + '</div>';
     }
-    // lineups
     const full = X.trackAll === false ? 1 : 5;
     const lus = (X.lineups || []).filter((L) => L[0].length >= full).slice().sort((a, b) => (b[2] - b[3]) - (a[2] - a[3]) || b[1] - a[1]).slice(0, 6);
     if (lus.length) {
@@ -977,51 +1047,103 @@
     const n = TG.length, x = { paint: 0, sc: 0, fb: 0, pot: 0, astFg: 0 };
     let made = 0;
     TG.forEach((g) => { Object.keys(x).forEach((k) => { x[k] += (g.X.extras || {})[k] || 0; }); made += g.lines.reduce((a, l) => a + l.fgm, 0); });
-    const shots = [];
-    TG.forEach((g) => (g.X.shots || []).forEach((s) => shots.push(s)));
+    const all = [];
+    TG.forEach((g) => (g.X.shots || []).forEach((s) => all.push(s)));
     const pmBy = {};
     TG.forEach((g) => g.lines.forEach((l) => { if (l.pm == null) return; const o = pmBy[l.p] || (pmBy[l.p] = { pm: 0, n: 0 }); o.pm += l.pm; o.n++; }));
     const pmRows = Object.entries(pmBy).sort((a, b) => b[1].pm / b[1].n - a[1].pm / a[1].n);
     let h = '<div class="card"><div><h2>Tracked Games</h2><div class="sub">' + n + ' game' + (n > 1 ? 's' : '') + ' entered with MyStat Tracker · per game</div></div><div class="tiles">' +
       tile(f1(x.paint / n), 'Paint pts') + tile(f1(x.sc / n), '2nd chance pts') + tile(f1(x.fb / n), 'Fast break pts') + tile(f1(x.pot / n), 'Pts off TO') +
-      tile(made ? Math.round(x.astFg / made * 100) + '%' : '–', 'Assisted FG') + tile(shots.length, 'Shots charted') + '</div>' +
+      tile(made ? Math.round(x.astFg / made * 100) + '%' : '–', 'Assisted FG') + tile(all.length, 'Shots charted') + '</div>' +
       (pmRows.length ? '<div><div class="trow th" style="grid-template-columns:minmax(0,1fr) 40px 56px"><span style="text-align:left">PLUS-MINUS</span><span>GP</span><span>PER GAME</span></div>' +
         pmRows.map(([pid, o]) => { const v = Math.round(o.pm / o.n * 10) / 10; return '<a class="trow" style="grid-template-columns:minmax(0,1fr) 40px 56px" href="' + href(['player', pid], { team: tid }) + '"><span class="lft">' + avatar(pid, 's30', tid) + '<span class="t1">' + esc(nameOf(pid)) + '</span></span><span>' + o.n + '</span><b class="pm ' + (v > 0 ? 'up' : v < 0 ? 'dn' : '') + '">' + pmTxt(v) + '</b></a>'; }).join('') + '</div>' : '') + '</div>';
-    if (shots.length) h += '<div class="card"><h2>Team Shot Chart</h2>' + courtSvg(shots, D.teams[tid].name + ' shot chart') + zoneBars(shots) + '</div>';
+    if (all.length) {
+      const shooters = Array.from(new Set(all.map((s) => s[0])));
+      const sp = shooters.indexOf(qv('sp')) >= 0 ? qv('sp') : 'all';
+      const picker = shooters.length > 1 ? '<div class="scroller">' + chips([{ label: 'Everyone', on: sp === 'all', attr: tog({ sp: null }) }].concat(shooters.map((pid) => ({ label: shortOf(pid), on: sp === pid, attr: tog({ sp: pid }) })))) + '</div>' : '';
+      h += '<div class="card"><h2>Team Shot Chart</h2>' + shotPanel(all.filter((s) => sp === 'all' || s[0] === sp), { aria: D.teams[tid].name + ' shot chart', picker }) + '</div>';
+    }
     return h;
   }
 
-  function trackedPlayerCards(pid, list) {
+  // per-player extras from tracker games, used by the Overview and Shooting tabs
+  function trackedPlayerData(pid, list) {
     const tl = list.filter((l) => l.g.X);
-    if (!tl.length) return '';
-    const n = tl.length;
-    const pm = tl.reduce((a, l) => a + (l.pm || 0), 0);
-    const withMin = tl.filter((l) => l.min != null);
-    const mins = withMin.reduce((a, l) => a + l.min, 0);
-    const dunks = tl.reduce((a, l) => a + ((l.g.X.dunks || {})[pid] || 0), 0);
-    const shots = [];
-    tl.forEach((l) => (l.g.X.shots || []).forEach((s) => { if (s[0] === pid) shots.push(s); }));
-    const fb = shots.filter((s) => s[3] && s[7]).reduce((a, s) => a + s[4], 0), sc = shots.filter((s) => s[3] && s[8]).reduce((a, s) => a + s[4], 0);
-    let h = '<div class="card"><div><h2>Tracked Games</h2><div class="sub">' + n + ' game' + (n > 1 ? 's' : '') + ' entered with MyStat Tracker. These extras only cover ' + (n > 1 ? 'those games' : 'that game') + '.</div></div><div class="tiles">' +
-      tile(pmTxt(Math.round(pm / n * 10) / 10), '+/- per game', '<div class="s">' + pmTxt(pm) + ' total</div>') +
-      (withMin.length ? tile(f1(mins / withMin.length), 'Minutes', '<div class="s">Per game</div>') : '') +
-      tile(dunks, 'Dunks') + tile(fb, 'Fast break pts') + tile(sc, '2nd chance pts') + '</div>' +
-      '<div class="note small">Fast break and second-chance points count shots that were given a spot on the court.</div></div>';
-    if (shots.length) h += '<div class="card"><h2>Shot Chart</h2>' + courtSvg(shots, 'Shot chart for ' + nameOf(pid)) + zoneBars(shots) + '</div>';
-    const to = {}, from = {};
+    const shots = [], to = {}, from = {}, types = {}, mates = {};
+    let pm = 0, mins = 0, withMin = 0, dunks = 0, astM = 0, ast3 = 0, fgm = 0, tpm = 0, on = 0, off = 0, onOff = 0;
     tl.forEach((l) => {
-      const A = l.g.X.assists || {};
-      Object.entries(A[pid] || {}).forEach(([b, k]) => { to[b] = (to[b] || 0) + k; });
-      Object.entries(A).forEach(([a, m]) => { if (m[pid]) from[a] = (from[a] || 0) + m[pid]; });
+      const X = l.g.X;
+      (X.shots || []).forEach((s) => { if (s[0] === pid) shots.push(s.concat([l.g])); });
+      pm += l.pm || 0; if (l.min != null) { mins += l.min; withMin++; }
+      dunks += (X.dunks || {})[pid] || 0;
+      const as = (X.assisted || {})[pid]; if (as) { astM += as[0]; ast3 += as[1]; }
+      fgm += l.fgm; tpm += l.tpm;
+      Object.entries((X.assists || {})[pid] || {}).forEach(([b, k]) => { to[b] = (to[b] || 0) + k; });
+      Object.entries(X.assists || {}).forEach(([a, m]) => { if (m[pid]) from[a] = (from[a] || 0) + m[pid]; });
+      Object.entries((X.types || {})[pid] || {}).forEach(([t, v]) => { const o = types[t] || (types[t] = [0, 0, v[2]]); o[0] += v[0]; o[1] += v[1]; });
+      // on/off: the team's margin with them on the court, and off it
+      let gOn = 0;
+      (X.lineups || []).forEach((L) => {
+        if (L[0].indexOf(pid) < 0) return;
+        gOn += L[2] - L[3];
+        L[0].forEach((q) => { if (q === pid) return; const o = mates[q] || (mates[q] = { pm: 0, sec: 0 }); o.pm += L[2] - L[3]; o.sec += L[1]; });
+      });
+      on += gOn; off += (l.g.us - l.g.them) - gOn; onOff++;
     });
-    const rows = (obj) => Object.entries(obj).sort((a, b) => b[1] - a[1]).map(([q, k]) =>
-      (q === 'rest' ? '<div class="lrow"><span class="av s40">TM</span>' : '<a class="lrow" href="' + href(['player', q], {}) + '">' + avatar(q, 's40', null)) +
-      '<span class="grow"><b style="font-size:14px">' + esc(nameOf(q)) + '</b></span><span class="big" style="font-size:24px">' + k + '</span>' + (q === 'rest' ? '</div>' : '</a>')).join('');
-    if (Object.keys(to).length || Object.keys(from).length) {
-      h += '<div class="card list"><div class="head"><h2>Playmaking</h2></div>' +
-        (Object.keys(to).length ? '<div class="note small" style="margin:2px 0 4px">Assisted</div>' + rows(to) : '') +
-        (Object.keys(from).length ? '<div class="note small" style="margin:14px 0 4px">Was assisted by</div>' + rows(from) : '') + '</div>';
+    return { tl, n: tl.length, shots, to, from, types, mates, pm, mins, withMin, dunks, astM, ast3, fgm, tpm, on, off, onOff };
+  }
+
+  function trackedPlayerCards(pid, list) {
+    const T = trackedPlayerData(pid, list);
+    if (!T.n) return '';
+    const fb = T.shots.filter((s) => s[3] && s[7]).reduce((a, s) => a + s[4], 0), sc = T.shots.filter((s) => s[3] && s[8]).reduce((a, s) => a + s[4], 0);
+    const best = bestArea(T.shots);
+    let h = '<div class="card"><div class="head"><div><h2>Tracked Games</h2><div class="sub">' + T.n + ' game' + (T.n > 1 ? 's' : '') + ' entered with MyStat Tracker</div></div><a class="more" ' + tog({ tab: 'shots' }) + '>Shooting</a></div><div class="tiles">' +
+      tile(pmTxt(Math.round(T.pm / T.n * 10) / 10), '+/- per game', '<div class="s">' + pmTxt(T.pm) + ' total</div>') +
+      (T.withMin ? tile(f1(T.mins / T.withMin), 'Minutes', '<div class="s">Per game</div>') : tile(T.dunks, 'Dunks')) +
+      tile(T.fgm ? Math.round(T.astM / T.fgm * 100) + '%' : '–', 'Assisted makes', '<div class="s">' + T.astM + ' of ' + T.fgm + '</div>') +
+      tile(fb, 'Fast break pts') + tile(sc, '2nd chance pts') +
+      (best ? tile(Math.round(best.p * 100) + '%', 'Best area', '<div class="s">' + esc(Z12[best.k].name) + '</div>') : tile(T.shots.length, 'Shots charted')) + '</div></div>';
+    if (T.shots.length) h += '<div class="card"><div class="head"><h2>Shot Chart</h2><a class="more" ' + tog({ tab: 'shots' }) + '>More</a></div>' + courtSvg(T.shots, 'Shot chart for ' + nameOf(pid)) + '</div>';
+    return h;
+  }
+
+  // the Shooting tab on a player page (tracker games only)
+  function playerShooting(pid, list) {
+    const T = trackedPlayerData(pid, list);
+    if (!T.n) return '<div class="empty">No games in this filter were entered with MyStat Tracker yet. Shot charts, hot zones and assist breakdowns come from tracker games.</div>';
+    const games = T.tl.map((l) => l.g).slice().reverse();
+    const sg = games.some((g) => g.id === qv('sg')) ? qv('sg') : 'all';
+    const shots = T.shots.filter((s) => sg === 'all' || s[10].id === sg);
+    const picker = '<label class="ctl">Games<select data-param="sg"><option value="all"' + (sg === 'all' ? ' selected' : '') + '>All tracker games (' + T.n + ')</option>' +
+      games.map((g) => '<option value="' + esc(g.id) + '"' + (g.id === sg ? ' selected' : '') + '>' + esc(fmtD(g.date) + ' ' + vsName(g) + ' · ' + D.teams[g.t].short) + '</option>').join('') + '</select></label>';
+    let h = '<div class="card"><h2>Shot Chart</h2>' + shotPanel(shots, { aria: 'Shot chart for ' + nameOf(pid), picker }) +
+      '<div class="note small">Only shots given a spot on the court are charted.</div></div>';
+    // breakdown wheels
+    const zSeg = ZONES.map((z) => ({ label: z[1], v: shots.filter((s) => s[5] === z[0]).length }));
+    h += donutCard('Shot Diet', zSeg, String(shots.length), 'FGA', 'Where their shots come from');
+    const t3 = shots.filter((s) => s[4] === 3 && s[3]);
+    h += donutCard('3-Pointers Made', [['c3', 'Corner'], ['w3', 'Wing'], ['t3', 'Top of the arc']].map((z) => ({ label: z[1], v: t3.filter((s) => s[5] === z[0]).length })), String(t3.length), '3PM');
+    const astTotal = Object.values(T.to).reduce((a, k) => a + k, 0);
+    h += donutCard('Assists', Object.entries(T.to).sort((a, b) => b[1] - a[1]).map(([q, k]) => ({ label: nameOf(q), v: k })), String(astTotal), 'AST', 'Who they set up');
+    h += donutCard('How Their Makes Came', [{ label: 'Assisted', v: T.astM }, { label: 'Unassisted', v: T.fgm - T.astM }], T.fgm ? Math.round(T.astM / T.fgm * 100) + '%' : '–', 'ASSISTED',
+      T.tpm ? T.ast3 + ' of ' + T.tpm + ' threes were assisted' : '');
+    if (Object.keys(T.from).length) h += donutCard('Assisted By', Object.entries(T.from).sort((a, b) => b[1] - a[1]).map(([q, k]) => ({ label: nameOf(q), v: k })), String(Object.values(T.from).reduce((a, k) => a + k, 0)), 'ASSISTS');
+    // shot types
+    const ty = Object.entries(T.types).filter((t) => t[1][1]).sort((a, b) => b[1][1] - a[1][1]);
+    if (ty.length) {
+      h += '<div class="card"><h2>Shot Types</h2>' + ty.map(([t, v]) => shotBar(t, v[0], v[1], v[0] + '/' + v[1])).join('') + '</div>';
     }
+    // on/off and teammates
+    h += '<div class="card"><div><h2>On / Off Court</h2><div class="sub">Team score margin across ' + T.onOff + ' tracker game' + (T.onOff > 1 ? 's' : '') + '</div></div><div class="tiles two">' +
+      '<div class="tile"><div class="v ' + (T.on > 0 ? 'up' : T.on < 0 ? 'down' : '') + '">' + pmTxt(T.on) + '</div><div class="l">With them on</div></div>' +
+      '<div class="tile"><div class="v ' + (T.off > 0 ? 'up' : T.off < 0 ? 'down' : '') + '">' + pmTxt(T.off) + '</div><div class="l">With them off</div></div></div>';
+    const mates = Object.entries(T.mates).sort((a, b) => b[1].pm - a[1].pm).slice(0, 5);
+    if (mates.length) {
+      h += '<div><div class="trow th" style="grid-template-columns:minmax(0,1fr) 56px"><span style="text-align:left">BEST ALONGSIDE</span><span>+/-</span></div>' +
+        mates.map(([q, o]) => '<a class="trow" style="grid-template-columns:minmax(0,1fr) 56px" href="' + href(['player', q], {}) + '"><span class="lft">' + avatar(q, 's30', null) + '<span class="t1">' + esc(nameOf(q)) + '</span></span><b class="pm ' + (o.pm > 0 ? 'up' : o.pm < 0 ? 'dn' : '') + '">' + pmTxt(o.pm) + '</b></a>').join('') + '</div>';
+    }
+    h += '</div>';
     return h;
   }
 

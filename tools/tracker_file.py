@@ -22,7 +22,7 @@ def load(path):
 
 def _blank():
     p = {k: 0 for k in STATS}
-    p.update(pm=0, sec=0, dunk=0)
+    p.update(pm=0, sec=0, dunk=0, astm=0, ast3m=0)
     return p
 
 
@@ -37,7 +37,7 @@ def replay(data):
         'qs': {}, 'lineups': {}, 'flow': [0], 'ties': 0, 'changes': 0, 'leader': 0, 'max_lead': 0, 'max_def': 0,
         'run_t': None, 'run_p': 0, 'best_run': {'us': 0, 'them': 0},
         'x': {'paint': 0, 'sc': 0, 'fb': 0, 'pot': 0, 'astFg': 0, 'fgm': 0, 'bench': 0, 'rest': 0},
-        'shots': [], 'assists': {},
+        'shots': [], 'assists': {}, 'types': {},
     }
 
     def lineup():
@@ -108,6 +108,10 @@ def replay(data):
         elif t == 'addplayer':
             P.setdefault(e['id'], _blank())
         elif t == 'shot' and p:
+            ty = S['types'].setdefault(e['p'], {}).setdefault(e.get('st') or f'No type set ({e["pts"]}PT)', [0, 0, e['pts']])
+            ty[1] += 1
+            if e.get('made'):
+                ty[0] += 1
             p['fga'] += 1
             if e['pts'] == 3:
                 p['tpa'] += 1
@@ -121,6 +125,9 @@ def replay(data):
                     p['dunk'] += 1
                 if e.get('ast'):
                     S['x']['astFg'] += 1
+                    p['astm'] += 1
+                    if e['pts'] == 3:
+                        p['ast3m'] += 1
                     if e['ast'] != 'tm' and e['ast'] in P:
                         P[e['ast']]['ast'] += 1
                         assist(e['ast'], e['p'])
@@ -231,6 +238,10 @@ def tracked_block(data, S, idmap):
         'pm': {m(pid): S['P'][pid]['pm'] for pid in S['P'] if m(pid) in players},
         'min': {m(pid): round(S['P'][pid]['sec'] / 60, 1) for pid in S['P'] if m(pid) in players} if clock_on else None,
         'dunks': {m(pid): S['P'][pid]['dunk'] for pid in S['P'] if S['P'][pid]['dunk']},
+        # per player: [assisted FGM, assisted 3PM]
+        'assisted': {m(pid): [S['P'][pid]['astm'], S['P'][pid]['ast3m']] for pid in S['P'] if S['P'][pid]['fgm']},
+        # per player: {shot type: [made, attempts, points per make]}
+        'types': {m(pid): v for pid, v in S['types'].items()},
         'shots': [[m(s[0])] + s[1:9] + [m(s[9]) if s[9] and s[9] != 'tm' else s[9]] for s in S['shots']],
         'assists': {m(a): {('rest' if b == 'rest' else m(b)): n for b, n in v.items()} for a, v in S['assists'].items()},
         'extras': dict(S['x']),
