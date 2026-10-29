@@ -43,7 +43,7 @@
       const parts = g.d.split('-').map(Number);
       const game = {
         id: g.id, t: g.t, ds: g.d, date: new Date(parts[0], parts[1] - 1, parts[2]), s: g.s, ok: g.o,
-        o: bundle.opponents[g.o] || g.o, home: !!g.h, us: g.us, them: g.them, po: !!g.po, win: g.us > g.them, lines: [], dnp: []
+        o: bundle.opponents[g.o] || g.o, home: !!g.h, venue: g.V || '', us: g.us, them: g.them, po: !!g.po, lines: [], dnp: []
       };
       game.lines = g.L.map((row) => {
         const l = { p: row[0], n: row[1], g: game };
@@ -54,6 +54,9 @@
       game.dnp = g.D.map((r) => ({ p: r[0], n: r[1] }));
       game.X = g.X || null; // extra stats from MyStat Tracker games
       game.official = g.N || null; // { us, them, note } when the league logged a different score
+      const ru = game.official ? game.official.us : g.us, rt = game.official ? game.official.them : g.them;
+      game.res = ru > rt ? 'W' : ru < rt ? 'L' : 'D';
+      game.win = game.res === 'W'; game.draw = game.res === 'D';
       if (game.X) game.lines.forEach((l) => { l.pm = (game.X.pm || {})[l.p]; l.min = game.X.min ? game.X.min[l.p] : null; });
       return game;
     });
@@ -86,9 +89,9 @@
 
   const SUMK = ['fgm', 'fga', 'tpm', 'tpa', 'ftm', 'fta', 'oreb', 'dreb', 'pf', 'stl', 'to', 'blk', 'ast', 'pts'];
   function agg(lines) {
-    const s = { n: lines.length, w: 0 };
+    const s = { n: lines.length, w: 0, d: 0, pm: 0, tn: 0 };
     SUMK.forEach((k) => { s[k] = 0; });
-    lines.forEach((l) => { SUMK.forEach((k) => { s[k] += l[k]; }); if (l.g && l.g.win) s.w++; });
+    lines.forEach((l) => { SUMK.forEach((k) => { s[k] += l[k]; }); if (l.g && l.g.win) s.w++; if (l.g && l.g.draw) s.d++; if (l.pm != null) { s.pm += l.pm; s.tn++; } });
     s.reb = s.oreb + s.dreb; s.twom = s.fgm - s.tpm; s.twoa = s.fga - s.tpa;
     return s;
   }
@@ -96,12 +99,13 @@
   const LABEL = {
     gp: 'GP', pts: 'PTS', reb: 'REB', oreb: 'OREB', dreb: 'DREB', ast: 'AST', stl: 'STL', blk: 'BLK', to: 'TO', pf: 'PF',
     fgm: 'FGM', fga: 'FGA', fgp: 'FG%', twom: '2PM', twoa: '2PA', twop: '2P%', tpm: '3PM', tpa: '3PA', tpp: '3P%',
-    ftm: 'FTM', fta: 'FTA', ftp: 'FT%', efg: 'eFG%', ts: 'TS%', astto: 'AST/TO', stocks: 'STL+BLK', pra: 'PTS+REB+AST'
+    pm: '+/-', ftm: 'FTM', fta: 'FTA', ftp: 'FT%', efg: 'eFG%', ts: 'TS%', astto: 'AST/TO', stocks: 'STL+BLK', pra: 'PTS+REB+AST'
   };
   function metric(k, S) {
     if (!S.n) return 0;
     switch (k) {
       case 'gp': return S.n;
+      case 'pm': return S.tn ? S.pm / S.tn : 0;
       case 'fgp': return pct(S.fgm, S.fga);
       case 'twop': return pct(S.twom, S.twoa);
       case 'tpp': return pct(S.tpm, S.tpa);
@@ -132,7 +136,13 @@
   };
   const seasonsOf = (games) => D.seasons.map((s) => s.key).filter((k) => games.some((g) => g.s === k));
   const teamColor = (tid) => (tid === 'all' || !D.teams[tid] ? ALL_ACCENT : D.teams[tid]);
-  const vsName = (g) => (g.home ? 'vs ' : '@ ') + g.o;
+  const vsName = (g) => 'vs ' + g.o; // every game is at the same stadium
+  // W/L/D helpers (a draw only happens when the league logs one)
+  const resL = (g) => g.res || resL(g);
+  const resWord = (g) => ({ W: 'WIN', L: 'LOSS', D: 'DRAW' })[resL(g)];
+  const resBg = (g) => ({ W: 'win', L: 'loss', D: 'draw' })[resL(g)];
+  const recOf = (gs) => { const w = gs.filter((g) => g.win).length, d = gs.filter((g) => g.draw).length; return w + '–' + (gs.length - w - d) + (d ? '–' + d : ''); };
+  const recS = (S) => S.w + '–' + (S.n - S.w - (S.d || 0)) + (S.d ? '–' + S.d : '');
 
   // ------------------------------------------------------------------ routing
   let R = { path: [], q: new URLSearchParams() };
@@ -275,7 +285,7 @@
     return '<div class="bar"><div class="top"><span>' + esc(label) + '</span><span><b>' + f1(p) + '%</b>' + (showCounts ? '<small>' + showCounts + '</small>' : '') + '</span></div><div class="track"><div style="width:' + Math.min(p, 100).toFixed(1) + '%"></div></div></div>';
   }
   const tile = (v, l, extra) => '<div class="tile"><div class="v">' + esc(v) + '</div><div class="l">' + esc(l) + '</div>' + (extra || '') + '</div>';
-  const wlClass = (g) => (g.win ? 'w' : 'l');
+  const wlClass = (g) => resL(g).toLowerCase();
 
   // ------------------------------------------------------------------ views
   const VIEWS = {};
@@ -292,8 +302,8 @@
       const last = gs[gs.length - 1];
       cards += '<a class="tcard" href="' + href(['team', tid], {}) + '">' + logoSq(tid) +
         '<span style="flex:1;display:flex;flex-direction:column;gap:3px;min-width:0"><b style="font-size:18px">' + esc(D.teams[tid].name) + '</b>' +
-        '<span class="note">' + esc(D.seasonName(latestS)) + ' · ' + w + '–' + (sg.length - w) + '</span>' +
-        '<span class="note small">Last: <span class="res-' + wlClass(last) + '">' + (last.win ? 'W' : 'L') + '</span> ' + last.us + '–' + last.them + ' ' + esc(vsName(last)) + ' · ' + fmtD(last.date) + '</span></span>' +
+        '<span class="note">' + esc(D.seasonName(latestS)) + ' · ' + recOf(sg) + '</span>' +
+        '<span class="note small">Last: <span class="res-' + wlClass(last) + '">' + resL(last) + '</span> ' + last.us + '–' + last.them + ' ' + esc(vsName(last)) + ' · ' + fmtD(last.date) + '</span></span>' +
         '<span class="more">' + ICON.back.replace('M15 5l-7 7 7 7', 'M9 5l7 7-7 7') + '</span></a>';
     });
     const recent = D.games.slice(-6).reverse().map((g) => gameRow(g, true)).join('');
@@ -305,7 +315,7 @@
 
   function gameRow(g, showTeam) {
     const top = g.lines.slice().sort((a, b) => b.pts - a.pts)[0];
-    return '<a class="lrow" href="' + href(['game', g.t, g.id], {}) + '"><span class="wl ' + wlClass(g) + '">' + (g.win ? 'W' : 'L') + '</span>' +
+    return '<a class="lrow" href="' + href(['game', g.t, g.id], {}) + '"><span class="wl ' + wlClass(g) + '">' + resL(g) + '</span>' +
       '<span class="grow"><span style="display:flex;align-items:center;gap:6px;min-width:0">' + (showTeam ? '<span class="tag" style="background:' + D.teams[g.t].color + '">' + D.teams[g.t].short + '</span>' : '') +
       '<span class="t1" style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(vsName(g)) + '</span>' + roundTag(g) + '</span>' +
       '<span class="note small">' + fmtDY(g.date) + (g.official ? ' · logged ' + g.official.us + '–' + g.official.them : '') + (top ? ' · Top: ' + esc(D.players[top.p].name) + ' ' + top.pts + ' pts' : '') + '</span></span>' +
@@ -333,7 +343,7 @@
     let h = '<header class="hero"><div class="hero-top"><a class="hbtn" href="#/">' + ICON.back + 'All teams</a>' + themeBtn() + '</div>' +
       '<div class="hero-id"><span class="av logo">' + esc(T.short) + (T.logo ? '<img src="' + esc(T.logo) + '" alt="" onerror="this.remove()">' : '') + '</span><div>' +
       '<div class="kicker">' + esc(season === 'all' ? 'All seasons' : D.seasonName(season)) + '</div><h1>' + esc(T.name) + '</h1>' +
-      '<div class="meta">' + w + '–' + (n - w) + ' · ' + phaseName(phase) + ' · ' + roster.length + ' players</div></div></div>' + tabs + '</header>';
+      '<div class="meta">' + recOf(G) + ' · ' + phaseName(phase) + ' · ' + roster.length + ' players</div></div></div>' + tabs + '</header>';
     h += filterBlock({ seasons, season, phase });
     if (!n) return shell(tid, h + '<div class="wrap"><div class="empty">No games match these filters yet.</div></div>', 'home', tid);
 
@@ -347,21 +357,21 @@
     };
     h += '<div class="wrap">';
     h += '<div class="card"><div class="head"><span class="note small" style="font-weight:700;letter-spacing:.08em;display:flex;gap:8px;align-items:center;flex-wrap:wrap">LATEST RESULT · ' + fmtDY(last.date).toUpperCase() + roundTag(last) + '</span><a class="more" href="' + href(['game', tid, last.id], {}) + '">Box score</a></div>' +
-      '<div class="board"><div>' + logoSq(tid) + esc(T.name) + '</div><div><div class="score">' + last.us + '<i>–</i>' + last.them + '</div><span class="resbadge" style="background:var(--' + (last.win ? 'win' : 'loss') + '-bg)">' + (last.win ? 'WIN' : 'LOSS') + '</span></div>' +
+      '<div class="board"><div>' + logoSq(tid) + esc(T.name) + '</div><div><div class="score">' + last.us + '<i>–</i>' + last.them + '</div><span class="resbadge" style="background:var(--' + resBg(last) + '-bg)">' + resWord(last) + '</span></div>' +
       '<div><span class="sq" style="background:var(--chip)">' + esc(initials(last.o)) + '</span>' + esc(last.o) + '</div></div>' +
       '<div style="border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:4px"><span class="note small" style="font-weight:700;letter-spacing:.08em">TOP PERFORMERS</span>' +
       lead(last, 'pts', 'PTS') + lead(last, 'reb', 'REB') + lead(last, 'ast', 'AST') + '</div></div>';
 
     // record
     let streak = '–';
-    if (n) { let c = 0; for (let i = n - 1; i >= 0 && G[i].win === last.win; i--) c++; streak = (last.win ? 'W' : 'L') + c; }
+    if (n) { let c = 0; for (let i = n - 1; i >= 0 && resL(G[i]) === resL(last); i--) c++; streak = resL(last) + c; }
     const pf = G.reduce((a, g) => a + g.us, 0) / n, pa = G.reduce((a, g) => a + g.them, 0) / n, diff = pf - pa;
     const form = G.slice(-10);
-    h += '<div class="card"><h2>Record</h2><div class="tiles">' + tile(w + '–' + (n - w), 'Record') + tile(((w / n) * 100).toFixed(0) + '%', 'Win %') +
-      '<div class="tile"><div class="v ' + (last.win ? 'up' : 'down') + '">' + streak + '</div><div class="l">Streak</div></div>' + tile(f1(pf), 'Pts for') + tile(f1(pa), 'Pts against') +
+    h += '<div class="card"><h2>Record</h2><div class="tiles">' + tile(recOf(G), G.some((g) => g.draw) ? 'Record (W–L–D)' : 'Record') + tile(((w / n) * 100).toFixed(0) + '%', 'Win %') +
+      '<div class="tile"><div class="v ' + (last.win ? 'up' : last.draw ? '' : 'down') + '">' + streak + '</div><div class="l">Streak</div></div>' + tile(f1(pf), 'Pts for') + tile(f1(pa), 'Pts against') +
       '<div class="tile"><div class="v ' + (diff >= 0 ? 'up' : 'down') + '">' + (diff >= 0 ? '+' : '') + f1(diff) + '</div><div class="l">Diff / game</div></div></div>' +
       '<div style="display:flex;flex-direction:column;gap:8px"><span class="note small" style="font-weight:700;letter-spacing:.08em">LAST ' + form.length + ' · OLDEST TO NEWEST</span><div class="form">' +
-      form.map((g) => '<span style="background:var(--' + (g.win ? 'win' : 'loss') + '-bg)" title="' + esc(vsName(g) + ' ' + g.us + '–' + g.them) + '">' + (g.win ? 'W' : 'L') + '</span>').join('') + '</div></div></div>';
+      form.map((g) => '<span style="background:var(--' + resBg(g) + '-bg)" title="' + esc(vsName(g) + ' ' + g.us + '–' + g.them) + '">' + resL(g) + '</span>').join('') + '</div></div></div>';
 
     // scoring chart
     const range = qv('range', '10');
@@ -369,7 +379,7 @@
     if (range === 'season') {
       pts = seasonsOf(G).map((k) => { const gs = G.filter((g) => g.s === k); const f = gs.reduce((a, g) => a + g.us, 0) / gs.length, ag = gs.reduce((a, g) => a + g.them, 0) / gs.length; return { f, a: ag, label: D.seasonName(k), info: D.seasonName(k) + ' average · ' + gs.length + ' GP', val: f1(f) + ' – ' + f1(ag) }; });
     } else {
-      pts = (range === 'all' ? G : G.slice(-10)).map((g) => ({ f: g.us, a: g.them, label: fmtD(g.date), info: (g.win ? 'W ' : 'L ') + vsName(g) + ' · ' + fmtD(g.date), val: g.us + ' – ' + g.them }));
+      pts = (range === 'all' ? G : G.slice(-10)).map((g) => ({ f: g.us, a: g.them, label: fmtD(g.date), info: (resL(g) + ' ') + vsName(g) + ' · ' + fmtD(g.date), val: g.us + ' – ' + g.them }));
     }
     h += '<div class="card"><div class="head" style="align-items:flex-end"><h2>Scoring</h2><label class="ctl">Range<select data-param="range">' +
       [['10', 'Last 10 games'], ['all', 'Every game'], ['season', 'By season']].map((o) => '<option value="' + o[0] + '"' + (o[0] === range ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select></label></div>' + dualChart(pts) + '</div>';
@@ -403,6 +413,7 @@
           '<span style="display:flex;gap:8px;min-height:12px">' + others.map((t) => '<span class="note small" style="display:flex;align-items:center;gap:4px"><span class="dot" style="background:' + D.teams[t].color + '"></span>' + D.teams[t].short + '</span>').join('') + '</span></a>';
       }).join('') + '</div></div>';
 
+    h += trackedTeamCards(tid, G);
     h += '<div class="card list"><div class="head"><h2>Recent Games</h2><a class="more" href="' + href(['games'], { team: tid, season }) + '">All games</a></div>' + G.slice(-5).reverse().map((g) => gameRow(g, false)).join('') + '</div>';
     h += '</div>';
     return shell(tid, h, 'home', tid);
@@ -502,7 +513,7 @@
       '<div class="menu hidden" data-menu><input class="search" type="search" placeholder="Search" aria-label="Search players" data-search=".menu a">' +
       others.map((p) => '<a class="' + (p.id === pid ? 'on' : '') + '" data-name="' + esc(p.name.toLowerCase() + ' ' + p.short.toLowerCase()) + '" href="' + href(['player', p.id], { tab: view === 'ov' ? null : view }) + '"><b>' + esc(p.name) + '</b><span>' + Object.keys(p.teams).filter((t) => p.teams[t].gp > 0).map((t) => D.teams[t].short === 'CC' ? 'Chuckers' : D.teams[t].name).join(' · ') + '</span></a>').join('') + '</div>' +
       '<div class="hero-id">' + avatar(pid, 'big', team === 'all' ? null : team) + '<div>' +
-      '<h1>' + esc(P.name).replace(' ', '<br>') + '</h1><div class="meta">' + (oneNum ? '#' + esc(oneNum) + ' · ' : '') + allA.n + ' games · ' + allA.w + '–' + (allA.n - allA.w) + ' record' + (teamsPlayed.length > 1 ? ' · ' + teamsPlayed.length + ' teams' : '') + '</div></div></div>' +
+      '<h1>' + esc(P.name).replace(' ', '<br>') + '</h1><div class="meta">' + (oneNum ? '#' + esc(oneNum) + ' · ' : '') + allA.n + ' games · ' + recS(allA) + ' record' + (teamsPlayed.length > 1 ? ' · ' + teamsPlayed.length + ' teams' : '') + '</div></div></div>' +
       (function () {
         const nums = teamsPlayed.map((t) => P.teams[t].number);
         const same = nums.every((n) => n === nums[0]);
@@ -590,7 +601,7 @@
     h += '<div class="card list"><div class="head"><h2>Last 5 Games</h2><a class="more" ' + tog({ tab: 'log' }) + '>Full game log</a></div>' +
       '<div class="trow th" style="grid-template-columns:minmax(0,1fr) 30px 30px 30px 30px 30px"><span style="text-align:left">MATCHUP</span><span>PTS</span><span>REB</span><span>AST</span><span>STL</span><span>BLK</span></div>' +
       list.slice(-5).reverse().map((l) => '<a class="trow" style="grid-template-columns:minmax(0,1fr) 30px 30px 30px 30px 30px;min-height:60px;font-size:16px" href="' + href(['game', l.g.t, l.g.id], {}) + '"><span class="lft">' + teamBadge(l.g.t, 's28') +
-        '<span><span class="t1">' + esc(vsName(l.g)) + '</span><span class="t2"><span class="res-' + wlClass(l.g) + '">' + (l.g.win ? 'W' : 'L') + '</span> ' + l.g.us + '–' + l.g.them + ' · ' + fmtD(l.g.date) + '</span></span></span>' +
+        '<span><span class="t1">' + esc(vsName(l.g)) + '</span><span class="t2"><span class="res-' + wlClass(l.g) + '">' + resL(l.g) + '</span> ' + l.g.us + '–' + l.g.them + ' · ' + fmtD(l.g.date) + '</span></span></span>' +
         '<b>' + l.pts + '</b><span>' + l.reb + '</span><span>' + l.ast + '</span><span>' + l.stl + '</span><span>' + l.blk + '</span></a>').join('') + '</div>';
 
     // highs + career
@@ -646,26 +657,27 @@
     h += '<div class="card"><div><h2>Career Highs</h2><div class="sub">Tap one to open that box score</div></div><div class="tiles">' + highList(list).map(highTile).join('') + '</div></div>';
     const sr = (label, ls) => { const S = agg(ls); return S.n ? '<div class="trow" style="grid-template-columns:minmax(0,1fr) 30px 40px 36px 36px 44px 44px;min-height:48px;font-size:14px"><span style="text-align:left;font-weight:600">' + label + '</span><span>' + S.n + '</span><b>' + f1(metric('pts', S)) + '</b><span>' + f1(metric('reb', S)) + '</span><span>' + f1(metric('ast', S)) + '</span><span>' + f1(metric('fgp', S)) + '</span><span>' + f1(metric('tpp', S)) + '</span></div>' : ''; };
     h += '<div class="card list"><div class="head"><div><h2>Splits</h2><div class="sub">Per game</div></div></div><div class="trow th" style="grid-template-columns:minmax(0,1fr) 30px 40px 36px 36px 44px 44px"><span style="text-align:left">SPLIT</span><span>GP</span><span>PTS</span><span>REB</span><span>AST</span><span>FG%</span><span>3P%</span></div>' +
-      sr('Home', list.filter((l) => l.g.home)) + sr('Away', list.filter((l) => !l.g.home)) + sr('Wins', list.filter((l) => l.g.win)) + sr('Losses', list.filter((l) => !l.g.win)) +
+      sr('Wins', list.filter((l) => l.g.win)) + sr('Losses', list.filter((l) => l.g.res === 'L')) + (list.some((l) => l.g.draw) ? sr('Draws', list.filter((l) => l.g.draw)) : '') +
       sr('Regular season', list.filter((l) => !l.g.po)) + sr('Finals', list.filter((l) => l.g.po)) + '</div>';
     return h;
   }
 
   function playerLog(list) {
     const sort = qv('sort', 'date'), showAll = qv('all') === '1';
-    const sv = (l) => (sort === 'fgp' ? (l.fga ? l.fgm / l.fga : -1) : lineVal(sort, l));
+    const sv = (l) => (sort === 'fgp' ? (l.fga ? l.fgm / l.fga : -1) : sort === 'pm' ? (l.pm == null ? -999 : l.pm) : lineVal(sort, l));
     const sorted = list.slice().sort((a, b) => (sort === 'date' ? b.g.date - a.g.date : sv(b) - sv(a) || b.g.date - a.g.date));
     const shown = showAll ? sorted : sorted.slice(0, 15);
-    const colKey = ['pts', 'reb', 'oreb', 'ast', 'stl', 'blk', 'to', 'pf', 'fgm', 'tpm', 'ftm', 'fgp'];
-    const cols = '170px repeat(8, 40px) repeat(3, 52px) 52px';
+    const anyT = list.some((l) => l.pm != null);
+    const colKey = ['pts', 'reb', 'oreb', 'ast', 'stl', 'blk', 'to', 'pf', 'fgm', 'tpm', 'ftm', 'fgp'].concat(anyT ? ['pm'] : []);
+    const cols = '170px repeat(8, 40px) repeat(3, 52px) 52px' + (anyT ? ' 44px' : '');
     let h = '<div class="card flush"><div class="head px" style="align-items:flex-end"><div><h2>Game Log</h2><div class="sub">' + list.length + ' games</div></div>' +
-      '<label class="ctl">Sort by<select data-param="sort">' + [['date', 'Newest'], ['pts', 'Points'], ['reb', 'Rebounds'], ['ast', 'Assists'], ['stl', 'Steals'], ['blk', 'Blocks'], ['to', 'Turnovers'], ['fgm', 'FG made'], ['tpm', '3PT made'], ['ftm', 'FT made'], ['fgp', 'FG %']]
+      '<label class="ctl">Sort by<select data-param="sort">' + [['date', 'Newest'], ['pts', 'Points'], ['reb', 'Rebounds'], ['ast', 'Assists'], ['stl', 'Steals'], ['blk', 'Blocks'], ['to', 'Turnovers'], ['fgm', 'FG made'], ['tpm', '3PT made'], ['ftm', 'FT made'], ['fgp', 'FG %']].concat(list.some((l) => l.pm != null) ? [['pm', '+/-']] : [])
         .map((o) => '<option value="' + o[0] + '"' + (o[0] === sort ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select></label></div>' +
-      '<div class="xscroll"><div><div class="trow th" style="grid-template-columns:' + cols + '"><span class="stick">GAME</span><span>PTS</span><span>REB</span><span>OR</span><span>AST</span><span>STL</span><span>BLK</span><span>TO</span><span>PF</span><span>FG</span><span>3P</span><span>FT</span><span>FG%</span></div>';
+      '<div class="xscroll"><div><div class="trow th" style="grid-template-columns:' + cols + '"><span class="stick">GAME</span><span>PTS</span><span>REB</span><span>OR</span><span>AST</span><span>STL</span><span>BLK</span><span>TO</span><span>PF</span><span>FG</span><span>3P</span><span>FT</span><span>FG%</span>' + (anyT ? '<span>+/-</span>' : '') + '</div>';
     shown.forEach((l) => {
-      const v = [l.pts, l.reb, l.oreb, l.ast, l.stl, l.blk, l.to, l.pf, l.fgm + '-' + l.fga, l.tpm + '-' + l.tpa, l.ftm + '-' + l.fta, l.fga ? Math.round((l.fgm / l.fga) * 100) : '–'];
+      const v = [l.pts, l.reb, l.oreb, l.ast, l.stl, l.blk, l.to, l.pf, l.fgm + '-' + l.fga, l.tpm + '-' + l.tpa, l.ftm + '-' + l.fta, l.fga ? Math.round((l.fgm / l.fga) * 100) : '–'].concat(anyT ? [l.pm == null ? '–' : pmTxt(l.pm)] : []);
       h += '<a class="trow" style="grid-template-columns:' + cols + ';min-height:56px" href="' + href(['game', l.g.t, l.g.id], {}) + '"><span class="stick">' + teamBadge(l.g.t, 's24') +
-        '<span><span class="t1" style="font-size:13px;max-width:120px">' + esc(vsName(l.g)) + '</span><span class="t2" style="font-size:11px"><span class="res-' + wlClass(l.g) + '">' + (l.g.win ? 'W' : 'L') + '</span> ' + l.g.us + '–' + l.g.them + ' · ' + fmtD(l.g.date) + ' ' + String(l.g.date.getFullYear()).slice(2) + '</span></span></span>' +
+        '<span><span class="t1" style="font-size:13px;max-width:120px">' + esc(vsName(l.g)) + '</span><span class="t2" style="font-size:11px"><span class="res-' + wlClass(l.g) + '">' + resL(l.g) + '</span> ' + l.g.us + '–' + l.g.them + ' · ' + fmtD(l.g.date) + ' ' + String(l.g.date.getFullYear()).slice(2) + '</span></span></span>' +
         v.map((x, i) => '<span' + (colKey[i] === sort ? ' class="hl"' : '') + '>' + x + '</span>').join('') + '</a>';
     });
     h += '</div></div>';
@@ -682,14 +694,14 @@
     const name = OL.length ? OL[0].g.o : '–';
     const diff = (k) => { const d = metric(k, OS) - metric(k, A); return '<div class="d ' + (Math.abs(d) < 0.05 ? '' : (k === 'to' ? d < 0 : d > 0) ? 'up' : 'down') + '">' + (d >= 0 ? '+' : '') + f1(d) + '</div>'; };
     let h = '<div class="card"><h2>Versus</h2><div class="scroller">' + chips(keys.map((k) => ({ label: map[k][0].g.o, on: k === sel, attr: tog({ opp: k }) })), 'tall') + '</div>' +
-      '<div class="head" style="align-items:baseline"><span style="font-family:var(--display);font-size:32px;font-weight:700;line-height:1">' + esc(name) + '</span><span class="note">' + OS.n + ' GP · ' + OS.w + '–' + (OS.n - OS.w) + '</span></div>' +
+      '<div class="head" style="align-items:baseline"><span style="font-family:var(--display);font-size:32px;font-weight:700;line-height:1">' + esc(name) + '</span><span class="note">' + OS.n + ' GP · ' + recS(OS) + '</span></div>' +
       '<div class="tiles">' + [['pts', 'PPG'], ['reb', 'RPG'], ['ast', 'APG'], ['fgp', 'FG%'], ['tpp', '3P%'], ['ftp', 'FT%']].map((x) => tile(f1(metric(x[0], OS)), x[1], diff(x[0]))).join('') + '</div>' +
       '<div class="note small">Small number under each stat: difference from his average in all selected games.</div></div>';
     h += '<div class="card list"><div class="head"><h2>Every game vs ' + esc(name) + '</h2></div><div class="trow th" style="grid-template-columns:minmax(0,1fr) 32px 32px 32px 52px"><span style="text-align:left">GAME</span><span>PTS</span><span>REB</span><span>AST</span><span>FG</span></div>' +
-      OL.slice().reverse().map((l) => '<a class="trow" style="grid-template-columns:minmax(0,1fr) 32px 32px 32px 52px" href="' + href(['game', l.g.t, l.g.id], {}) + '"><span class="lft">' + teamBadge(l.g.t, 's28') + '<span><span class="t1">' + fmtDY(l.g.date) + '</span><span class="t2"><span class="res-' + wlClass(l.g) + '">' + (l.g.win ? 'W' : 'L') + '</span> ' + l.g.us + '–' + l.g.them + ' · ' + esc(D.seasonName(l.g.s)) + '</span></span></span>' +
+      OL.slice().reverse().map((l) => '<a class="trow" style="grid-template-columns:minmax(0,1fr) 32px 32px 32px 52px" href="' + href(['game', l.g.t, l.g.id], {}) + '"><span class="lft">' + teamBadge(l.g.t, 's28') + '<span><span class="t1">' + fmtDY(l.g.date) + '</span><span class="t2"><span class="res-' + wlClass(l.g) + '">' + resL(l.g) + '</span> ' + l.g.us + '–' + l.g.them + ' · ' + esc(D.seasonName(l.g.s)) + '</span></span></span>' +
         '<b>' + l.pts + '</b><span>' + l.reb + '</span><span>' + l.ast + '</span><span>' + l.fgm + '-' + l.fga + '</span></a>').join('') + '</div>';
     h += '<div class="card list"><div class="head"><div><h2>All Opponents</h2><div class="sub">Tap a row to compare</div></div></div><div class="trow th" style="grid-template-columns:minmax(0,1fr) 30px 48px 42px 46px"><span style="text-align:left">OPPONENT</span><span>GP</span><span>W–L</span><span>PPG</span><span>FG%</span></div>' +
-      keys.map((k) => { const S = agg(map[k]); return '<a class="trow" style="grid-template-columns:minmax(0,1fr) 30px 48px 42px 46px;min-height:48px;font-size:14px' + (k === sel ? ';color:var(--acc)' : '') + '" ' + tog({ opp: k }) + '><span style="text-align:left;font-weight:600">' + esc(map[k][0].g.o) + '</span><span>' + S.n + '</span><span>' + S.w + '–' + (S.n - S.w) + '</span><b>' + f1(metric('pts', S)) + '</b><span>' + f1(metric('fgp', S)) + '</span></a>'; }).join('') + '</div>';
+      keys.map((k) => { const S = agg(map[k]); return '<a class="trow" style="grid-template-columns:minmax(0,1fr) 30px 48px 42px 46px;min-height:48px;font-size:14px' + (k === sel ? ';color:var(--acc)' : '') + '" ' + tog({ opp: k }) + '><span style="text-align:left;font-weight:600">' + esc(map[k][0].g.o) + '</span><span>' + S.n + '</span><span>' + recS(S) + '</span><b>' + f1(metric('pts', S)) + '</b><span>' + f1(metric('fgp', S)) + '</span></a>'; }).join('') + '</div>';
     return h;
   }
 
@@ -702,7 +714,7 @@
     { k: 'ts', l: 'TS%', long: 'True shooting %', a: 'fga', min: 20 }, { k: 'oreb', l: 'OREB', long: 'Offensive rebounds' },
     { k: 'dreb', l: 'DREB', long: 'Defensive rebounds' }, { k: 'fgm', l: 'FGM', long: 'Field goals made' }, { k: 'fga', l: 'FGA', long: 'Field goal attempts' },
     { k: 'ftm', l: 'FTM', long: 'Free throws made' }, { k: 'astto', l: 'AST/TO', long: 'Assist to turnover', min: 10 },
-    { k: 'to', l: 'TO', long: 'Turnovers' }, { k: 'pf', l: 'PF', long: 'Fouls' }, { k: 'gp', l: 'GP', long: 'Games played' }
+    { k: 'to', l: 'TO', long: 'Turnovers' }, { k: 'pf', l: 'PF', long: 'Fouls' }, { k: 'pm', l: '+/-', long: 'Plus-minus', tracked: true }, { k: 'gp', l: 'GP', long: 'Games played' }
   ];
   VIEWS.leaders = function () {
     const team = D.teams[qv('team')] ? qv('team') : 'all';
@@ -717,8 +729,8 @@
     const players = Object.keys(byP).map((pid) => ({ pid, S: agg(byP[pid]), teams: D.teamIds.filter((t) => byP[pid].some((l) => l.g.t === t)) }));
     const isP = (c) => !!PCT[c.k];
     const value = (c, S) => (c.k === 'gp' || isP(c) || c.k === 'astto' ? metric(c.k, S) : mode === 'tot' ? S[c.k] : metric(c.k, S));
-    const show = (c, v) => (isP(c) ? f1(v) + '%' : c.k === 'astto' ? v.toFixed(2) : c.k === 'gp' || mode === 'tot' ? String(Math.round(v)) : f1(v));
-    const qualifies = (c, S) => !qual || (S.n >= 3 && (!c.min || (c.a ? S[c.a] >= c.min : c.k === 'astto' ? S.ast + S.to >= c.min : true)));
+    const show = (c, v) => (c.k === 'pm' ? (v > 0 ? '+' : v < 0 ? '−' : '') + (mode === 'tot' ? String(Math.abs(Math.round(v))) : f1(Math.abs(v))) : isP(c) ? f1(v) + '%' : c.k === 'astto' ? v.toFixed(2) : c.k === 'gp' || mode === 'tot' ? String(Math.round(v)) : f1(v));
+    const qualifies = (c, S) => c.tracked ? S.tn > 0 : !qual || (S.n >= 3 && (!c.min || (c.a ? S[c.a] >= c.min : c.k === 'astto' ? S.ast + S.to >= c.min : true)));
     const rank = (c) => players.filter((p) => qualifies(c, p.S)).map((p) => ({ p, v: value(c, p.S) })).sort((a, b) => b.v - a.v);
     const list = rank(cat), topV = list.length ? list[0].v || 1 : 1;
     const tag = (t) => '<span class="tag" style="background:' + D.teams[t].color + '">' + D.teams[t].short + '</span>';
@@ -733,13 +745,13 @@
       const top = list[0];
       h += '<a class="card" style="flex-direction:row;align-items:center;gap:16px;text-decoration:none;color:var(--text)" href="' + href(['player', top.p.pid], { team: team === 'all' ? null : team, season: season === 'all' ? null : season }) + '">' + avatar(top.p.pid, 's76', team === 'all' ? null : team) +
         '<span style="flex:1;display:flex;flex-direction:column;gap:4px;min-width:0"><span class="note small" style="font-weight:700;letter-spacing:.08em">' + esc(cat.long.toUpperCase()) + ' LEADER</span><b style="font-size:18px">' + esc(D.players[top.p.pid].name) + '</b>' +
-        '<span style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">' + top.p.teams.map(tag).join('') + '<span class="note small">' + top.p.S.n + ' GP</span></span></span>' +
+        '<span style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">' + top.p.teams.map(tag).join('') + '<span class="note small">' + (cat.tracked ? top.p.S.tn : top.p.S.n) + ' GP</span></span></span>' +
         '<span style="display:flex;flex-direction:column;align-items:flex-end"><span class="big-num" style="font-size:46px;font-weight:800">' + show(cat, top.v) + '</span><span class="note small" style="font-weight:700">' + (cat.k === 'gp' ? 'GAMES' : isP(cat) ? 'PERCENT' : cat.k === 'astto' ? 'RATIO' : mode === 'tot' ? 'TOTAL' : 'PER GAME') + '</span></span></a>';
     }
-    h += '<div class="card list"><div class="head"><div><h2>' + esc(cat.long) + '</h2><div class="sub">' + (team === 'all' ? 'All teams combined' : esc(D.teams[team].name)) + ' · ' + (season === 'all' ? 'All seasons' : esc(D.seasonName(season))) + ' · ' + G.length + ' games</div></div></div>' +
+    h += '<div class="card list"><div class="head"><div><h2>' + esc(cat.long) + '</h2><div class="sub">' + (team === 'all' ? 'All teams combined' : esc(D.teams[team].name)) + ' · ' + (season === 'all' ? 'All seasons' : esc(D.seasonName(season))) + ' · ' + G.length + ' games' + (cat.tracked ? ' · only games entered with MyStat Tracker' : '') + '</div></div></div>' +
       list.map((x, i) => {
         const S = x.p.S;
-        let sub = S.n + ' GP';
+        let sub = (cat.tracked ? S.tn + ' tracked' : S.n) + ' GP';
         if (cat.m) sub += ' · ' + S[cat.m] + '/' + S[cat.a];
         else if (mode === 'pg' && cat.k !== 'gp' && !isP(cat) && cat.k !== 'astto') sub += ' · ' + S[cat.k] + ' total';
         return '<a class="lrow" style="min-height:60px" href="' + href(['player', x.p.pid], { team: team === 'all' ? null : team }) + '"><span class="rank">' + (i + 1) + '</span>' + avatar(x.p.pid, 's40', team === 'all' ? null : team) +
@@ -748,7 +760,7 @@
       }).join('') + (list.length ? '' : '<div class="note" style="padding:20px 0;text-align:center">Nobody has 3+ games here yet. Turn off “3+ games only” to see everyone.</div>') +
       '<div class="note small" style="padding:12px 0;border-top:1px solid var(--line)">' + (qual ? 'Only players with 3 or more games are ranked, so one big night doesn’t top the list. Shooting % also needs 20 FG, 10 3PT or 10 FT attempts. Turn off “3+ games only” to see everyone.' : 'Showing everyone, including players with very few games.') + '</div></div>';
     h += '<div class="card"><div><h2>Category Leaders</h2><div class="sub">Tap one to see the full list</div></div><div class="tiles two">' +
-      CATS.map((c) => { const b = rank(c)[0]; return '<a class="tile" ' + tog({ cat: c.k === 'pts' ? null : c.k }) + ' style="border:1px solid ' + (c.k === cat.k ? 'var(--acc)' : 'transparent') + '"><span class="l">' + esc(c.long) + '</span><span class="v">' + (b ? show(c, b.v) : '–') + '</span><span class="s" style="font-weight:600;color:var(--text)">' + (b ? esc(D.players[b.p.pid].name) : 'Nobody qualifies') + '</span></a>'; }).join('') + '</div></div>';
+      CATS.filter((c) => !c.tracked || c.k === cat.k).map((c) => { const b = rank(c)[0]; return '<a class="tile" ' + tog({ cat: c.k === 'pts' ? null : c.k }) + ' style="border:1px solid ' + (c.k === cat.k ? 'var(--acc)' : 'transparent') + '"><span class="l">' + esc(c.long) + '</span><span class="v">' + (b ? show(c, b.v) : '–') + '</span><span class="s" style="font-weight:600;color:var(--text)">' + (b ? esc(D.players[b.p.pid].name) : 'Nobody qualifies') + '</span></a>'; }).join('') + '</div></div>';
     h += '</div>';
     return shell(team, h, 'leaders', team);
   };
@@ -795,21 +807,21 @@
     } else if (scope === 'game') {
       const T = G.map((g) => ({ g, S: agg(g.lines) }));
       const full = T.filter((x) => !D.teams[x.g.t].partialStats);
-      const tr = (title, arr, f, show, asc, filt) => rec(title, by(filt ? arr.filter(filt) : arr, f, asc).map((x) => ({ team: x.g.t, name: D.teams[x.g.t].name, sub: (x.g.win ? 'W ' : 'L ') + x.g.us + '–' + x.g.them + ' ' + gameSub(x.g), val: show(f(x)), link: gameLink(x.g) })));
+      const tr = (title, arr, f, show, asc, filt) => rec(title, by(filt ? arr.filter(filt) : arr, f, asc).map((x) => ({ team: x.g.t, name: D.teams[x.g.t].name, sub: (resL(x.g) + ' ') + x.g.us + '–' + x.g.them + ' ' + gameSub(x.g), val: show(f(x)), link: gameLink(x.g) })));
       const int = (v) => String(v);
       recs = [tr('Most points scored', T, (x) => x.g.us, int), tr('Fewest points allowed', T, (x) => x.g.them, int, true),
-        tr('Biggest win', T, (x) => x.g.us - x.g.them, (v) => '+' + v, false, (x) => x.g.win), tr('Most points in a loss', T, (x) => x.g.us, int, false, (x) => !x.g.win),
+        tr('Biggest win', T, (x) => x.g.us - x.g.them, (v) => '+' + v, false, (x) => x.g.win), tr('Most points in a loss', T, (x) => x.g.us, int, false, (x) => x.g.res === 'L'),
         tr('Most 3 pointers', full, (x) => x.S.tpm, int), tr('Most assists', full, (x) => x.S.ast, int), tr('Most rebounds', full, (x) => x.S.reb, int),
         tr('Most steals', full, (x) => x.S.stl, int), tr('Best team FG%', full, (x) => metric('fgp', x.S), (v) => f1(v) + '%')];
     } else {
       const groups = {};
       G.forEach((g) => { const key = scope === 'season' ? g.t + '|' + g.s : g.t; (groups[key] = groups[key] || { t: g.t, s: g.s, games: [] }).games.push(g); });
       const TT = Object.values(groups).map((x) => {
-        const gs = x.games, n = gs.length, w = gs.filter((g) => g.win).length;
+        const gs = x.games, n = gs.length, w = gs.filter((g) => g.win).length, d = gs.filter((g) => g.draw).length;
         let best = 0, cur = 0; gs.forEach((g) => { if (g.win) { cur++; best = Math.max(best, cur); } else cur = 0; });
-        return { t: x.t, s: x.s, n, w, pf: gs.reduce((a, g) => a + g.us, 0) / n, pa: gs.reduce((a, g) => a + g.them, 0) / n, streak: best, pow: gs.filter((g) => g.po && g.win).length, titles: gs.filter((g) => g.round === 'gf' && g.win).length };
+        return { t: x.t, s: x.s, n, w, d, pf: gs.reduce((a, g) => a + g.us, 0) / n, pa: gs.reduce((a, g) => a + g.them, 0) / n, streak: best, pow: gs.filter((g) => g.po && g.win).length, titles: gs.filter((g) => g.round === 'gf' && g.win).length };
       });
-      const sub = (x) => (scope === 'season' ? D.seasonName(x.s) : 'All-time') + ' · ' + x.w + '–' + (x.n - x.w);
+      const sub = (x) => (scope === 'season' ? D.seasonName(x.s) : 'All-time') + ' · ' + recS(x);
       const tt = (title, f, show, asc) => rec(title, by(TT, f, asc).map((x) => ({ team: x.t, name: D.teams[x.t].name, sub: sub(x), val: show(f(x)), link: href(['team', x.t], { season: scope === 'season' ? x.s : 'all' }) })));
       const one = (v) => f1(v), int = (v) => String(v);
       recs = [tt('Best win %', (x) => (x.w / x.n) * 100, (v) => v.toFixed(0) + '%'), tt('Most wins', (x) => x.w, int), tt('Most points per game', (x) => x.pf, one),
@@ -845,13 +857,13 @@
     const seasons = seasonsOf(base);
     const season = qv('season') === 'all' ? 'all' : seasons.indexOf(qv('season')) >= 0 ? qv('season') : seasons[seasons.length - 1] || 'all';
     const phase = qv('phase', 'all'), res = qv('res', 'all');
-    const G = filterGames({ team, season, phase }).filter((g) => res === 'all' || (res === 'w' ? g.win : !g.win));
+    const G = filterGames({ team, season, phase }).filter((g) => res === 'all' || (res === 'w' ? g.win : res === 'd' ? g.draw : g.res === 'L'));
     const w = G.filter((g) => g.win).length;
     let h = '<header class="hero"><div class="hero-top"><h1>Games</h1>' + themeBtn() + '</div><div class="hero-seg">' +
       [['all', 'All Teams']].concat(D.teamIds.map((t) => [t, D.teams[t].short === 'CC' ? 'Chuckers' : D.teams[t].name])).map((x) => '<a class="' + (team === x[0] ? 'on' : '') + '" ' + tog({ team: x[0] === 'all' ? null : x[0], season: null }) + '>' + esc(x[1]) + '</a>').join('') + '</div></header>';
     h += filterBlock({ seasons, season, phase }).replace('</section>', '') +
-      '<div class="chips">' + chips([['all', 'All results'], ['w', 'Wins'], ['l', 'Losses']].map((x) => ({ label: x[1], on: res === x[0], attr: tog({ res: x[0] === 'all' ? null : x[0] }) }))) + '</div>' +
-      '<div class="tiles">' + tile(w + '–' + (G.length - w), 'Record') + tile(G.length ? f1(G.reduce((a, g) => a + g.us, 0) / G.length) : '–', 'Pts for') + tile(G.length ? f1(G.reduce((a, g) => a + g.them, 0) / G.length) : '–', 'Pts against') + '</div></section>';
+      '<div class="chips">' + chips([['all', 'All results'], ['w', 'Wins'], ['l', 'Losses']].concat(base.some((g) => g.draw) ? [['d', 'Draws']] : []).map((x) => ({ label: x[1], on: res === x[0], attr: tog({ res: x[0] === 'all' ? null : x[0] }) }))) + '</div>' +
+      '<div class="tiles">' + tile(recOf(G), 'Record') + tile(G.length ? f1(G.reduce((a, g) => a + g.us, 0) / G.length) : '–', 'Pts for') + tile(G.length ? f1(G.reduce((a, g) => a + g.them, 0) / G.length) : '–', 'Pts against') + '</div></section>';
     h += '<div class="wrap">';
     const months = [];
     G.slice().reverse().forEach((g) => {
@@ -861,14 +873,14 @@
       m.games.push(g);
     });
     h += months.map((m) => {
-      const mw = m.games.filter((g) => g.win).length;
-      return '<div class="card list" style="padding:16px 16px 4px"><div class="head" style="margin-bottom:8px"><h2 style="font-size:16px">' + m.label + '</h2><span class="note small">' + mw + '–' + (m.games.length - mw) + '</span></div>' +
+      const mrec = recOf(m.games);
+      return '<div class="card list" style="padding:16px 16px 4px"><div class="head" style="margin-bottom:8px"><h2 style="font-size:16px">' + m.label + '</h2><span class="note small">' + mrec + '</span></div>' +
         m.games.map((g) => {
           const top = g.lines.slice().sort((a, b) => b.pts - a.pts)[0];
           return '<a class="lrow" style="min-height:68px" href="' + href(['game', g.t, g.id], {}) + '"><span class="daybox"><b>' + g.date.getDate() + '</b><span>' + WD[g.date.getDay()] + '</span></span>' +
             '<span class="grow" style="gap:3px"><span style="display:flex;align-items:center;gap:6px;min-width:0"><span class="tag" style="background:' + D.teams[g.t].color + '">' + D.teams[g.t].short + '</span><span style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(vsName(g)) + '</span>' +
             roundTag(g) + '</span><span class="note small">' + (top ? 'Top: ' + esc(D.players[top.p].name) + ' · ' + top.pts + ' pts' : '') + '</span></span>' +
-            '<span style="display:flex;align-items:center;gap:8px"><span class="big" style="font-size:22px;white-space:nowrap">' + g.us + '–' + g.them + '</span><span class="wl ' + wlClass(g) + '" style="width:26px;height:26px">' + (g.win ? 'W' : 'L') + '</span></span></a>';
+            '<span style="display:flex;align-items:center;gap:8px"><span class="big" style="font-size:22px;white-space:nowrap">' + g.us + '–' + g.them + '</span><span class="wl ' + wlClass(g) + '" style="width:26px;height:26px">' + resL(g) + '</span></span></a>';
         }).join('') + '</div>';
     }).join('') || '<div class="empty">No games match these filters.</div>';
     h += '</div>';
@@ -959,6 +971,26 @@
     return h;
   }
 
+  function trackedTeamCards(tid, G) {
+    const TG = G.filter((g) => g.X);
+    if (!TG.length) return '';
+    const n = TG.length, x = { paint: 0, sc: 0, fb: 0, pot: 0, astFg: 0 };
+    let made = 0;
+    TG.forEach((g) => { Object.keys(x).forEach((k) => { x[k] += (g.X.extras || {})[k] || 0; }); made += g.lines.reduce((a, l) => a + l.fgm, 0); });
+    const shots = [];
+    TG.forEach((g) => (g.X.shots || []).forEach((s) => shots.push(s)));
+    const pmBy = {};
+    TG.forEach((g) => g.lines.forEach((l) => { if (l.pm == null) return; const o = pmBy[l.p] || (pmBy[l.p] = { pm: 0, n: 0 }); o.pm += l.pm; o.n++; }));
+    const pmRows = Object.entries(pmBy).sort((a, b) => b[1].pm / b[1].n - a[1].pm / a[1].n);
+    let h = '<div class="card"><div><h2>Tracked Games</h2><div class="sub">' + n + ' game' + (n > 1 ? 's' : '') + ' entered with MyStat Tracker · per game</div></div><div class="tiles">' +
+      tile(f1(x.paint / n), 'Paint pts') + tile(f1(x.sc / n), '2nd chance pts') + tile(f1(x.fb / n), 'Fast break pts') + tile(f1(x.pot / n), 'Pts off TO') +
+      tile(made ? Math.round(x.astFg / made * 100) + '%' : '–', 'Assisted FG') + tile(shots.length, 'Shots charted') + '</div>' +
+      (pmRows.length ? '<div><div class="trow th" style="grid-template-columns:minmax(0,1fr) 40px 56px"><span style="text-align:left">PLUS-MINUS</span><span>GP</span><span>PER GAME</span></div>' +
+        pmRows.map(([pid, o]) => { const v = Math.round(o.pm / o.n * 10) / 10; return '<a class="trow" style="grid-template-columns:minmax(0,1fr) 40px 56px" href="' + href(['player', pid], { team: tid }) + '"><span class="lft">' + avatar(pid, 's30', tid) + '<span class="t1">' + esc(nameOf(pid)) + '</span></span><span>' + o.n + '</span><b class="pm ' + (v > 0 ? 'up' : v < 0 ? 'dn' : '') + '">' + pmTxt(v) + '</b></a>'; }).join('') + '</div>' : '') + '</div>';
+    if (shots.length) h += '<div class="card"><h2>Team Shot Chart</h2>' + courtSvg(shots, D.teams[tid].name + ' shot chart') + zoneBars(shots) + '</div>';
+    return h;
+  }
+
   function trackedPlayerCards(pid, list) {
     const tl = list.filter((l) => l.g.X);
     if (!tl.length) return '';
@@ -1007,10 +1039,10 @@
     };
     let h = '<header class="hero" style="gap:18px"><div class="hero-top"><a class="hbtn" href="' + href(['games'], { team: g.t, season: g.s }) + '">' + ICON.back + 'All games</a><span class="kicker">' + (g.po ? esc(g.roundName.toUpperCase()) + ' · ' : '') + esc(D.seasonName(g.s).toUpperCase()) + '</span></div>' +
       '<div class="board"><div>' + logoSq(g.t, 'border:2px solid rgba(255,255,255,.6)') + '<a href="' + href(['team', g.t], { season: g.s }) + '" style="color:#fff;text-decoration:none">' + esc(T.name) + '</a></div>' +
-      '<div><div class="score">' + g.us + '<i>–</i>' + g.them + '</div><span class="resbadge" style="background:var(--' + (g.win ? 'win' : 'loss') + '-bg)">' + (g.win ? 'WIN' : 'LOSS') + '</span>' +
+      '<div><div class="score">' + g.us + '<i>–</i>' + g.them + '</div><span class="resbadge" style="background:var(--' + resBg(g) + '-bg)">' + resWord(g) + '</span>' +
       (g.round === 'gf' && g.win ? '<span class="champs">Champions</span><img class="box-trophy" src="assets/trophy.png" alt="Championship trophy" title="' + esc(D.seasonName(g.s)) + ' champions">' : '') + '</div>' +
       '<div><span class="sq" style="background:rgba(0,0,0,.25);color:#fff">' + esc(initials(g.o)) + '</span>' + esc(g.o) + '</div></div>' +
-      '<div style="text-align:center;font-size:13px;opacity:.92">' + fmtDY(g.date) + ' · ' + (g.home ? 'Home' : 'Away') + '</div>' +
+      '<div style="text-align:center;font-size:13px;opacity:.92">' + fmtDY(g.date) + (g.venue ? ' · ' + esc(g.venue) : '') + '</div>' +
       (g.official ? '<div class="scorenote" role="note">' + esc(g.official.note) + '</div>' : '') + '</header>';
     h += '<div class="wrap" style="padding-top:16px"><div class="grid2"><a class="pbtn' + (prev ? '' : ' off') + '" href="' + (prev ? href(['game', g.t, prev.id], {}) : '#') + '">' + (prev ? 'Previous · ' + esc(prev.o) : 'No earlier game') + '</a>' +
       '<a class="pbtn' + (next ? '' : ' off') + '" href="' + (next ? href(['game', g.t, next.id], {}) : '#') + '">' + (next ? 'Next · ' + esc(next.o) : 'No later game') + '</a></div>';

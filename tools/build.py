@@ -58,6 +58,8 @@ def build(quiet=False):
             'h': 1 if g['home'] else 0, 'us': g['us'], 'them': g['them'], 'po': 1 if g['playoff'] else 0,
             'L': lines, 'D': [[d['p'], number_for(d['p'], g['team'], g['date'], d['n'])] for d in g.get('dnp', [])],
         })
+        if g.get('venue'):
+            games[-1]['V'] = g['venue']
         if g.get('official'):
             games[-1]['N'] = g['official']
         if g.get('tracked'):

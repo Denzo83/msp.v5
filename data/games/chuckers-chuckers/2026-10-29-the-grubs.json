@@ -280,9 +280,10 @@
       "them": 12
     }
   },
+  "venue": "Court 1",
   "official": {
     "us": 44,
     "them": 44,
-    "note": "Newy Bball logged this as a 44–44 draw, but 43–46 is the real score from the replay."
+    "note": "Newy Bball logged this as a 44–44 draw, which is the official result. 43–46 is the real score from the replay."
   }
 }

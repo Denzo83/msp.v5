@@ -2,7 +2,7 @@
 :root {
   --bg: #EEF2F8; --card: #FFFFFF; --card2: #F2F5FA; --text: #0E1525; --sub: #525C6E;
   --line: #E1E6EE; --chip: #E4E9F2; --on-chip: #FFFFFF;
-  --win: #15803D; --loss: #B91C1C; --win-bg: #15803D; --loss-bg: #B91C1C;
+  --win: #15803D; --loss: #B91C1C; --win-bg: #15803D; --loss-bg: #B91C1C; --draw: #525C6E; --draw-bg: #64748B;
   --p1: #1B3A8C; --p2: #2F6BFF; --p3: #8FD0FF; --miss: #C9D2DF;
   --accent: #1F4FD8;
   --display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
@@ -12,7 +12,7 @@
 :root[data-theme="dark"] {
   --bg: #0B0D12; --card: #171A21; --card2: #20242D; --text: #F4F6FA; --sub: #A3ABBA;
   --line: #2A2F3A; --chip: #252A34; --on-chip: #3A4150;
-  --win: #4ADE80; --loss: #F87171; --win-bg: #16A34A; --loss-bg: #DC2626;
+  --win: #4ADE80; --loss: #F87171; --win-bg: #16A34A; --loss-bg: #DC2626; --draw: #CBD5E1; --draw-bg: #64748B;
   --p1: #2F6BFF; --p2: #8FD0FF; --p3: #E6F0FF; --miss: #4A5263;
   color-scheme: dark;
 }
@@ -130,7 +130,7 @@ img { display: block; }
 .trow .t2 { font-size: 12px; color: var(--sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 400; }
 .trow.strong { font-weight: 700; }
 .trow .hl { font-weight: 700; color: var(--acc); }
-.res-w { color: var(--win); font-weight: 700; } .res-l { color: var(--loss); font-weight: 700; }
+.res-w { color: var(--win); font-weight: 700; } .res-l { color: var(--loss); font-weight: 700; } .res-d { color: var(--draw); font-weight: 700; }
 .xscroll { overflow-x: auto; }
 .xscroll > div { min-width: max-content; padding-right: 12px; display: flex; flex-direction: column; }
 .xscroll .trow { gap: 0; min-height: 52px; font-size: 14px; }
@@ -145,7 +145,7 @@ img { display: block; }
 .lrow .big { font-family: var(--display); font-size: 24px; font-weight: 700; text-align: right; min-width: 44px; }
 .rank { width: 22px; font-size: 13px; font-weight: 700; color: var(--sub); flex-shrink: 0; }
 .wl { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: #fff; flex-shrink: 0; }
-.wl.w { background: var(--win-bg); } .wl.l { background: var(--loss-bg); }
+.wl.w { background: var(--win-bg); } .wl.l { background: var(--loss-bg); } .wl.d { background: var(--draw-bg); }
 .daybox { width: 40px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; }
 .daybox b { font-family: var(--display); font-size: 24px; line-height: 1; }
 .daybox span { font-size: 11px; font-weight: 600; color: var(--sub); }

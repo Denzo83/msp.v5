@@ -33,7 +33,7 @@ Options
     --official-score 44-44   the score the league logged, when it differs from the real one;
                              the site shows the real score with a note
     --score-note "text"      the note to show next to the score (a default is written for you)
-    --away                   (tracker files) the game was an away game; tracker games count as home otherwise
+    --venue "Court 1"        the court it was played on (tracker files already carry it)
     --replace                overwrite a game that's already been added
     --dry-run                show what would be saved without saving
 """
@@ -82,7 +82,7 @@ def main():
     ap.add_argument('--new', action='append', default=[])
     ap.add_argument('--link', action='append', default=[])
     ap.add_argument('--replace', action='store_true')
-    ap.add_argument('--away', action='store_true')
+    ap.add_argument('--venue')
     ap.add_argument('--official-score')
     ap.add_argument('--score-note')
     ap.add_argument('--dry-run', action='store_true')
@@ -190,6 +190,8 @@ def main():
             'home': side == 'home', 'us': us, 'them': them, 'playoff': args.playoff, 'source': 'export',
             'lines': sorted(lines, key=lambda l: -l['pts']), 'dnp': dnp,
         }
+        if args.venue:
+            game['venue'] = args.venue
         add_official(game, args)
         result = 'W' if us > them else 'L' if us < them else 'T'
         print(f'{teams[tid]["name"]} {us}-{them} {opponent} ({result}) · {ex["date"]} · {season_name(skey)}'
@@ -219,7 +221,7 @@ def add_official(game, args):
     except ValueError:
         sys.exit('--official-score should look like 44-44 (our score first).')
     word = 'draw' if a == b else ('win' if a > b else 'loss')
-    note = args.score_note or f'Logged as a {a}–{b} {word} by the league. These are the actual scores.'
+    note = args.score_note or f'The league logged this as a {a}–{b} {word}, which is the official result. {game["us"]}–{game["them"]} is the real score.'
     game['official'] = {'us': a, 'them': b, 'note': note}
     print(f'  note: {note}')
 
@@ -303,12 +305,16 @@ def add_tracker_game(path, args, teams, players, roster):
     them = args.opp_score if args.opp_score is not None else S['them']
     game = {
         'id': gid, 'team': tid, 'date': g['date'], 'season': skey, 'opponent': opponent,
-        'home': not args.away and g.get('home', True), 'us': us, 'them': them, 'playoff': bool(args.playoff or g.get('final')),
+        'home': True, 'us': us, 'them': them, 'playoff': bool(args.playoff or g.get('final')),
         'source': 'tracker', 'lines': sorted(lines, key=lambda l: -l['pts']), 'dnp': dnp,
         'tracked': tracked_block(data, S, idmap),
     }
+    venue = args.venue or g.get('venue')
+    if venue:
+        game['venue'] = venue
     add_official(game, args)
-    result = 'W' if us > them else 'L' if us < them else 'T'
+    ou, ot = (game['official']['us'], game['official']['them']) if game.get('official') else (us, them)
+    result = 'W' if ou > ot else 'L' if ou < ot else 'D'
     print(f'{teams[tid]["name"]} {us}-{them} {opponent} ({result}) · {g["date"]} · {season_name(skey)}'
           f'{" · finals" if game["playoff"] else ""} · {len(lines)} played, {len(dnp)} DNP · '
           f'{len(game["tracked"]["shots"])} shots with a spot')
