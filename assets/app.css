@@ -223,3 +223,11 @@ img { display: block; }
 .medal.m1 { background: linear-gradient(145deg, #FFE27A, #D4A017); }
 .medal.m2 { background: linear-gradient(145deg, #F1F3F6, #A8B0BC); width: 18px; height: 18px; font-size: 10px; }
 .medal.m3 { background: linear-gradient(145deg, #F0C39A, #B87333); width: 18px; height: 18px; font-size: 10px; }
+
+/* championship trophies in the team header */
+.hero-foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
+.hero-foot .hero-seg { flex: 1 1 auto; min-width: 0; }
+.trophies { display: flex; align-items: flex-end; margin-left: auto; flex-shrink: 0; }
+.trophies img { height: 44px; width: auto; filter: drop-shadow(0 2px 3px rgba(0,0,0,.35)); }
+.trophies img + img { margin-left: -8px; }
+.trophies span { font-family: var(--display); font-size: 22px; font-weight: 800; color: #fff; margin-left: 6px; line-height: 1; padding-bottom: 2px; }

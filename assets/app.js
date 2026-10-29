@@ -322,7 +322,11 @@
     const n = G.length, w = G.filter((g) => g.win).length;
     const roster = Object.values(D.players).filter((p) => p.teams[tid] && p.teams[tid].gp > 0);
 
-    const tabs = '<div class="hero-seg">' + D.teamIds.map((t) => '<a class="' + (t === tid ? 'on' : '') + '" href="' + href(['team', t], {}) + '">' + esc(D.teams[t].short === 'CC' ? 'Chuckers' : D.teams[t].name) + '</a>').join('') + '</div>';
+    // a trophy for every grand final won in the selected season(s)
+    const titles = teamGames.filter((g) => g.round === 'gf' && g.win && (season === 'all' || g.s === season));
+    const trophies = titles.length ? '<div class="trophies" role="img" aria-label="' + titles.length + (titles.length === 1 ? ' championship' : ' championships') + '" title="Champions: ' + esc(titles.map((g) => D.seasonName(g.s)).join(', ')) + '">' +
+      titles.map(() => '<img src="assets/trophy.png" alt="">').join('') + (titles.length > 1 ? '<span>×' + titles.length + '</span>' : '') + '</div>' : '';
+    const tabs = '<div class="hero-foot"><div class="hero-seg">' + D.teamIds.map((t) => '<a class="' + (t === tid ? 'on' : '') + '" href="' + href(['team', t], {}) + '">' + esc(D.teams[t].short === 'CC' ? 'Chuckers' : D.teams[t].name) + '</a>').join('') + '</div>' + trophies + '</div>';
     let h = '<header class="hero"><div class="hero-top"><a class="hbtn" href="#/">' + ICON.back + 'All teams</a>' + themeBtn() + '</div>' +
       '<div class="hero-id"><span class="av logo">' + esc(T.short) + (T.logo ? '<img src="' + esc(T.logo) + '" alt="" onerror="this.remove()">' : '') + '</span><div>' +
       '<div class="kicker">' + esc(season === 'all' ? 'All seasons' : D.seasonName(season)) + '</div><h1>' + esc(T.name) + '</h1>' +
