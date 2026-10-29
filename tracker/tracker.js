@@ -184,7 +184,7 @@ function replay(g, upto) {
       case 'teamfoul': S.fouls[e.q] = (S.fouls[e.q] || 0) + 1; break;
       case 'opp': score(e.pts, false, e.q); S.sc = null; S.pot = false; break;
       case 'oppto': S.pot = true; S.sc = null; break;
-      case 'rest': score(e.pts, true, e.q); S.x.rest += e.pts; if (e.pts > 1) { S.sc = null; S.pot = false; } break;
+      case 'rest': if (e.ast && P[e.ast]) P[e.ast].ast++; score(e.pts, true, e.q); S.x.rest += e.pts; if (e.pts > 1) { S.sc = null; S.pot = false; } break;
       case 'period': advance(e.q, 0); S.q = e.next; S.tq = e.next; S.tc = g.len * 60; break;
       default: break;
     }
@@ -224,7 +224,7 @@ function describe(g, e) {
     case 'teamfoul': return 'Team foul (untracked player)';
     case 'opp': return 'Opponent ' + (e.pts === 1 ? 'free throw' : e.pts + 'PT make');
     case 'oppto': return 'Opponent turnover';
-    case 'rest': return 'Rest of team ' + (e.pts === 1 ? 'free throw' : e.pts + 'PT make');
+    case 'rest': return 'Rest of team ' + (e.pts === 1 ? 'free throw' : e.pts + 'PT make') + (e.ast ? ' · ast ' + shortN(g, e.ast) : '');
     case 'period': return 'End of ' + periodLabel(g, e.q);
     default: return e.t;
   }
@@ -450,6 +450,16 @@ function vDetails() {
 
 function vAssist() {
   const g = cur(), pd = ui.pend, S = replay(g);
+  if (pd.rest) {
+    const ms = S.court.map((id) => {
+      const ini = pname(g, id).split(' ').map((w) => w.charAt(0)).join('').slice(0, 2).toUpperCase();
+      return '<button class="mate" data-act="saveRest" data-arg="' + esc(id) + '"><span class="av">' + esc(ini) + '</span><span class="n"><b>' + esc(pname(g, id)) + '</b><span>' + S.P[id].ast + ' ast so far</span></span>' + I.chev + '</button>';
+    }).join('');
+    return '<div class="scr">' + flowHeader('Rest of team +' + pd.pts, 'Untracked teammate scored', 'cancelRest') +
+      '<div class="body" style="gap:10px"><h2 style="margin:0;font-family:var(--disp);font-size:30px;font-weight:800;line-height:1">Who assisted it?</h2>' +
+      '<p class="muted" style="margin:0 0 4px;font-size:14px">Pick a tracked player if they made the pass.</p>' + ms +
+      '<button class="btn dash full" style="min-height:60px;margin-top:4px" data-act="saveRest" data-arg="">No tracked assist</button></div></div>';
+  }
   const mates = S.court.filter((id) => id !== pd.p).map((id) => {
     const ini = pname(g, id).split(' ').map((w) => w.charAt(0)).join('').slice(0, 2).toUpperCase();
     return '<button class="mate" data-act="saveShot" data-arg="' + esc(id) + '"><span class="av">' + esc(ini) + '</span><span class="n"><b>' + esc(pname(g, id)) + '</b><span>' + S.P[id].ast + ' ast so far</span></span>' + I.chev + '</button>';
@@ -720,7 +730,13 @@ const ACT = {
   stat: (k) => { if (!ui.sel) return; add({ t: k, p: ui.sel }); render(); },
   opp: (n) => { add({ t: 'opp', pts: Number(n) }); render(); },
   oppto: () => { add({ t: 'oppto' }); render(); },
-  rest: (n) => { add({ t: 'rest', pts: Number(n) }); render(); },
+  rest: (n) => {
+    const S = replay(cur()), pts = Number(n);
+    if (pts === 1 || !S.court.length) { add({ t: 'rest', pts }); render(); return; }
+    ui.pend = { rest: true, pts, made: true }; go('assist');
+  },
+  saveRest: (ast) => { const e = { t: 'rest', pts: ui.pend.pts }; if (ast) e.ast = ast; add(e); ui.pend = null; go('track'); },
+  cancelRest: () => { ui.pend = null; go('track'); },
   teamfoul: () => { add({ t: 'teamfoul' }); render(); },
   undo: () => undo(),
   clockToggle: () => { const g = cur(); setClock(g, remaining(g), !g.clock.running); persist(); render(); },
