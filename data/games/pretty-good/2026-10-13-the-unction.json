@@ -1,0 +1,160 @@
+{
+  "id": "2026-10-13-the-unction",
+  "team": "pretty-good",
+  "date": "2026-10-13",
+  "season": "2026-spring",
+  "opponent": "The unction",
+  "home": true,
+  "us": 80,
+  "them": 43,
+  "playoff": false,
+  "source": "export",
+  "lines": [
+    {
+      "p": "josh-todd",
+      "n": "11",
+      "fgm": 11,
+      "fga": 17,
+      "tpm": 0,
+      "tpa": 1,
+      "ftm": 2,
+      "fta": 3,
+      "oreb": 4,
+      "dreb": 7,
+      "pf": 1,
+      "stl": 2,
+      "to": 6,
+      "blk": 0,
+      "ast": 2,
+      "pts": 24
+    },
+    {
+      "p": "rhys-ogle",
+      "n": "6",
+      "fgm": 8,
+      "fga": 17,
+      "tpm": 1,
+      "tpa": 4,
+      "ftm": 1,
+      "fta": 4,
+      "oreb": 5,
+      "dreb": 7,
+      "pf": 0,
+      "stl": 2,
+      "to": 4,
+      "blk": 0,
+      "ast": 4,
+      "pts": 18
+    },
+    {
+      "p": "callan-beamish",
+      "n": "21",
+      "fgm": 6,
+      "fga": 13,
+      "tpm": 3,
+      "tpa": 8,
+      "ftm": 0,
+      "fta": 0,
+      "oreb": 0,
+      "dreb": 5,
+      "pf": 2,
+      "stl": 0,
+      "to": 2,
+      "blk": 0,
+      "ast": 3,
+      "pts": 15
+    },
+    {
+      "p": "kyle-denzin",
+      "n": "37",
+      "fgm": 3,
+      "fga": 7,
+      "tpm": 2,
+      "tpa": 5,
+      "ftm": 0,
+      "fta": 0,
+      "oreb": 2,
+      "dreb": 6,
+      "pf": 0,
+      "stl": 2,
+      "to": 1,
+      "blk": 0,
+      "ast": 4,
+      "pts": 8
+    },
+    {
+      "p": "jackson-neaves",
+      "n": "10",
+      "fgm": 3,
+      "fga": 8,
+      "tpm": 1,
+      "tpa": 3,
+      "ftm": 1,
+      "fta": 4,
+      "oreb": 3,
+      "dreb": 7,
+      "pf": 1,
+      "stl": 1,
+      "to": 0,
+      "blk": 3,
+      "ast": 2,
+      "pts": 8
+    },
+    {
+      "p": "jarren-owen",
+      "n": "5",
+      "fgm": 3,
+      "fga": 4,
+      "tpm": 1,
+      "tpa": 1,
+      "ftm": 0,
+      "fta": 2,
+      "oreb": 3,
+      "dreb": 7,
+      "pf": 3,
+      "stl": 2,
+      "to": 2,
+      "blk": 2,
+      "ast": 10,
+      "pts": 7
+    }
+  ],
+  "dnp": [
+    {
+      "p": "dan",
+      "n": "2"
+    },
+    {
+      "p": "findlay-wendtman",
+      "n": "28"
+    },
+    {
+      "p": "ethan-todd",
+      "n": "27"
+    },
+    {
+      "p": "lance",
+      "n": "0"
+    },
+    {
+      "p": "levi-denzin",
+      "n": "43"
+    },
+    {
+      "p": "tim-pendlebury",
+      "n": "1"
+    },
+    {
+      "p": "e-swift",
+      "n": "00"
+    },
+    {
+      "p": "tunde",
+      "n": "3"
+    },
+    {
+      "p": "p-budden",
+      "n": "9"
+    }
+  ]
+}

@@ -1,0 +1,122 @@
+{
+  "id": "2025-11-18-zeroaltitude",
+  "team": "pretty-good",
+  "date": "2025-11-18",
+  "season": "2025-spring",
+  "opponent": "ZeroAltitude",
+  "home": true,
+  "us": 61,
+  "them": 30,
+  "playoff": false,
+  "source": "export",
+  "lines": [
+    {
+      "p": "josh-todd",
+      "n": "11",
+      "fgm": 9,
+      "fga": 14,
+      "tpm": 2,
+      "tpa": 5,
+      "ftm": 0,
+      "fta": 2,
+      "oreb": 3,
+      "dreb": 7,
+      "pf": 1,
+      "stl": 3,
+      "to": 0,
+      "blk": 1,
+      "ast": 5,
+      "pts": 20
+    },
+    {
+      "p": "levi-denzin",
+      "n": "43",
+      "fgm": 5,
+      "fga": 12,
+      "tpm": 3,
+      "tpa": 9,
+      "ftm": 2,
+      "fta": 2,
+      "oreb": 0,
+      "dreb": 1,
+      "pf": 0,
+      "stl": 0,
+      "to": 0,
+      "blk": 0,
+      "ast": 5,
+      "pts": 15
+    },
+    {
+      "p": "callan-beamish",
+      "n": "21",
+      "fgm": 5,
+      "fga": 8,
+      "tpm": 1,
+      "tpa": 2,
+      "ftm": 1,
+      "fta": 2,
+      "oreb": 1,
+      "dreb": 11,
+      "pf": 0,
+      "stl": 0,
+      "to": 3,
+      "blk": 0,
+      "ast": 2,
+      "pts": 12
+    },
+    {
+      "p": "jackson-neaves",
+      "n": "10",
+      "fgm": 4,
+      "fga": 14,
+      "tpm": 1,
+      "tpa": 10,
+      "ftm": 0,
+      "fta": 0,
+      "oreb": 3,
+      "dreb": 10,
+      "pf": 1,
+      "stl": 2,
+      "to": 1,
+      "blk": 2,
+      "ast": 2,
+      "pts": 9
+    },
+    {
+      "p": "jarren-owen",
+      "n": "5",
+      "fgm": 2,
+      "fga": 7,
+      "tpm": 1,
+      "tpa": 5,
+      "ftm": 0,
+      "fta": 0,
+      "oreb": 0,
+      "dreb": 2,
+      "pf": 4,
+      "stl": 3,
+      "to": 2,
+      "blk": 0,
+      "ast": 10,
+      "pts": 5
+    }
+  ],
+  "dnp": [
+    {
+      "p": "ethan-todd",
+      "n": "27"
+    },
+    {
+      "p": "findlay-wendtman",
+      "n": "28"
+    },
+    {
+      "p": "kyle-denzin",
+      "n": "37"
+    },
+    {
+      "p": "rhys-ogle",
+      "n": "6"
+    }
+  ]
+}

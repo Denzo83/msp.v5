@@ -1,0 +1,38 @@
+{
+  "id": "2025-11-27-brickshow",
+  "team": "chuckers-chuckers",
+  "date": "2025-11-27",
+  "season": "2025-spring",
+  "opponent": "Brickshow",
+  "home": true,
+  "us": 46,
+  "them": 52,
+  "playoff": false,
+  "source": "export",
+  "lines": [
+    {
+      "p": "findlay-wendtman",
+      "n": "28",
+      "fgm": 4,
+      "fga": 8,
+      "tpm": 2,
+      "tpa": 6,
+      "ftm": 0,
+      "fta": 0,
+      "oreb": 0,
+      "dreb": 1,
+      "pf": 0,
+      "stl": 1,
+      "to": 1,
+      "blk": 0,
+      "ast": 1,
+      "pts": 10
+    }
+  ],
+  "dnp": [
+    {
+      "p": "jackson-neaves",
+      "n": "10"
+    }
+  ]
+}

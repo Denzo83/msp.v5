@@ -1,0 +1,51 @@
+{
+  "id": "2025-09-04-ramrod",
+  "team": "chuckers-chuckers",
+  "date": "2025-09-04",
+  "season": "2025-spring",
+  "opponent": "Ramrod",
+  "home": true,
+  "us": 56,
+  "them": 38,
+  "playoff": false,
+  "source": "export",
+  "lines": [
+    {
+      "p": "findlay-wendtman",
+      "n": "28",
+      "fgm": 3,
+      "fga": 12,
+      "tpm": 1,
+      "tpa": 4,
+      "ftm": 0,
+      "fta": 0,
+      "oreb": 1,
+      "dreb": 4,
+      "pf": 0,
+      "stl": 9,
+      "to": 1,
+      "blk": 1,
+      "ast": 4,
+      "pts": 7
+    },
+    {
+      "p": "jackson-neaves",
+      "n": "10",
+      "fgm": 1,
+      "fga": 2,
+      "tpm": 0,
+      "tpa": 0,
+      "ftm": 0,
+      "fta": 0,
+      "oreb": 0,
+      "dreb": 6,
+      "pf": 0,
+      "stl": 1,
+      "to": 0,
+      "blk": 1,
+      "ast": 0,
+      "pts": 2
+    }
+  ],
+  "dnp": []
+}

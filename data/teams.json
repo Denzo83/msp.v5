@@ -1,0 +1,40 @@
+{
+  "pretty-good": {
+    "name": "Pretty Good",
+    "short": "PG",
+    "color": "#2456E5",
+    "darkColor": "#5B9BFF",
+    "logo": "assets/teams/pretty-good-logo.png",
+    "variants": [
+      "Pretty good",
+      "Pretty Good",
+      "PrettyGood",
+      "Pretty-good"
+    ]
+  },
+  "chuckers-chuckers": {
+    "name": "Chuckers Chuckers",
+    "short": "CC",
+    "color": "#7C3AED",
+    "darkColor": "#A78BFA",
+    "logo": "assets/teams/chuckers-chuckers-logo.png",
+    "variants": [
+      "Chuckers Chuckers",
+      "Chuckers"
+    ],
+    "partialStats": true,
+    "partialNote": "Only Findlay and Jackson are stat-tracked for Chuckers, so team totals cover those two only. The score is the real final score."
+  },
+  "all-stars": {
+    "name": "All Stars",
+    "short": "AS",
+    "color": "#B45309",
+    "darkColor": "#F59E0B",
+    "logo": "assets/teams/all-stars-logo.png",
+    "variants": [
+      "All stars",
+      "All Stars",
+      "Allstars"
+    ]
+  }
+}

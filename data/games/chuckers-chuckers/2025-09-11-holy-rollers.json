@@ -1,0 +1,38 @@
+{
+  "id": "2025-09-11-holy-rollers",
+  "team": "chuckers-chuckers",
+  "date": "2025-09-11",
+  "season": "2025-spring",
+  "opponent": "Holy rollers",
+  "home": true,
+  "us": 28,
+  "them": 23,
+  "playoff": false,
+  "source": "export",
+  "lines": [
+    {
+      "p": "findlay-wendtman",
+      "n": "28",
+      "fgm": 0,
+      "fga": 4,
+      "tpm": 0,
+      "tpa": 3,
+      "ftm": 0,
+      "fta": 0,
+      "oreb": 0,
+      "dreb": 2,
+      "pf": 1,
+      "stl": 1,
+      "to": 0,
+      "blk": 1,
+      "ast": 2,
+      "pts": 0
+    }
+  ],
+  "dnp": [
+    {
+      "p": "jackson-neaves",
+      "n": "10"
+    }
+  ]
+}

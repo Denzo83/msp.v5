@@ -1,0 +1,51 @@
+{
+  "id": "2025-09-25-sob",
+  "team": "chuckers-chuckers",
+  "date": "2025-09-25",
+  "season": "2025-spring",
+  "opponent": "SOB",
+  "home": true,
+  "us": 43,
+  "them": 24,
+  "playoff": false,
+  "source": "export",
+  "lines": [
+    {
+      "p": "findlay-wendtman",
+      "n": "28",
+      "fgm": 1,
+      "fga": 6,
+      "tpm": 1,
+      "tpa": 2,
+      "ftm": 0,
+      "fta": 0,
+      "oreb": 0,
+      "dreb": 5,
+      "pf": 0,
+      "stl": 1,
+      "to": 4,
+      "blk": 0,
+      "ast": 2,
+      "pts": 3
+    },
+    {
+      "p": "jackson-neaves",
+      "n": "10",
+      "fgm": 0,
+      "fga": 4,
+      "tpm": 0,
+      "tpa": 2,
+      "ftm": 2,
+      "fta": 2,
+      "oreb": 3,
+      "dreb": 8,
+      "pf": 1,
+      "stl": 0,
+      "to": 1,
+      "blk": 3,
+      "ast": 0,
+      "pts": 2
+    }
+  ],
+  "dnp": []
+}

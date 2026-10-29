@@ -1,0 +1,51 @@
+{
+  "id": "2025-11-06-kone-wankenobi",
+  "team": "chuckers-chuckers",
+  "date": "2025-11-06",
+  "season": "2025-spring",
+  "opponent": "Kone wankenobi",
+  "home": true,
+  "us": 36,
+  "them": 39,
+  "playoff": false,
+  "source": "export",
+  "lines": [
+    {
+      "p": "jackson-neaves",
+      "n": "10",
+      "fgm": 1,
+      "fga": 5,
+      "tpm": 0,
+      "tpa": 1,
+      "ftm": 1,
+      "fta": 2,
+      "oreb": 1,
+      "dreb": 11,
+      "pf": 2,
+      "stl": 0,
+      "to": 2,
+      "blk": 0,
+      "ast": 1,
+      "pts": 3
+    },
+    {
+      "p": "findlay-wendtman",
+      "n": "28",
+      "fgm": 1,
+      "fga": 4,
+      "tpm": 0,
+      "tpa": 2,
+      "ftm": 0,
+      "fta": 0,
+      "oreb": 0,
+      "dreb": 1,
+      "pf": 1,
+      "stl": 2,
+      "to": 3,
+      "blk": 0,
+      "ast": 4,
+      "pts": 2
+    }
+  ],
+  "dnp": []
+}

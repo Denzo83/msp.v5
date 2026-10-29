@@ -1,0 +1,33 @@
+{
+  "id": "2026-04-16-burnt-ants",
+  "team": "chuckers-chuckers",
+  "date": "2026-04-16",
+  "season": "2026-summer",
+  "opponent": "Burnt ants",
+  "home": true,
+  "us": 46,
+  "them": 59,
+  "playoff": false,
+  "source": "v4",
+  "lines": [
+    {
+      "p": "findlay-wendtman",
+      "n": "22",
+      "fgm": 7,
+      "fga": 14,
+      "tpm": 2,
+      "tpa": 5,
+      "ftm": 1,
+      "fta": 2,
+      "oreb": 1,
+      "dreb": 2,
+      "pf": 0,
+      "stl": 4,
+      "to": 1,
+      "blk": 0,
+      "ast": 1,
+      "pts": 17
+    }
+  ],
+  "dnp": []
+}

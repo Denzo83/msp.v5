@@ -1,0 +1,33 @@
+{
+  "id": "2026-08-06-the-grubs",
+  "team": "chuckers-chuckers",
+  "date": "2026-08-06",
+  "season": "2026-winter",
+  "opponent": "The grubs",
+  "home": true,
+  "us": 43,
+  "them": 50,
+  "playoff": false,
+  "source": "v4",
+  "lines": [
+    {
+      "p": "findlay-wendtman",
+      "n": "22",
+      "fgm": 4,
+      "fga": 6,
+      "tpm": 0,
+      "tpa": 1,
+      "ftm": 0,
+      "fta": 0,
+      "oreb": 1,
+      "dreb": 1,
+      "pf": 1,
+      "stl": 4,
+      "to": 0,
+      "blk": 0,
+      "ast": 4,
+      "pts": 8
+    }
+  ],
+  "dnp": []
+}

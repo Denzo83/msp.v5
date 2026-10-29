@@ -1,0 +1,122 @@
+{
+  "id": "2025-10-14-zero-altitude",
+  "team": "pretty-good",
+  "date": "2025-10-14",
+  "season": "2025-spring",
+  "opponent": "Zero altitude",
+  "home": true,
+  "us": 50,
+  "them": 38,
+  "playoff": false,
+  "source": "export",
+  "lines": [
+    {
+      "p": "rhys-ogle",
+      "n": "6",
+      "fgm": 6,
+      "fga": 9,
+      "tpm": 0,
+      "tpa": 2,
+      "ftm": 4,
+      "fta": 8,
+      "oreb": 2,
+      "dreb": 8,
+      "pf": 4,
+      "stl": 2,
+      "to": 3,
+      "blk": 2,
+      "ast": 0,
+      "pts": 16
+    },
+    {
+      "p": "levi-denzin",
+      "n": "43",
+      "fgm": 5,
+      "fga": 13,
+      "tpm": 3,
+      "tpa": 10,
+      "ftm": 2,
+      "fta": 2,
+      "oreb": 2,
+      "dreb": 4,
+      "pf": 0,
+      "stl": 1,
+      "to": 2,
+      "blk": 0,
+      "ast": 3,
+      "pts": 15
+    },
+    {
+      "p": "callan-beamish",
+      "n": "21",
+      "fgm": 3,
+      "fga": 6,
+      "tpm": 0,
+      "tpa": 0,
+      "ftm": 4,
+      "fta": 8,
+      "oreb": 2,
+      "dreb": 7,
+      "pf": 2,
+      "stl": 3,
+      "to": 4,
+      "blk": 0,
+      "ast": 1,
+      "pts": 10
+    },
+    {
+      "p": "jarren-owen",
+      "n": "5",
+      "fgm": 3,
+      "fga": 9,
+      "tpm": 3,
+      "tpa": 9,
+      "ftm": 0,
+      "fta": 0,
+      "oreb": 0,
+      "dreb": 4,
+      "pf": 3,
+      "stl": 0,
+      "to": 0,
+      "blk": 0,
+      "ast": 3,
+      "pts": 9
+    },
+    {
+      "p": "findlay-wendtman",
+      "n": "28",
+      "fgm": 0,
+      "fga": 5,
+      "tpm": 0,
+      "tpa": 4,
+      "ftm": 0,
+      "fta": 0,
+      "oreb": 0,
+      "dreb": 2,
+      "pf": 0,
+      "stl": 3,
+      "to": 1,
+      "blk": 0,
+      "ast": 5,
+      "pts": 0
+    }
+  ],
+  "dnp": [
+    {
+      "p": "ethan-todd",
+      "n": "27"
+    },
+    {
+      "p": "jackson-neaves",
+      "n": "10"
+    },
+    {
+      "p": "kyle-denzin",
+      "n": "37"
+    },
+    {
+      "p": "josh-todd",
+      "n": "11"
+    }
+  ]
+}

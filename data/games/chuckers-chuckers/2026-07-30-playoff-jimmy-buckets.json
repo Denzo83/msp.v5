@@ -1,0 +1,33 @@
+{
+  "id": "2026-07-30-playoff-jimmy-buckets",
+  "team": "chuckers-chuckers",
+  "date": "2026-07-30",
+  "season": "2026-winter",
+  "opponent": "Playoff jimmy buckets",
+  "home": true,
+  "us": 31,
+  "them": 38,
+  "playoff": false,
+  "source": "v4",
+  "lines": [
+    {
+      "p": "findlay-wendtman",
+      "n": "22",
+      "fgm": 1,
+      "fga": 6,
+      "tpm": 0,
+      "tpa": 3,
+      "ftm": 1,
+      "fta": 3,
+      "oreb": 1,
+      "dreb": 3,
+      "pf": 1,
+      "stl": 3,
+      "to": 0,
+      "blk": 1,
+      "ast": 3,
+      "pts": 3
+    }
+  ],
+  "dnp": []
+}

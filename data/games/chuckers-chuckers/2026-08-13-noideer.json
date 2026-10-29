@@ -1,0 +1,33 @@
+{
+  "id": "2026-08-13-noideer",
+  "team": "chuckers-chuckers",
+  "date": "2026-08-13",
+  "season": "2026-winter",
+  "opponent": "Noideer",
+  "home": true,
+  "us": 51,
+  "them": 62,
+  "playoff": false,
+  "source": "v4",
+  "lines": [
+    {
+      "p": "findlay-wendtman",
+      "n": "22",
+      "fgm": 4,
+      "fga": 9,
+      "tpm": 0,
+      "tpa": 2,
+      "ftm": 0,
+      "fta": 0,
+      "oreb": 1,
+      "dreb": 1,
+      "pf": 0,
+      "stl": 4,
+      "to": 1,
+      "blk": 1,
+      "ast": 2,
+      "pts": 8
+    }
+  ],
+  "dnp": []
+}

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MyStatPro</title>
+<meta name="description" content="Stats, leaders, records and box scores for Pretty Good, Chuckers Chuckers and All Stars.">
+<meta name="theme-color" content="#0B0D12">
+<link rel="icon" href="assets/teams/pretty-good-logo.png">
+<link rel="apple-touch-icon" href="assets/teams/pretty-good-logo.png">
+<script>
+  (function () {
+    var t = 'dark';
+    try { t = localStorage.getItem('msp-theme') || 'dark'; } catch (e) {}
+    document.documentElement.dataset.theme = t;
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+<main id="app"><div class="loading">Loading stats…</div></main>
+<script src="assets/app.js"></script>
+</body>
+</html>

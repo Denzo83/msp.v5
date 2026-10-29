@@ -1,0 +1,51 @@
+{
+  "id": "2025-12-11-kobe-wan-kenobi",
+  "team": "chuckers-chuckers",
+  "date": "2025-12-11",
+  "season": "2025-spring",
+  "opponent": "Kobe wan kenobi",
+  "home": true,
+  "us": 57,
+  "them": 53,
+  "playoff": true,
+  "source": "export",
+  "lines": [
+    {
+      "p": "jackson-neaves",
+      "n": "10",
+      "fgm": 0,
+      "fga": 0,
+      "tpm": 0,
+      "tpa": 0,
+      "ftm": 2,
+      "fta": 3,
+      "oreb": 2,
+      "dreb": 1,
+      "pf": 0,
+      "stl": 0,
+      "to": 0,
+      "blk": 0,
+      "ast": 2,
+      "pts": 2
+    },
+    {
+      "p": "findlay-wendtman",
+      "n": "28",
+      "fgm": 1,
+      "fga": 3,
+      "tpm": 0,
+      "tpa": 2,
+      "ftm": 0,
+      "fta": 0,
+      "oreb": 1,
+      "dreb": 1,
+      "pf": 1,
+      "stl": 1,
+      "to": 1,
+      "blk": 1,
+      "ast": 7,
+      "pts": 2
+    }
+  ],
+  "dnp": []
+}

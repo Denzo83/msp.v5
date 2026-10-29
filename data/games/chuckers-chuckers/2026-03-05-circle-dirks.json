@@ -1,0 +1,33 @@
+{
+  "id": "2026-03-05-circle-dirks",
+  "team": "chuckers-chuckers",
+  "date": "2026-03-05",
+  "season": "2026-summer",
+  "opponent": "Circle dirks",
+  "home": true,
+  "us": 28,
+  "them": 39,
+  "playoff": false,
+  "source": "v4",
+  "lines": [
+    {
+      "p": "findlay-wendtman",
+      "n": "22",
+      "fgm": 2,
+      "fga": 9,
+      "tpm": 1,
+      "tpa": 7,
+      "ftm": 0,
+      "fta": 1,
+      "oreb": 1,
+      "dreb": 2,
+      "pf": 2,
+      "stl": 4,
+      "to": 4,
+      "blk": 0,
+      "ast": 2,
+      "pts": 5
+    }
+  ],
+  "dnp": []
+}

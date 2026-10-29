@@ -1,0 +1,51 @@
+{
+  "id": "2025-10-02-obl",
+  "team": "chuckers-chuckers",
+  "date": "2025-10-02",
+  "season": "2025-spring",
+  "opponent": "Obl",
+  "home": true,
+  "us": 38,
+  "them": 55,
+  "playoff": false,
+  "source": "export",
+  "lines": [
+    {
+      "p": "findlay-wendtman",
+      "n": "28",
+      "fgm": 6,
+      "fga": 10,
+      "tpm": 3,
+      "tpa": 5,
+      "ftm": 0,
+      "fta": 0,
+      "oreb": 1,
+      "dreb": 1,
+      "pf": 1,
+      "stl": 0,
+      "to": 1,
+      "blk": 1,
+      "ast": 1,
+      "pts": 15
+    },
+    {
+      "p": "jackson-neaves",
+      "n": "10",
+      "fgm": 0,
+      "fga": 0,
+      "tpm": 0,
+      "tpa": 0,
+      "ftm": 0,
+      "fta": 0,
+      "oreb": 0,
+      "dreb": 0,
+      "pf": 0,
+      "stl": 0,
+      "to": 0,
+      "blk": 0,
+      "ast": 0,
+      "pts": 0
+    }
+  ],
+  "dnp": []
+}

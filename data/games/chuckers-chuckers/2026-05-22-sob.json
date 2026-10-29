@@ -1,0 +1,33 @@
+{
+  "id": "2026-05-22-sob",
+  "team": "chuckers-chuckers",
+  "date": "2026-05-22",
+  "season": "2026-winter",
+  "opponent": "SOB",
+  "home": true,
+  "us": 39,
+  "them": 39,
+  "playoff": false,
+  "source": "v4",
+  "lines": [
+    {
+      "p": "findlay-wendtman",
+      "n": "22",
+      "fgm": 6,
+      "fga": 17,
+      "tpm": 3,
+      "tpa": 6,
+      "ftm": 0,
+      "fta": 0,
+      "oreb": 1,
+      "dreb": 1,
+      "pf": 0,
+      "stl": 2,
+      "to": 1,
+      "blk": 0,
+      "ast": 5,
+      "pts": 15
+    }
+  ],
+  "dnp": []
+}

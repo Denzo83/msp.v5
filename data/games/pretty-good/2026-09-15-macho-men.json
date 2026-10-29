@@ -1,0 +1,142 @@
+{
+  "id": "2026-09-15-macho-men",
+  "team": "pretty-good",
+  "date": "2026-09-15",
+  "season": "2026-spring",
+  "opponent": "Macho men",
+  "home": true,
+  "us": 43,
+  "them": 28,
+  "playoff": false,
+  "source": "export",
+  "lines": [
+    {
+      "p": "levi-denzin",
+      "n": "43",
+      "fgm": 5,
+      "fga": 15,
+      "tpm": 2,
+      "tpa": 7,
+      "ftm": 2,
+      "fta": 2,
+      "oreb": 2,
+      "dreb": 1,
+      "pf": 0,
+      "stl": 1,
+      "to": 0,
+      "blk": 0,
+      "ast": 4,
+      "pts": 14
+    },
+    {
+      "p": "kyle-denzin",
+      "n": "37",
+      "fgm": 3,
+      "fga": 8,
+      "tpm": 3,
+      "tpa": 8,
+      "ftm": 0,
+      "fta": 0,
+      "oreb": 1,
+      "dreb": 2,
+      "pf": 0,
+      "stl": 1,
+      "to": 1,
+      "blk": 0,
+      "ast": 2,
+      "pts": 9
+    },
+    {
+      "p": "josh-todd",
+      "n": "11",
+      "fgm": 3,
+      "fga": 10,
+      "tpm": 1,
+      "tpa": 4,
+      "ftm": 2,
+      "fta": 2,
+      "oreb": 1,
+      "dreb": 6,
+      "pf": 3,
+      "stl": 7,
+      "to": 2,
+      "blk": 1,
+      "ast": 1,
+      "pts": 9
+    },
+    {
+      "p": "jarren-owen",
+      "n": "5",
+      "fgm": 2,
+      "fga": 5,
+      "tpm": 2,
+      "tpa": 5,
+      "ftm": 0,
+      "fta": 0,
+      "oreb": 0,
+      "dreb": 4,
+      "pf": 3,
+      "stl": 6,
+      "to": 1,
+      "blk": 4,
+      "ast": 7,
+      "pts": 6
+    },
+    {
+      "p": "rhys-ogle",
+      "n": "6",
+      "fgm": 2,
+      "fga": 10,
+      "tpm": 0,
+      "tpa": 4,
+      "ftm": 1,
+      "fta": 2,
+      "oreb": 0,
+      "dreb": 4,
+      "pf": 0,
+      "stl": 1,
+      "to": 2,
+      "blk": 8,
+      "ast": 1,
+      "pts": 5
+    }
+  ],
+  "dnp": [
+    {
+      "p": "callan-beamish",
+      "n": "21"
+    },
+    {
+      "p": "lance",
+      "n": "0"
+    },
+    {
+      "p": "tim-pendlebury",
+      "n": "1"
+    },
+    {
+      "p": "jackson-neaves",
+      "n": "10"
+    },
+    {
+      "p": "tunde",
+      "n": "3"
+    },
+    {
+      "p": "dan",
+      "n": "2"
+    },
+    {
+      "p": "findlay-wendtman",
+      "n": "28"
+    },
+    {
+      "p": "p-budden",
+      "n": "9"
+    },
+    {
+      "p": "ethan-todd",
+      "n": "27"
+    }
+  ]
+}

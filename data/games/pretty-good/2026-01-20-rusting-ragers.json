@@ -1,0 +1,140 @@
+{
+  "id": "2026-01-20-rusting-ragers",
+  "team": "pretty-good",
+  "date": "2026-01-20",
+  "season": "2026-summer",
+  "opponent": "Rusting Ragers",
+  "home": true,
+  "us": 64,
+  "them": 28,
+  "playoff": false,
+  "source": "export",
+  "lines": [
+    {
+      "p": "rhys-ogle",
+      "n": "6",
+      "fgm": 8,
+      "fga": 16,
+      "tpm": 7,
+      "tpa": 13,
+      "ftm": 2,
+      "fta": 8,
+      "oreb": 2,
+      "dreb": 1,
+      "pf": 1,
+      "stl": 0,
+      "to": 1,
+      "blk": 0,
+      "ast": 4,
+      "pts": 25
+    },
+    {
+      "p": "kyle-denzin",
+      "n": "37",
+      "fgm": 5,
+      "fga": 12,
+      "tpm": 3,
+      "tpa": 9,
+      "ftm": 0,
+      "fta": 0,
+      "oreb": 1,
+      "dreb": 2,
+      "pf": 0,
+      "stl": 2,
+      "to": 1,
+      "blk": 0,
+      "ast": 2,
+      "pts": 13
+    },
+    {
+      "p": "josh-todd",
+      "n": "11",
+      "fgm": 2,
+      "fga": 6,
+      "tpm": 1,
+      "tpa": 3,
+      "ftm": 4,
+      "fta": 6,
+      "oreb": 3,
+      "dreb": 7,
+      "pf": 1,
+      "stl": 1,
+      "to": 0,
+      "blk": 0,
+      "ast": 6,
+      "pts": 9
+    },
+    {
+      "p": "findlay-wendtman",
+      "n": "28",
+      "fgm": 4,
+      "fga": 10,
+      "tpm": 0,
+      "tpa": 3,
+      "ftm": 0,
+      "fta": 0,
+      "oreb": 1,
+      "dreb": 3,
+      "pf": 0,
+      "stl": 3,
+      "to": 1,
+      "blk": 0,
+      "ast": 2,
+      "pts": 8
+    },
+    {
+      "p": "callan-beamish",
+      "n": "21",
+      "fgm": 2,
+      "fga": 7,
+      "tpm": 0,
+      "tpa": 1,
+      "ftm": 2,
+      "fta": 4,
+      "oreb": 1,
+      "dreb": 7,
+      "pf": 0,
+      "stl": 1,
+      "to": 1,
+      "blk": 0,
+      "ast": 3,
+      "pts": 6
+    },
+    {
+      "p": "jarren-owen",
+      "n": "5",
+      "fgm": 1,
+      "fga": 5,
+      "tpm": 1,
+      "tpa": 5,
+      "ftm": 0,
+      "fta": 0,
+      "oreb": 1,
+      "dreb": 5,
+      "pf": 2,
+      "stl": 3,
+      "to": 1,
+      "blk": 0,
+      "ast": 4,
+      "pts": 3
+    }
+  ],
+  "dnp": [
+    {
+      "p": "jackson-neaves",
+      "n": "10"
+    },
+    {
+      "p": "ethan-todd",
+      "n": "27"
+    },
+    {
+      "p": "levi-denzin",
+      "n": "43"
+    },
+    {
+      "p": "tim-pendlebury",
+      "n": "1"
+    }
+  ]
+}

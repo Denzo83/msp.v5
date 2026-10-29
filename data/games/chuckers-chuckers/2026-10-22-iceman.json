@@ -1,0 +1,38 @@
+{
+  "id": "2026-10-22-iceman",
+  "team": "chuckers-chuckers",
+  "date": "2026-10-22",
+  "season": "2026-spring",
+  "opponent": "Iceman",
+  "home": true,
+  "us": 32,
+  "them": 29,
+  "playoff": false,
+  "source": "export",
+  "lines": [
+    {
+      "p": "findlay-wendtman",
+      "n": "22",
+      "fgm": 3,
+      "fga": 11,
+      "tpm": 0,
+      "tpa": 4,
+      "ftm": 1,
+      "fta": 2,
+      "oreb": 0,
+      "dreb": 2,
+      "pf": 2,
+      "stl": 5,
+      "to": 2,
+      "blk": 3,
+      "ast": 3,
+      "pts": 7
+    }
+  ],
+  "dnp": [
+    {
+      "p": "jackson-neaves",
+      "n": "10"
+    }
+  ]
+}

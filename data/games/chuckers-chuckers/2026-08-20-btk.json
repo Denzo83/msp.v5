@@ -1,0 +1,33 @@
+{
+  "id": "2026-08-20-btk",
+  "team": "chuckers-chuckers",
+  "date": "2026-08-20",
+  "season": "2026-winter",
+  "opponent": "BTK",
+  "home": true,
+  "us": 41,
+  "them": 55,
+  "playoff": false,
+  "source": "v4",
+  "lines": [
+    {
+      "p": "findlay-wendtman",
+      "n": "22",
+      "fgm": 3,
+      "fga": 14,
+      "tpm": 2,
+      "tpa": 7,
+      "ftm": 1,
+      "fta": 1,
+      "oreb": 0,
+      "dreb": 0,
+      "pf": 1,
+      "stl": 5,
+      "to": 1,
+      "blk": 0,
+      "ast": 1,
+      "pts": 9
+    }
+  ],
+  "dnp": []
+}

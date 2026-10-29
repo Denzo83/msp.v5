@@ -1,0 +1,51 @@
+{
+  "id": "2026-03-26-brickshow",
+  "team": "chuckers-chuckers",
+  "date": "2026-03-26",
+  "season": "2026-summer",
+  "opponent": "Brickshow",
+  "home": true,
+  "us": 41,
+  "them": 40,
+  "playoff": false,
+  "source": "v4",
+  "lines": [
+    {
+      "p": "jackson-neaves",
+      "n": "10",
+      "fgm": 3,
+      "fga": 9,
+      "tpm": 0,
+      "tpa": 4,
+      "ftm": 3,
+      "fta": 4,
+      "oreb": 3,
+      "dreb": 4,
+      "pf": 1,
+      "stl": 2,
+      "to": 2,
+      "blk": 2,
+      "ast": 1,
+      "pts": 9
+    },
+    {
+      "p": "findlay-wendtman",
+      "n": "22",
+      "fgm": 2,
+      "fga": 10,
+      "tpm": 2,
+      "tpa": 5,
+      "ftm": 2,
+      "fta": 2,
+      "oreb": 2,
+      "dreb": 5,
+      "pf": 0,
+      "stl": 2,
+      "to": 3,
+      "blk": 0,
+      "ast": 4,
+      "pts": 8
+    }
+  ],
+  "dnp": []
+}

@@ -1,0 +1,51 @@
+{
+  "id": "2025-10-09-air-ballerz",
+  "team": "chuckers-chuckers",
+  "date": "2025-10-09",
+  "season": "2025-spring",
+  "opponent": "Air ballerz",
+  "home": true,
+  "us": 35,
+  "them": 35,
+  "playoff": false,
+  "source": "export",
+  "lines": [
+    {
+      "p": "findlay-wendtman",
+      "n": "28",
+      "fgm": 4,
+      "fga": 10,
+      "tpm": 3,
+      "tpa": 7,
+      "ftm": 2,
+      "fta": 2,
+      "oreb": 2,
+      "dreb": 2,
+      "pf": 0,
+      "stl": 1,
+      "to": 2,
+      "blk": 0,
+      "ast": 2,
+      "pts": 13
+    },
+    {
+      "p": "jackson-neaves",
+      "n": "10",
+      "fgm": 1,
+      "fga": 4,
+      "tpm": 0,
+      "tpa": 1,
+      "ftm": 4,
+      "fta": 7,
+      "oreb": 1,
+      "dreb": 5,
+      "pf": 1,
+      "stl": 1,
+      "to": 0,
+      "blk": 1,
+      "ast": 1,
+      "pts": 6
+    }
+  ],
+  "dnp": []
+}

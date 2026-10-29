@@ -1,0 +1,33 @@
+{
+  "id": "2026-02-08-obl",
+  "team": "chuckers-chuckers",
+  "date": "2026-02-08",
+  "season": "2026-summer",
+  "opponent": "Obl",
+  "home": true,
+  "us": 38,
+  "them": 32,
+  "playoff": false,
+  "source": "v4",
+  "lines": [
+    {
+      "p": "findlay-wendtman",
+      "n": "22",
+      "fgm": 2,
+      "fga": 9,
+      "tpm": 1,
+      "tpa": 1,
+      "ftm": 0,
+      "fta": 0,
+      "oreb": 1,
+      "dreb": 3,
+      "pf": 1,
+      "stl": 1,
+      "to": 4,
+      "blk": 0,
+      "ast": 3,
+      "pts": 5
+    }
+  ],
+  "dnp": []
+}

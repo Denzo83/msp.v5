@@ -1,0 +1,38 @@
+{
+  "id": "2026-10-15-sob",
+  "team": "chuckers-chuckers",
+  "date": "2026-10-15",
+  "season": "2026-spring",
+  "opponent": "SOB",
+  "home": true,
+  "us": 40,
+  "them": 30,
+  "playoff": false,
+  "source": "export",
+  "lines": [
+    {
+      "p": "findlay-wendtman",
+      "n": "22",
+      "fgm": 3,
+      "fga": 9,
+      "tpm": 3,
+      "tpa": 5,
+      "ftm": 0,
+      "fta": 0,
+      "oreb": 0,
+      "dreb": 3,
+      "pf": 2,
+      "stl": 4,
+      "to": 2,
+      "blk": 0,
+      "ast": 4,
+      "pts": 9
+    }
+  ],
+  "dnp": [
+    {
+      "p": "jackson-neaves",
+      "n": "10"
+    }
+  ]
+}
