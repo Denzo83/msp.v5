@@ -75,8 +75,9 @@ img { display: block; }
 .seg.inline button { min-height: 36px; font-size: 12px; font-weight: 700; border-radius: 9px; }
 .seg .on { background: var(--on-chip); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.18); }
 .scope { font-size: 13px; color: var(--sub); }
-.tabs { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); background: var(--card); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5; }
-.tabs a { min-height: 50px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: var(--sub); text-decoration: none; border-bottom: 3px solid transparent; }
+.tabs { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(max-content, 1fr); background: var(--card); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5; overflow-x: auto; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tabs a { min-height: 50px; padding: 0 12px; white-space: nowrap; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: var(--sub); text-decoration: none; border-bottom: 3px solid transparent; }
 .tabs a.on { color: var(--acc); border-bottom-color: var(--acc); }
 
 .card { background: var(--card); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 14px; }

@@ -26,6 +26,7 @@ def build(quiet=False):
         name = opp_alias.get(name, name)
         return re.sub(r'[^a-z0-9]', '', name.lower().replace('\u2019', '').replace("'", ''))
 
+    courts = {k: v for k, v in load_json(DATA / 'courts.json', {}).items() if not k.startswith('_') and v}
     spellings = defaultdict(Counter)
     rules = load_json(DATA / 'numbers.json', {}).get('rules', [])
 
@@ -58,8 +59,9 @@ def build(quiet=False):
             'h': 1 if g['home'] else 0, 'us': g['us'], 'them': g['them'], 'po': 1 if g['playoff'] else 0,
             'L': lines, 'D': [[d['p'], number_for(d['p'], g['team'], g['date'], d['n'])] for d in g.get('dnp', [])],
         })
-        if g.get('venue'):
-            games[-1]['V'] = g['venue']
+        venue = courts.get(f"{g['team']}/{g['id']}") or g.get('venue')
+        if venue:
+            games[-1]['V'] = venue
         if g.get('official'):
             games[-1]['N'] = g['official']
         if g.get('tracked'):

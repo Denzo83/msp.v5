@@ -413,6 +413,7 @@
           '<span style="display:flex;gap:8px;min-height:12px">' + others.map((t) => '<span class="note small" style="display:flex;align-items:center;gap:4px"><span class="dot" style="background:' + D.teams[t].color + '"></span>' + D.teams[t].short + '</span>').join('') + '</span></a>';
       }).join('') + '</div></div>';
 
+    h += teamCourts(G);
     h += trackedTeamCards(tid, G);
     h += '<div class="card list"><div class="head"><h2>Recent Games</h2><a class="more" href="' + href(['games'], { team: tid, season }) + '">All games</a></div>' + G.slice(-5).reverse().map((g) => gameRow(g, false)).join('') + '</div>';
     h += '</div>';
@@ -519,9 +520,9 @@
         const same = nums.every((n) => n === nums[0]);
         return '<div class="pills">' + teamsPlayed.map((t) => '<a class="pill" href="' + href(['team', t], {}) + '">' + teamBadge(t, 's26') + (same ? '' : '#' + esc(P.teams[t].number) + ' ') + esc(D.teams[t].name) + '</a>').join('') + '</div>';
       })() + '</header>';
-    h += '<nav class="tabs" aria-label="Player sections">' + [['ov', 'Overview'], ['stats', 'Stats'], ['shots', 'Shooting'], ['log', 'Game Log'], ['opp', 'Versus']].map((v) => '<a class="' + (view === v[0] ? 'on' : '') + '" ' + tog({ tab: v[0] === 'ov' ? null : v[0], sel: null, sg: null, sv: null, sk: null }) + '>' + v[1] + '</a>').join('') + '</nav>';
+    h += '<nav class="tabs" aria-label="Player sections">' + [['ov', 'Overview'], ['stats', 'Stats']].concat(myGamesAll.some((g) => g.X) ? [['shots', 'Shooting']] : []).concat([['log', 'Game Log'], ['opp', 'Versus'], ['court', 'Courts']]).map((v) => '<a class="' + (view === v[0] ? 'on' : '') + '" ' + tog({ tab: v[0] === 'ov' ? null : v[0], sel: null, sg: null, sv: null, sk: null, court: null }) + '>' + v[1] + '</a>').join('') + '</nav>';
     h += filterBlock({ teams: teamsPlayed.length > 1 ? teamsPlayed : null, team, seasons, season, phase, scope: teamName + ' · ' + (season === 'all' ? 'All seasons' : D.seasonName(season)) + ' · ' + phaseName(phase) + ' · ' + A.n + ' GP' })
-      .replace('</section>', (view === 'log' || view === 'opp' ? '<div class="scope">Tap a game to see its box score.</div>' : '') + '</section>');
+      .replace('</section>', (view === 'log' || view === 'opp' || view === 'court' ? '<div class="scope">Tap a game to see its box score.</div>' : '') + '</section>');
     if (!A.n) return shell(accentTid, h + '<div class="wrap"><div class="empty">No games match these filters yet.</div></div>', 'players', team);
 
     h += '<div class="wrap">';
@@ -529,6 +530,7 @@
     else if (view === 'stats') h += playerStats(pid, list, A, team, teamName, phase, teamGames, inPhase);
     else if (view === 'log') h += playerLog(list);
     else if (view === 'shots') h += playerShooting(pid, list);
+    else if (view === 'court') h += playerCourts(list, A);
     else h += playerVersus(list, A);
     h += '</div>';
     return shell(accentTid, h, 'players', team);
@@ -704,6 +706,39 @@
     h += '<div class="card list"><div class="head"><div><h2>All Opponents</h2><div class="sub">Tap a row to compare</div></div></div><div class="trow th" style="grid-template-columns:minmax(0,1fr) 30px 48px 42px 46px"><span style="text-align:left">OPPONENT</span><span>GP</span><span>W–L</span><span>PPG</span><span>FG%</span></div>' +
       keys.map((k) => { const S = agg(map[k]); return '<a class="trow" style="grid-template-columns:minmax(0,1fr) 30px 48px 42px 46px;min-height:48px;font-size:14px' + (k === sel ? ';color:var(--acc)' : '') + '" ' + tog({ opp: k }) + '><span style="text-align:left;font-weight:600">' + esc(map[k][0].g.o) + '</span><span>' + S.n + '</span><span>' + recS(S) + '</span><b>' + f1(metric('pts', S)) + '</b><span>' + f1(metric('fgp', S)) + '</span></a>'; }).join('') + '</div>';
     return h;
+  }
+
+  // stats split by the court the game was played on
+  const courtOrder = (a, b) => { const na = parseInt(a.replace(/\D+/g, ''), 10), nb = parseInt(b.replace(/\D+/g, ''), 10); return (isNaN(na) ? 99 : na) - (isNaN(nb) ? 99 : nb) || a.localeCompare(b); };
+  function playerCourts(list, A) {
+    const map = {};
+    list.forEach((l) => { if (l.g.venue) (map[l.g.venue] = map[l.g.venue] || []).push(l); });
+    const keys = Object.keys(map).sort(courtOrder);
+    const unknown = list.filter((l) => !l.g.venue).length;
+    if (!keys.length) return '<div class="empty">No courts recorded for these games yet. Once each game has its court from the Newy Bball game log, this shows how ' + 'they go on each court.</div>';
+    const sel = map[qv('court')] ? qv('court') : keys[0];
+    const CL = map[sel], CS = agg(CL);
+    const diff = (k) => { const d = metric(k, CS) - metric(k, A); return '<div class="d ' + (Math.abs(d) < 0.05 ? '' : (k === 'to' ? d < 0 : d > 0) ? 'up' : 'down') + '">' + (d >= 0 ? '+' : '') + f1(d) + '</div>'; };
+    let h = '<div class="card"><h2>Courts</h2><div class="scroller">' + chips(keys.map((k) => ({ label: k, on: k === sel, attr: tog({ court: k }) })), 'tall') + '</div>' +
+      '<div class="head" style="align-items:baseline"><span style="font-family:var(--display);font-size:32px;font-weight:700;line-height:1">' + esc(sel) + '</span><span class="note">' + CS.n + ' GP · ' + recS(CS) + '</span></div>' +
+      '<div class="tiles">' + [['pts', 'PPG'], ['reb', 'RPG'], ['ast', 'APG'], ['fgp', 'FG%'], ['tpp', '3P%'], ['ftp', 'FT%']].map((x) => tile(f1(metric(x[0], CS)), x[1], diff(x[0]))).join('') + '</div>' +
+      '<div class="note small">Small number under each stat: difference from their average in all selected games.' + (unknown ? ' ' + unknown + ' of these games have no court recorded yet.' : '') + '</div></div>';
+    h += '<div class="card list"><div class="head"><h2>Every game on ' + esc(sel) + '</h2></div><div class="trow th" style="grid-template-columns:minmax(0,1fr) 32px 32px 32px 52px"><span style="text-align:left">GAME</span><span>PTS</span><span>REB</span><span>AST</span><span>FG</span></div>' +
+      CL.slice().reverse().map((l) => '<a class="trow" style="grid-template-columns:minmax(0,1fr) 32px 32px 32px 52px" href="' + href(['game', l.g.t, l.g.id], {}) + '"><span class="lft">' + teamBadge(l.g.t, 's28') + '<span><span class="t1">' + esc(vsName(l.g)) + '</span><span class="t2"><span class="res-' + wlClass(l.g) + '">' + resL(l.g) + '</span> ' + l.g.us + '–' + l.g.them + ' · ' + fmtDY(l.g.date) + '</span></span></span>' +
+        '<b>' + l.pts + '</b><span>' + l.reb + '</span><span>' + l.ast + '</span><span>' + l.fgm + '-' + l.fga + '</span></a>').join('') + '</div>';
+    h += '<div class="card list"><div class="head"><div><h2>All Courts</h2><div class="sub">Tap a row to compare</div></div></div><div class="trow th" style="grid-template-columns:minmax(0,1fr) 30px 54px 42px 46px"><span style="text-align:left">COURT</span><span>GP</span><span>RECORD</span><span>PPG</span><span>FG%</span></div>' +
+      keys.map((k) => { const S = agg(map[k]); return '<a class="trow" style="grid-template-columns:minmax(0,1fr) 30px 54px 42px 46px;min-height:48px;font-size:14px' + (k === sel ? ';color:var(--acc)' : '') + '" ' + tog({ court: k }) + '><span style="text-align:left;font-weight:600">' + esc(k) + '</span><span>' + S.n + '</span><span>' + recS(S) + '</span><b>' + f1(metric('pts', S)) + '</b><span>' + f1(metric('fgp', S)) + '</span></a>'; }).join('') + '</div>';
+    return h;
+  }
+  function teamCourts(G) {
+    const map = {};
+    G.forEach((g) => { if (g.venue) (map[g.venue] = map[g.venue] || []).push(g); });
+    const keys = Object.keys(map).sort(courtOrder);
+    if (!keys.length) return '';
+    const cols = 'grid-template-columns:minmax(0,1fr) 30px 60px 44px 44px';
+    return '<div class="card list"><div class="head"><div><h2>By Court</h2><div class="sub">' + G.filter((g) => g.venue).length + ' of ' + G.length + ' games have a court recorded</div></div></div>' +
+      '<div class="trow th" style="' + cols + '"><span style="text-align:left">COURT</span><span>GP</span><span>RECORD</span><span>PF</span><span>PA</span></div>' +
+      keys.map((k) => { const gs = map[k]; return '<div class="trow" style="' + cols + ';min-height:48px;font-size:14px"><span style="text-align:left;font-weight:600">' + esc(k) + '</span><span>' + gs.length + '</span><span>' + recOf(gs) + '</span><b>' + f1(gs.reduce((a, g) => a + g.us, 0) / gs.length) + '</b><span>' + f1(gs.reduce((a, g) => a + g.them, 0) / gs.length) + '</span></div>'; }).join('') + '</div>';
   }
 
   // ---------- leaders
@@ -1199,9 +1234,9 @@
     const view = VIEWS[R.path[0] || 'home'] || notFound;
     const samePage = lastPath === R.path.join('/');
     const y = window.scrollY;
-    const xs = samePage ? Array.prototype.map.call(document.querySelectorAll('.scroller, .xscroll'), (el) => el.scrollLeft) : [];
+    const xs = samePage ? Array.prototype.map.call(document.querySelectorAll('.scroller, .xscroll, .tabs'), (el) => el.scrollLeft) : [];
     $app.innerHTML = view();
-    document.querySelectorAll('.scroller, .xscroll').forEach((el, i) => {
+    document.querySelectorAll('.scroller, .xscroll, .tabs').forEach((el, i) => {
       if (xs[i] != null) el.scrollLeft = xs[i];
       const on = el.querySelector('.on');
       if (on && (on.offsetLeft < el.scrollLeft || on.offsetLeft + on.offsetWidth > el.scrollLeft + el.clientWidth)) {
