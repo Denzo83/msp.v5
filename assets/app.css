@@ -277,3 +277,4 @@ img { display: block; }
 .flow { width: 100%; display: block; }
 .pm.up { color: var(--win); }
 .pm.dn { color: var(--loss); }
+.scorenote { align-self: center; max-width: 440px; text-align: center; font-size: 13px; font-weight: 600; line-height: 1.4; padding: 8px 14px; border-radius: 12px; background: rgba(0,0,0,.24); color: #fff; }

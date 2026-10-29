@@ -30,6 +30,9 @@ Options
     --team-score N           our real final score, for teams where only some players are
                              stat-tracked (Chuckers); otherwise it's the export's total
     --team pretty-good       only needed if the team name in the export isn't recognised
+    --official-score 44-44   the score the league logged, when it differs from the real one;
+                             the site shows the real score with a note
+    --score-note "text"      the note to show next to the score (a default is written for you)
     --away                   (tracker files) the game was an away game; tracker games count as home otherwise
     --replace                overwrite a game that's already been added
     --dry-run                show what would be saved without saving
@@ -80,6 +83,8 @@ def main():
     ap.add_argument('--link', action='append', default=[])
     ap.add_argument('--replace', action='store_true')
     ap.add_argument('--away', action='store_true')
+    ap.add_argument('--official-score')
+    ap.add_argument('--score-note')
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args()
 
@@ -185,6 +190,7 @@ def main():
             'home': side == 'home', 'us': us, 'them': them, 'playoff': args.playoff, 'source': 'export',
             'lines': sorted(lines, key=lambda l: -l['pts']), 'dnp': dnp,
         }
+        add_official(game, args)
         result = 'W' if us > them else 'L' if us < them else 'T'
         print(f'{teams[tid]["name"]} {us}-{them} {opponent} ({result}) · {ex["date"]} · {season_name(skey)}'
               f'{" · playoff" if args.playoff else ""} · {len(lines)} played, {len(dnp)} DNP')
@@ -202,6 +208,20 @@ def main():
         save_json(PLAYERS_FILE, dict(sorted(players.items())))
     if saved or changed:
         build()
+
+
+def add_official(game, args):
+    """Record a league-logged score that differs from the real one (shown as a note on the site)."""
+    if not args.official_score:
+        return
+    try:
+        a, b = [int(x) for x in args.official_score.replace('–', '-').split('-')]
+    except ValueError:
+        sys.exit('--official-score should look like 44-44 (our score first).')
+    word = 'draw' if a == b else ('win' if a > b else 'loss')
+    note = args.score_note or f'Logged as a {a}–{b} {word} by the league. These are the actual scores.'
+    game['official'] = {'us': a, 'them': b, 'note': note}
+    print(f'  note: {note}')
 
 
 def add_tracker_game(path, args, teams, players, roster):
@@ -287,6 +307,7 @@ def add_tracker_game(path, args, teams, players, roster):
         'source': 'tracker', 'lines': sorted(lines, key=lambda l: -l['pts']), 'dnp': dnp,
         'tracked': tracked_block(data, S, idmap),
     }
+    add_official(game, args)
     result = 'W' if us > them else 'L' if us < them else 'T'
     print(f'{teams[tid]["name"]} {us}-{them} {opponent} ({result}) · {g["date"]} · {season_name(skey)}'
           f'{" · finals" if game["playoff"] else ""} · {len(lines)} played, {len(dnp)} DNP · '

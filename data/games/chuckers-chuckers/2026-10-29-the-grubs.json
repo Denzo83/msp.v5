@@ -1,0 +1,288 @@
+{
+  "id": "2026-10-29-the-grubs",
+  "team": "chuckers-chuckers",
+  "date": "2026-10-29",
+  "season": "2026-spring",
+  "opponent": "The grubs",
+  "home": true,
+  "us": 43,
+  "them": 46,
+  "playoff": false,
+  "source": "tracker",
+  "lines": [
+    {
+      "p": "findlay-wendtman",
+      "n": "22",
+      "fgm": 4,
+      "fga": 11,
+      "tpm": 3,
+      "tpa": 8,
+      "ftm": 0,
+      "fta": 0,
+      "oreb": 1,
+      "dreb": 2,
+      "pf": 0,
+      "stl": 7,
+      "to": 0,
+      "blk": 1,
+      "ast": 1,
+      "pts": 11
+    }
+  ],
+  "dnp": [],
+  "tracked": {
+    "app": "mystat-tracker",
+    "trackAll": false,
+    "periods": 4,
+    "periodMinutes": 10,
+    "clock": false,
+    "byPeriod": [
+      [
+        13,
+        13
+      ],
+      [
+        14,
+        9
+      ],
+      [
+        3,
+        15
+      ],
+      [
+        13,
+        9
+      ]
+    ],
+    "starters": [
+      "findlay-wendtman"
+    ],
+    "pm": {
+      "findlay-wendtman": 0
+    },
+    "min": null,
+    "dunks": {},
+    "shots": [
+      [
+        "findlay-wendtman",
+        143.8,
+        19.5,
+        0,
+        3,
+        "c3",
+        "Catch & shoot",
+        0,
+        0,
+        ""
+      ],
+      [
+        "findlay-wendtman",
+        147.9,
+        21.9,
+        0,
+        3,
+        "c3",
+        "Off the dribble",
+        1,
+        0,
+        ""
+      ],
+      [
+        "findlay-wendtman",
+        79.8,
+        29,
+        1,
+        2,
+        "paint",
+        "Layup",
+        1,
+        0,
+        "tm"
+      ],
+      [
+        "findlay-wendtman",
+        129.2,
+        63.5,
+        1,
+        3,
+        "w3",
+        "Catch & shoot",
+        0,
+        0,
+        "tm"
+      ],
+      [
+        "findlay-wendtman",
+        126.7,
+        66.8,
+        0,
+        3,
+        "w3",
+        "Catch & shoot",
+        0,
+        0,
+        ""
+      ],
+      [
+        "findlay-wendtman",
+        130.1,
+        63.1,
+        1,
+        3,
+        "w3",
+        "Catch & shoot",
+        0,
+        0,
+        "tm"
+      ],
+      [
+        "findlay-wendtman",
+        89.8,
+        17,
+        0,
+        2,
+        "paint",
+        "Layup",
+        1,
+        0,
+        ""
+      ],
+      [
+        "findlay-wendtman",
+        145,
+        14.5,
+        0,
+        3,
+        "c3",
+        "Catch & shoot",
+        1,
+        0,
+        ""
+      ],
+      [
+        "findlay-wendtman",
+        92.2,
+        51.4,
+        0,
+        2,
+        "paint",
+        "Jumper",
+        0,
+        0,
+        ""
+      ],
+      [
+        "findlay-wendtman",
+        142.1,
+        41.1,
+        0,
+        3,
+        "w3",
+        "Catch & shoot",
+        0,
+        0,
+        ""
+      ],
+      [
+        "findlay-wendtman",
+        7.9,
+        40.2,
+        1,
+        3,
+        "w3",
+        "Catch & shoot",
+        0,
+        0,
+        "tm"
+      ]
+    ],
+    "assists": {
+      "findlay-wendtman": {
+        "rest": 1
+      }
+    },
+    "extras": {
+      "paint": 2,
+      "sc": 0,
+      "fb": 2,
+      "pot": 3,
+      "astFg": 4,
+      "fgm": 4,
+      "bench": 0,
+      "rest": 32
+    },
+    "lineups": [
+      [
+        [
+          "findlay-wendtman"
+        ],
+        0,
+        40,
+        40
+      ]
+    ],
+    "flow": [
+      0,
+      2,
+      3,
+      4,
+      2,
+      0,
+      -3,
+      -1,
+      0,
+      -2,
+      -4,
+      -1,
+      -3,
+      0,
+      2,
+      4,
+      6,
+      4,
+      6,
+      5,
+      8,
+      9,
+      7,
+      9,
+      7,
+      5,
+      3,
+      1,
+      -1,
+      -3,
+      -1,
+      -3,
+      -2,
+      -3,
+      -5,
+      -7,
+      -8,
+      -9,
+      -7,
+      -9,
+      -7,
+      -9,
+      -6,
+      -5,
+      -7,
+      -4,
+      -5,
+      -3
+    ],
+    "leadChanges": 3,
+    "ties": 3,
+    "maxLead": 9,
+    "maxDeficit": 9,
+    "bestRun": {
+      "us": 9,
+      "them": 12
+    }
+  },
+  "official": {
+    "us": 44,
+    "them": 44,
+    "note": "Newy Bball logged this as a 44–44 draw, but 43–46 is the real score from the replay."
+  }
+}

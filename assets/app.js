@@ -53,6 +53,7 @@
       });
       game.dnp = g.D.map((r) => ({ p: r[0], n: r[1] }));
       game.X = g.X || null; // extra stats from MyStat Tracker games
+      game.official = g.N || null; // { us, them, note } when the league logged a different score
       if (game.X) game.lines.forEach((l) => { l.pm = (game.X.pm || {})[l.p]; l.min = game.X.min ? game.X.min[l.p] : null; });
       return game;
     });
@@ -307,7 +308,7 @@
     return '<a class="lrow" href="' + href(['game', g.t, g.id], {}) + '"><span class="wl ' + wlClass(g) + '">' + (g.win ? 'W' : 'L') + '</span>' +
       '<span class="grow"><span style="display:flex;align-items:center;gap:6px;min-width:0">' + (showTeam ? '<span class="tag" style="background:' + D.teams[g.t].color + '">' + D.teams[g.t].short + '</span>' : '') +
       '<span class="t1" style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(vsName(g)) + '</span>' + roundTag(g) + '</span>' +
-      '<span class="note small">' + fmtDY(g.date) + (top ? ' · Top: ' + esc(D.players[top.p].name) + ' ' + top.pts + ' pts' : '') + '</span></span>' +
+      '<span class="note small">' + fmtDY(g.date) + (g.official ? ' · logged ' + g.official.us + '–' + g.official.them : '') + (top ? ' · Top: ' + esc(D.players[top.p].name) + ' ' + top.pts + ' pts' : '') + '</span></span>' +
       '<span class="big" style="font-size:22px">' + g.us + '–' + g.them + '</span></a>';
   }
 
@@ -1009,7 +1010,8 @@
       '<div><div class="score">' + g.us + '<i>–</i>' + g.them + '</div><span class="resbadge" style="background:var(--' + (g.win ? 'win' : 'loss') + '-bg)">' + (g.win ? 'WIN' : 'LOSS') + '</span>' +
       (g.round === 'gf' && g.win ? '<span class="champs">Champions</span><img class="box-trophy" src="assets/trophy.png" alt="Championship trophy" title="' + esc(D.seasonName(g.s)) + ' champions">' : '') + '</div>' +
       '<div><span class="sq" style="background:rgba(0,0,0,.25);color:#fff">' + esc(initials(g.o)) + '</span>' + esc(g.o) + '</div></div>' +
-      '<div style="text-align:center;font-size:13px;opacity:.92">' + fmtDY(g.date) + ' · ' + (g.home ? 'Home' : 'Away') + '</div></header>';
+      '<div style="text-align:center;font-size:13px;opacity:.92">' + fmtDY(g.date) + ' · ' + (g.home ? 'Home' : 'Away') + '</div>' +
+      (g.official ? '<div class="scorenote" role="note">' + esc(g.official.note) + '</div>' : '') + '</header>';
     h += '<div class="wrap" style="padding-top:16px"><div class="grid2"><a class="pbtn' + (prev ? '' : ' off') + '" href="' + (prev ? href(['game', g.t, prev.id], {}) : '#') + '">' + (prev ? 'Previous · ' + esc(prev.o) : 'No earlier game') + '</a>' +
       '<a class="pbtn' + (next ? '' : ' off') + '" href="' + (next ? href(['game', g.t, next.id], {}) : '#') + '">' + (next ? 'Next · ' + esc(next.o) : 'No later game') + '</a></div>';
     h += '<div class="card" style="gap:6px"><h2 style="font-size:18px;margin-bottom:6px">Game Leaders</h2>' + lead('pts', 'PTS') + lead('reb', 'REB') + lead('ast', 'AST') + '</div>';
