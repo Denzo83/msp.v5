@@ -887,7 +887,8 @@
       '<div class="board"><div>' + logoSq(g.t, 'border:2px solid rgba(255,255,255,.6)') + '<a href="' + href(['team', g.t], { season: g.s }) + '" style="color:#fff;text-decoration:none">' + esc(T.name) + '</a></div>' +
       '<div><div class="score">' + g.us + '<i>–</i>' + g.them + '</div><span class="resbadge" style="background:var(--' + (g.win ? 'win' : 'loss') + '-bg)">' + (g.win ? 'WIN' : 'LOSS') + '</span></div>' +
       '<div><span class="sq" style="background:rgba(0,0,0,.25);color:#fff">' + esc(initials(g.o)) + '</span>' + esc(g.o) + '</div></div>' +
-      '<div style="text-align:center;font-size:13px;opacity:.92">' + fmtDY(g.date) + ' · ' + (g.home ? 'Home' : 'Away') + '</div></header>';
+      '<div class="box-foot"><span></span><div style="text-align:center;font-size:13px;opacity:.92;padding-bottom:4px">' + fmtDY(g.date) + ' · ' + (g.home ? 'Home' : 'Away') + '</div>' +
+      (g.round === 'gf' && g.win ? '<div class="trophies" role="img" aria-label="Grand final winners" title="' + esc(D.seasonName(g.s)) + ' champions"><img src="assets/trophy.png" alt=""></div>' : '<span></span>') + '</div></header>';
     h += '<div class="wrap" style="padding-top:16px"><div class="grid2"><a class="pbtn' + (prev ? '' : ' off') + '" href="' + (prev ? href(['game', g.t, prev.id], {}) : '#') + '">' + (prev ? 'Previous · ' + esc(prev.o) : 'No earlier game') + '</a>' +
       '<a class="pbtn' + (next ? '' : ' off') + '" href="' + (next ? href(['game', g.t, next.id], {}) : '#') + '">' + (next ? 'Next · ' + esc(next.o) : 'No later game') + '</a></div>';
     h += '<div class="card" style="gap:6px"><h2 style="font-size:18px;margin-bottom:6px">Game Leaders</h2>' + lead('pts', 'PTS') + lead('reb', 'REB') + lead('ast', 'AST') + '</div>';
