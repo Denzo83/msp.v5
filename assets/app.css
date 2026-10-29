@@ -249,3 +249,6 @@ img { display: block; }
 .box .stick { gap: 12px; }
 .app.wide { max-width: 1240px; }
 .box .xscroll > div { min-width: 100%; }
+
+/* keep the team dot visible on a selected chip */
+.chip.on .dot { box-shadow: 0 0 0 2px #fff; }
