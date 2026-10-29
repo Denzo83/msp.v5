@@ -389,7 +389,7 @@ function vTrack() {
     '<div class="board"><div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span class="nm">' + esc(teamName(g.team)) + '</span><span class="pts" style="color:#5B9BFF">' + S.us + '</span></div>' +
     '<div style="display:flex;flex-direction:column;align-items:center;gap:2px;padding-bottom:4px"><span class="small muted" style="font-size:11px">Team fouls</span><span style="font-family:var(--disp);font-size:22px;font-weight:700">' + (S.fouls[g.clock.q] || 0) + '</span></div>' +
     '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;min-width:0"><span class="nm">' + esc(g.opp) + '</span><span class="pts" style="color:#FBBF24">' + S.them + '</span></div></div></header>' +
-    '<div class="pad"><div class="between" style="align-items:center"><div class="row" style="gap:10px;align-items:baseline"><h2 class="h2">On court</h2><span class="small" style="font-weight:700;color:' + luColor + '">Lineup ' + sgn(lu) + '</span></div>' +
+    '<div class="mid"><div class="pad"><div class="between" style="align-items:center"><div class="row" style="gap:10px;align-items:baseline"><h2 class="h2">On court</h2><span class="small" style="font-weight:700;color:' + luColor + '">Lineup ' + sgn(lu) + '</span></div>' +
     '<button class="subbtn" data-act="goSubs">' + I.swap + 'Subs</button></div>' +
     (tiles ? '<div class="tiles" style="grid-template-columns:repeat(' + cols + ',minmax(0,1fr))">' + tiles + '</div>' : '<div class="empty">No tracked player on the court. Tap Subs to put someone on.</div>') + '</div>' +
     '<div class="pad" style="padding-top:12px"><div class="between"><span style="font-size:16px;font-weight:700">' + (sel ? esc(pname(g, sel)) : 'Pick a player') + '</span>' +
@@ -401,7 +401,7 @@ function vTrack() {
     '<button class="oppb" data-act="opp" data-arg="2" aria-label="Opponent made a 2">+2</button><button class="oppb" data-act="opp" data-arg="3" aria-label="Opponent made a 3">+3</button>' +
     '<button class="oppb" data-act="opp" data-arg="1" aria-label="Opponent made a free throw">+1 FT</button><button class="oppb" data-act="oppto" aria-label="Opponent turnover">TO</button></div></div></div>' +
     '<div class="lastbox">' + (wins ? '<div class="row" style="flex-wrap:wrap;gap:6px">' + wins + '</div>' : '') +
-    '<div class="last"><div class="t"><span class="kick">Last entry' + (lastE && lastE.c != null ? ' · ' + periodLabel(g, lastE.q) + ' ' + fmtClock(lastE.c) : '') + '</span><span>' + esc(lastE ? describe(g, lastE) : '') + '</span></div><span class="s">' + S.us + '–' + S.them + '</span></div></div>' +
+    '<div class="last"><div class="t"><span class="kick">Last entry' + (lastE && lastE.c != null ? ' · ' + periodLabel(g, lastE.q) + ' ' + fmtClock(lastE.c) : '') + '</span><span>' + esc(lastE ? describe(g, lastE) : '') + '</span></div><span class="s">' + S.us + '–' + S.them + '</span></div></div></div>' +
     navBar('track') + '</div>';
 }
 function navBar(on) {
@@ -623,11 +623,11 @@ function render() {
     case 'box': h = vBox(); break;
     default: h = vHome();
   }
-  const scroller = ROOT.querySelector('[style*="overflow-y:auto"]');
+  const scroller = ROOT.querySelector('.mid, [style*="overflow-y:auto"]');
   const keepScroll = scroller && ui.lastScreen === ui.screen ? scroller.scrollTop : 0;
   const winScroll = ui.lastScreen === ui.screen ? window.scrollY : 0;
   ROOT.innerHTML = h + vSheet() + (ui.toast ? '<div class="toast" role="status"><span>' + esc(ui.toast) + '</span><button aria-label="Dismiss" data-act="dismiss">' + I.x + '</button></div>' : '');
-  const sc2 = ROOT.querySelector('[style*="overflow-y:auto"]');
+  const sc2 = ROOT.querySelector('.mid, [style*="overflow-y:auto"]');
   if (sc2 && keepScroll) sc2.scrollTop = keepScroll;
   if (ui.lastScreen === ui.screen) window.scrollTo(0, winScroll); else window.scrollTo(0, 0);
   ui.lastScreen = ui.screen;

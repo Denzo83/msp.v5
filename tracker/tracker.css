@@ -104,7 +104,8 @@ label.h2 { display: block; }
 .oppb { height: 48px; border-radius: 12px; border: 1.5px solid var(--opp); background: transparent; color: var(--oppText); font-size: 21px; font-weight: 700; }
 .restb { height: 48px; border-radius: 12px; border: 1.5px solid var(--accentText); background: transparent; color: #8FB8FF; font-family: var(--disp); font-size: 21px; font-weight: 700; }
 .subbtn { height: 36px; padding: 0 14px; border-radius: 18px; border: 1.5px solid var(--line2); background: transparent; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
-.lastbox { flex: 1; min-height: 0; padding: 8px 16px 10px; display: flex; flex-direction: column; justify-content: flex-end; gap: 6px; }
+.mid { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; }
+.lastbox { flex: 1 0 auto; padding: 10px 16px 10px; display: flex; flex-direction: column; justify-content: flex-end; gap: 6px; }
 .last { background: var(--card); border-radius: 12px; padding: 9px 12px; display: flex; align-items: center; gap: 10px; }
 .last .t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .last .t span:last-child { font-size: 13px; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
@@ -178,3 +179,28 @@ table.box td.pts { font-weight: 700; }
 .sheet { width: 100%; max-width: 480px; background: var(--bar); border-radius: 18px 18px 0 0; padding: 18px 16px calc(18px + var(--safe-b)); display: flex; flex-direction: column; gap: 10px; }
 .toast { position: fixed; left: 50%; transform: translateX(-50%); top: calc(140px + var(--safe-t)); width: calc(100% - 32px); max-width: 448px; padding: 12px 14px; border-radius: 12px; background: var(--text); color: #0E1525; font-size: 14px; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.45); z-index: 30; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .toast button { width: 32px; height: 32px; flex-shrink: 0; border-radius: 16px; border: none; background: #E1E6EE; color: #0E1525; display: flex; align-items: center; justify-content: center; }
+
+/* shorter phones (and Safari with its toolbars) */
+@media (max-height: 800px) {
+  .thdr { gap: 4px; padding-bottom: 8px; }
+  .board .pts { font-size: 42px; }
+  .round, .play { width: 40px; height: 40px; }
+  .clock { font-size: 26px; }
+  .pad { gap: 6px; padding-top: 8px; }
+  .tile { height: 62px; }
+  .shot { height: 50px; }
+  .shot b { font-size: 23px; }
+  .stat, .oppb, .restb { height: 42px; font-size: 19px; }
+  .subbtn { height: 32px; }
+  .nav button { height: 52px; }
+  .lastbox { padding-top: 8px; }
+}
+@media (max-height: 680px) {
+  .tile { height: 54px; }
+  .tile i { display: none; }
+  .shot { height: 46px; }
+  .shot span { font-size: 11px; }
+  .stat, .oppb, .restb { height: 40px; }
+  .last { padding: 6px 10px; }
+  .last .t span:last-child { -webkit-line-clamp: 1; }
+}
