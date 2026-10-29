@@ -154,7 +154,8 @@
       "Tunde"
     ],
     "images": {
-      "default": "assets/players/t-ajayi.png"
+      "default": "assets/players/t-ajayi.png",
+      "pretty-good": "assets/players/tunde-ajayi-pretty-good.jpg"
     }
   }
 }
