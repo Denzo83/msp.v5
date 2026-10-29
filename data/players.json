@@ -78,8 +78,10 @@
     "short": "K. Denzin",
     "aliases": [],
     "images": {
-      "default": "assets/players/kyle-denzin.png",
-      "all-stars": "assets/players/k-denzin.png"
+      "default": "assets/players/kyle-denzin-pretty-good.jpg",
+      "all-stars": "assets/players/kyle-denzin-all-stars.jpg",
+      "chuckers-chuckers": "assets/players/kyle-denzin-chuckers-chuckers.jpg",
+      "pretty-good": "assets/players/kyle-denzin-pretty-good.jpg"
     }
   },
   "lance": {
