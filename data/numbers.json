@@ -1,0 +1,7 @@
+{
+  "_help": "Jersey numbers actually worn, when they differ from the number typed into EasyStats. Each rule sets a player's number for one team from a date onwards (add \"until\": \"YYYY-MM-DD\" to end it). Stats are always matched by name, so this only changes the number shown.",
+  "rules": [
+    { "player": "tim-pendlebury", "team": "pretty-good", "from": "2026-01-20", "number": "43", "note": "Tim took Levi's #43 jersey when he joined" },
+    { "player": "levi-denzin", "team": "pretty-good", "from": "2026-01-20", "number": "17", "note": "Levi wore #17 after giving Tim the #43 jersey" }
+  ]
+}

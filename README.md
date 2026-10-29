@@ -46,6 +46,7 @@ Player ids, names and photos are all in `data/players.json`, which you can edit 
 | `data/games/<team>/<game>.json` | One file per game. This is the source of truth. |
 | `data/players.json` | Every player: name, short name, other spellings and photo. |
 | `data/teams.json` | Team names, colours, logos and the spellings used in exports. |
+| `data/numbers.json` | Jersey numbers actually worn when they differ from EasyStats, like Tim taking #43 and Levi moving to #17. |
 | `data/opponents.json` | Extra opponent spellings to merge, like "Kone wankenobi" into "Kobe wan kenobi". |
 | `data/bundle.json` | Built from everything above by `tools/build.py`. Don't edit it. |
 | `exports/` | The original EasyStats exports. |

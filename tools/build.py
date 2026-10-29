@@ -27,6 +27,13 @@ def build(quiet=False):
         return re.sub(r'[^a-z0-9]', '', name.lower().replace('\u2019', '').replace("'", ''))
 
     spellings = defaultdict(Counter)
+    rules = load_json(DATA / 'numbers.json', {}).get('rules', [])
+
+    def number_for(pid, team, date, typed):
+        for r in rules:
+            if r['player'] == pid and r['team'] == team and date >= r['from'] and date <= r.get('until', '9999'):
+                return str(r['number'])
+        return typed
 
     for f in sorted(GAMES_DIR.rglob('*.json')):
         g = load_json(f)
@@ -40,7 +47,7 @@ def build(quiet=False):
             calc = 2 * (l['fgm'] - l['tpm']) + 3 * l['tpm'] + l['ftm']
             if calc != l['pts']:
                 warnings.append(f'{f.name}: {l["p"]} has {l["pts"]} pts but shots add up to {calc}')
-            lines.append([l['p'], l['n']] + [l[k] for k in STAT_KEYS])
+            lines.append([l['p'], number_for(l['p'], g['team'], g['date'], l['n'])] + [l[k] for k in STAT_KEYS])
         total = sum(l['pts'] for l in g['lines'])
         if total != g['us'] and not teams.get(g['team'], {}).get('partialStats'):
             warnings.append(f'{f.name}: player points add to {total}, team score is {g["us"]}')
@@ -49,7 +56,7 @@ def build(quiet=False):
         games.append({
             'id': g['id'], 't': g['team'], 'd': g['date'], 's': g['season'], 'o': ok,
             'h': 1 if g['home'] else 0, 'us': g['us'], 'them': g['them'], 'po': 1 if g['playoff'] else 0,
-            'L': lines, 'D': [[d['p'], d['n']] for d in g.get('dnp', [])],
+            'L': lines, 'D': [[d['p'], number_for(d['p'], g['team'], g['date'], d['n'])] for d in g.get('dnp', [])],
         })
 
     order = {'summer': 0, 'autumn': 1, 'fall': 1, 'winter': 2, 'spring': 3}
