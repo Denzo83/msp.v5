@@ -228,9 +228,12 @@ img { display: block; }
 .hero-foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
 .hero-foot .hero-seg { flex: 1 1 auto; min-width: 0; }
 .trophies { display: flex; align-items: flex-end; margin-left: auto; flex-shrink: 0; }
-.trophies img { height: 60px; width: auto; filter: drop-shadow(0 2px 3px rgba(0,0,0,.35)); }
+.trophies img { height: 82px; width: auto; filter: drop-shadow(0 2px 3px rgba(0,0,0,.35)); }
 .trophies img + img { margin-left: -8px; }
 .trophies span { font-family: var(--display); font-size: 22px; font-weight: 800; color: #fff; margin-left: 6px; line-height: 1; padding-bottom: 2px; }
 
-.box-foot { display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; gap: 10px; }
-.box-foot .trophies { justify-self: end; }
+.trophies.all img { height: 72px; }
+.board { align-items: start; }
+.board > div:not(:nth-child(2)) { padding-top: 6px; }
+.champs { font-family: var(--display); font-size: 20px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #FFD45A; text-shadow: 0 1px 2px rgba(0,0,0,.35); margin-top: 4px; }
+.box-trophy { height: 110px; width: auto; filter: drop-shadow(0 3px 5px rgba(0,0,0,.4)); }
