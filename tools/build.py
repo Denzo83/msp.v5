@@ -58,6 +58,10 @@ def build(quiet=False):
             'h': 1 if g['home'] else 0, 'us': g['us'], 'them': g['them'], 'po': 1 if g['playoff'] else 0,
             'L': lines, 'D': [[d['p'], number_for(d['p'], g['team'], g['date'], d['n'])] for d in g.get('dnp', [])],
         })
+        if g.get('tracked'):
+            tr = g['tracked']
+            games[-1]['X'] = {k: tr[k] for k in ('trackAll', 'periods', 'clock', 'byPeriod', 'starters', 'pm', 'min', 'dunks', 'shots',
+                                                  'assists', 'extras', 'lineups', 'flow', 'leadChanges', 'ties', 'maxLead', 'maxDeficit', 'bestRun') if k in tr}
 
     order = {'summer': 0, 'autumn': 1, 'fall': 1, 'winter': 2, 'spring': 3}
     season_list = sorted(seasons, key=lambda k: (k.split('-')[0], order.get(k.partition('-')[2], 9), k))

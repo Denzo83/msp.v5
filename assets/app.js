@@ -52,6 +52,8 @@
         return l;
       });
       game.dnp = g.D.map((r) => ({ p: r[0], n: r[1] }));
+      game.X = g.X || null; // extra stats from MyStat Tracker games
+      if (game.X) game.lines.forEach((l) => { l.pm = (game.X.pm || {})[l.p]; l.min = game.X.min ? game.X.min[l.p] : null; });
       return game;
     });
     games.sort((a, b) => a.date - b.date || (a.t < b.t ? -1 : 1));
@@ -571,6 +573,8 @@
     h += '<div class="card"><h2>Shooting</h2>' + shotBar('Field goals', A.fgm, A.fga, A.fgm + '/' + A.fga) + shotBar('2 pointers', A.twom, A.twoa, A.twom + '/' + A.twoa) + shotBar('3 pointers', A.tpm, A.tpa, A.tpm + '/' + A.tpa) +
       shotBar('Free throws', A.ftm, A.fta, A.ftm + '/' + A.fta) + shotBar('Effective FG', metric('efg', A) / 100, 1) + shotBar('True shooting', metric('ts', A) / 100, 1) + '</div>';
 
+    h += trackedPlayerCards(pid, list);
+
     // by team
     if (team === 'all' && teamsPlayed.length > 1) {
       const base = list;
@@ -871,6 +875,123 @@
   };
 
   // ---------- box score
+  // ------------------------------------------------------------------ tracked games (MyStat Tracker)
+  // shots: [player, x, y, made, pts, zone, shotType, fastBreak, secondChance, assist]
+  const ZONES = [['paint', 'At the rim and paint'], ['mid', 'Mid-range'], ['c3', 'Corner 3'], ['w3', 'Wing 3'], ['t3', 'Top of the arc 3']];
+  const pmTxt = (v) => (v > 0 ? '+' + v : v < 0 ? '−' + (-v) : '0');
+  function courtSvg(shots, aria) {
+    const lines = '<g style="fill:none;stroke:var(--sub);stroke-opacity:.5;stroke-width:.6"><rect x="50.5" y="0" width="49" height="58" style="fill:var(--card)"/>' +
+      '<path d="M9 0 L9 29.9 A67.5 67.5 0 0 0 141 29.9 L141 0"/><path d="M57 58 A18 18 0 0 0 93 58"/><path d="M62.5 15.75 A12.5 12.5 0 0 0 87.5 15.75"/>' +
+      '<path d="M66 12 L84 12" style="stroke-width:1.1;stroke-opacity:.8"/><circle cx="75" cy="15.75" r="2.25" style="stroke:#F59E0B;stroke-opacity:1;stroke-width:.9"/></g>';
+    const miss = shots.filter((s) => !s[3]).map((s) => '<path d="M' + (s[1] - 1.8) + ' ' + (s[2] - 1.8) + 'L' + (s[1] + 1.8) + ' ' + (s[2] + 1.8) + 'M' + (s[1] - 1.8) + ' ' + (s[2] + 1.8) + 'L' + (s[1] + 1.8) + ' ' + (s[2] - 1.8) + '" style="fill:none;stroke:#F59E0B;stroke-width:1.1;stroke-linecap:round"/>').join('');
+    const made = shots.filter((s) => s[3]).map((s) => '<circle cx="' + s[1] + '" cy="' + s[2] + '" r="2.3" style="fill:var(--p2);stroke:var(--card);stroke-width:.5"/>').join('');
+    return '<svg class="court" viewBox="0 0 150 100" role="img" aria-label="' + esc(aria) + '">' + lines + miss + made + '</svg>' +
+      '<div class="note small court-key"><span><i class="kdot"></i>Made</span><span><i class="kx">×</i>Missed</span><span>' + shots.filter((s) => s[3]).length + ' of ' + shots.length + ' with a spot</span></div>';
+  }
+  function zoneBars(shots) {
+    return ZONES.map((z) => { const zs = shots.filter((s) => s[5] === z[0]), m = zs.filter((s) => s[3]).length; return zs.length ? shotBar(z[1], m, zs.length, m + '/' + zs.length) : ''; }).join('');
+  }
+  function flowSvg(flow, us, them) {
+    const n = flow.length - 1;
+    if (n < 1) return '';
+    const W = 320, H = 120, mid = H / 2, maxAbs = Math.max(6, ...flow.map(Math.abs));
+    const px = (i) => 6 + i * (W - 16) / n, py = (v) => mid - v * ((mid - 14) / maxAbs);
+    return '<svg class="flow" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Score margin through the game">' +
+      '<line x1="0" x2="' + W + '" y1="' + mid + '" y2="' + mid + '" style="stroke:var(--line);stroke-width:1;stroke-dasharray:3 3"/>' +
+      '<text x="6" y="11" style="fill:var(--sub);font-size:10px">' + esc(us) + ' ahead</text><text x="6" y="' + (H - 3) + '" style="fill:var(--sub);font-size:10px">' + esc(them) + ' ahead</text>' +
+      '<polyline points="' + flow.map((v, i) => px(i).toFixed(1) + ',' + py(v).toFixed(1)).join(' ') + '" style="fill:none;stroke:var(--acc);stroke-width:2.2;stroke-linejoin:round;stroke-linecap:round"/></svg>';
+  }
+  function nameOf(pid) { return pid === 'rest' ? 'An untracked teammate' : ((D.players[pid] || { name: pid }).name); }
+  function shortOf(pid) { const p = D.players[pid]; return p ? p.short || p.name : pid; }
+
+  function trackedGameCards(g) {
+    const X = g.X, T = D.teams[g.t];
+    const ql = X.periods === 2 ? 'H' : 'Q';
+    let h = '';
+    // flow
+    const qs = X.byPeriod || [];
+    const qcols = 'grid-template-columns:minmax(0,1fr) repeat(' + (qs.length + 1) + ',40px)';
+    h += '<div class="card"><h2 style="font-size:18px">Game Flow</h2>' +
+      (qs.length ? '<div><div class="trow th" style="' + qcols + '"><span style="text-align:left">TEAM</span>' + qs.map((q, i) => '<span>' + ql + (i + 1) + '</span>').join('') + '<span>T</span></div>' +
+        '<div class="trow" style="' + qcols + '"><span style="text-align:left;font-weight:600">' + esc(T.name) + '</span>' + qs.map((q) => '<span>' + q[0] + '</span>').join('') + '<b>' + g.us + '</b></div>' +
+        '<div class="trow" style="' + qcols + '"><span style="text-align:left;font-weight:600">' + esc(g.o) + '</span>' + qs.map((q) => '<span>' + q[1] + '</span>').join('') + '<b>' + g.them + '</b></div></div>' : '') +
+      flowSvg(X.flow || [], T.name, g.o) +
+      '<div class="tiles">' + tile(X.leadChanges || 0, 'Lead changes') + tile(X.ties || 0, 'Ties') + tile(pmTxt(X.maxLead || 0), 'Largest lead') +
+      tile(((X.bestRun || {}).us || 0) + '–0', 'Best run') + tile(X.maxDeficit ? '−' + X.maxDeficit : '0', 'Biggest deficit') + tile(((X.bestRun || {}).them || 0) + '–0', 'Their best run') + '</div></div>';
+    // extras
+    const x = X.extras || {};
+    const made = g.lines.reduce((a, l) => a + l.fgm, 0);
+    h += '<div class="card"><h2 style="font-size:18px">Team Extras</h2><div class="tiles">' +
+      tile(x.paint || 0, 'Paint pts') + tile(x.sc || 0, '2nd chance pts') + tile(x.fb || 0, 'Fast break pts') + tile(x.pot || 0, 'Pts off TO') +
+      tile(made ? Math.round((x.astFg || 0) / made * 100) + '%' : '–', 'Assisted FG', '<div class="s">' + (x.astFg || 0) + ' of ' + made + ' makes</div>') +
+      (X.trackAll === false ? tile(x.rest || 0, 'Rest of team', '<div class="s">Untracked players</div>') : tile(x.bench || 0, 'Bench pts')) + '</div>' +
+      '<div class="note small">Points in the paint only count shots that were given a spot on the court.</div></div>';
+    // shot chart
+    const all = X.shots || [];
+    if (all.length) {
+      const shooters = Array.from(new Set(all.map((s) => s[0])));
+      const sp = shooters.indexOf(qv('sp')) >= 0 ? qv('sp') : 'all';
+      const shots = all.filter((s) => sp === 'all' || s[0] === sp);
+      h += '<div class="card"><h2 style="font-size:18px">Shot Chart</h2>' + (shooters.length > 1 ? '<div class="scroller">' +
+        chips([{ label: 'Everyone', on: sp === 'all', attr: tog({ sp: null }) }].concat(shooters.map((pid) => ({ label: shortOf(pid), on: sp === pid, attr: tog({ sp: pid }) })))) + '</div>' : '') +
+        courtSvg(shots, 'Shot chart') + zoneBars(shots) + '</div>';
+    }
+    // assists
+    const passers = Object.entries(X.assists || {}).map(([a, m]) => {
+      const to = Object.entries(m).sort((p, q) => q[1] - p[1]);
+      return { a, n: to.reduce((t, x) => t + x[1], 0), to };
+    }).filter((x) => x.n).sort((p, q) => q.n - p.n);
+    if (passers.length) {
+      h += '<div class="card list"><div class="head"><h2 style="font-size:18px">Who Assisted Who</h2></div>' + passers.map((x) =>
+        '<a class="lrow" style="min-height:62px" href="' + href(['player', x.a], { team: g.t }) + '">' + avatar(x.a, 's40', g.t) + '<span class="grow"><b style="font-size:14px">' + esc(nameOf(x.a)) + '</b><span class="note small" style="line-height:1.35">to ' +
+        esc(x.to.map((t) => (t[0] === 'rest' ? 'untracked teammates' : shortOf(t[0])) + (t[1] > 1 ? ' ×' + t[1] : '')).join(', ')) + '</span></span><span class="big" style="font-size:24px">' + x.n + '</span></a>').join('') + '</div>';
+    }
+    // lineups
+    const full = X.trackAll === false ? 1 : 5;
+    const lus = (X.lineups || []).filter((L) => L[0].length >= full).slice().sort((a, b) => (b[2] - b[3]) - (a[2] - a[3]) || b[1] - a[1]).slice(0, 6);
+    if (lus.length) {
+      const mm = (sec) => Math.floor(sec / 60) + ':' + String(Math.round(sec % 60)).padStart(2, '0');
+      h += '<div class="card list"><div class="head"><h2 style="font-size:18px">Lineups</h2><span class="note small">Best first</span></div>' + lus.map((L) =>
+        '<div class="lrow" style="min-height:62px"><span class="grow"><b style="font-size:13px;line-height:1.35">' + esc(L[0].map(shortOf).join(' · ')) + '</b><span class="note small">' + (X.clock ? mm(L[1]) + ' together · ' : '') + L[2] + '–' + L[3] + '</span></span>' +
+        '<span class="big pm' + (L[2] - L[3] > 0 ? ' up' : L[2] - L[3] < 0 ? ' dn' : '') + '" style="font-size:24px">' + pmTxt(L[2] - L[3]) + '</span></div>').join('') + '</div>';
+    }
+    return h;
+  }
+
+  function trackedPlayerCards(pid, list) {
+    const tl = list.filter((l) => l.g.X);
+    if (!tl.length) return '';
+    const n = tl.length;
+    const pm = tl.reduce((a, l) => a + (l.pm || 0), 0);
+    const withMin = tl.filter((l) => l.min != null);
+    const mins = withMin.reduce((a, l) => a + l.min, 0);
+    const dunks = tl.reduce((a, l) => a + ((l.g.X.dunks || {})[pid] || 0), 0);
+    const shots = [];
+    tl.forEach((l) => (l.g.X.shots || []).forEach((s) => { if (s[0] === pid) shots.push(s); }));
+    const fb = shots.filter((s) => s[3] && s[7]).reduce((a, s) => a + s[4], 0), sc = shots.filter((s) => s[3] && s[8]).reduce((a, s) => a + s[4], 0);
+    let h = '<div class="card"><div><h2>Tracked Games</h2><div class="sub">' + n + ' game' + (n > 1 ? 's' : '') + ' entered with MyStat Tracker. These extras only cover ' + (n > 1 ? 'those games' : 'that game') + '.</div></div><div class="tiles">' +
+      tile(pmTxt(Math.round(pm / n * 10) / 10), '+/- per game', '<div class="s">' + pmTxt(pm) + ' total</div>') +
+      (withMin.length ? tile(f1(mins / withMin.length), 'Minutes', '<div class="s">Per game</div>') : '') +
+      tile(dunks, 'Dunks') + tile(fb, 'Fast break pts') + tile(sc, '2nd chance pts') + '</div>' +
+      '<div class="note small">Fast break and second-chance points count shots that were given a spot on the court.</div></div>';
+    if (shots.length) h += '<div class="card"><h2>Shot Chart</h2>' + courtSvg(shots, 'Shot chart for ' + nameOf(pid)) + zoneBars(shots) + '</div>';
+    const to = {}, from = {};
+    tl.forEach((l) => {
+      const A = l.g.X.assists || {};
+      Object.entries(A[pid] || {}).forEach(([b, k]) => { to[b] = (to[b] || 0) + k; });
+      Object.entries(A).forEach(([a, m]) => { if (m[pid]) from[a] = (from[a] || 0) + m[pid]; });
+    });
+    const rows = (obj) => Object.entries(obj).sort((a, b) => b[1] - a[1]).map(([q, k]) =>
+      (q === 'rest' ? '<div class="lrow"><span class="av s40">TM</span>' : '<a class="lrow" href="' + href(['player', q], {}) + '">' + avatar(q, 's40', null)) +
+      '<span class="grow"><b style="font-size:14px">' + esc(nameOf(q)) + '</b></span><span class="big" style="font-size:24px">' + k + '</span>' + (q === 'rest' ? '</div>' : '</a>')).join('');
+    if (Object.keys(to).length || Object.keys(from).length) {
+      h += '<div class="card list"><div class="head"><h2>Playmaking</h2></div>' +
+        (Object.keys(to).length ? '<div class="note small" style="margin:2px 0 4px">Assisted</div>' + rows(to) : '') +
+        (Object.keys(from).length ? '<div class="note small" style="margin:14px 0 4px">Was assisted by</div>' + rows(from) : '') + '</div>';
+    }
+    return h;
+  }
+
   VIEWS.game = function () {
     const g = D.byId[R.path[1] + '/' + R.path[2]];
     if (!g) return notFound();
@@ -893,18 +1014,21 @@
       '<a class="pbtn' + (next ? '' : ' off') + '" href="' + (next ? href(['game', g.t, next.id], {}) : '#') + '">' + (next ? 'Next · ' + esc(next.o) : 'No later game') + '</a></div>';
     h += '<div class="card" style="gap:6px"><h2 style="font-size:18px;margin-bottom:6px">Game Leaders</h2>' + lead('pts', 'PTS') + lead('reb', 'REB') + lead('ast', 'AST') + '</div>';
     const A = 'minmax(44px, 1fr)', W = 'minmax(60px, 1.3fr)';
-    const cols = '200px ' + [A, A, A, A, A, A, W, A, W, A, W, A, A, A, A].join(' ');
+    const XT = !!g.X, XM = XT && !!g.X.clock;
+    const cols = '200px ' + (XM ? A + ' ' : '') + [A, A, A, A, A, A, W, A, W, A, W, A, A, A, A].join(' ') + (XT ? ' ' + A : '');
     const pc = (m, a) => (a ? Math.round((m / a) * 100) + '%' : '–');
-    const cells = (x) => '<b class="pts">' + x.pts + '</b>' + [x.reb, x.ast, x.stl, x.blk, x.to, x.fgm + '-' + x.fga, pc(x.fgm, x.fga), x.tpm + '-' + x.tpa, pc(x.tpm, x.tpa), x.ftm + '-' + x.fta, pc(x.ftm, x.fta), x.oreb, x.dreb, x.pf].map((v) => '<span>' + v + '</span>').join('');
+    const cells = (x, tot) => (XM ? '<span>' + (tot || x.min == null ? '' : Math.round(x.min)) + '</span>' : '') + '<b class="pts">' + x.pts + '</b>' + [x.reb, x.ast, x.stl, x.blk, x.to, x.fgm + '-' + x.fga, pc(x.fgm, x.fga), x.tpm + '-' + x.tpa, pc(x.tpm, x.tpa), x.ftm + '-' + x.fta, pc(x.ftm, x.fta), x.oreb, x.dreb, x.pf].map((v) => '<span>' + v + '</span>').join('') +
+      (XT ? (tot || x.pm == null ? '<span></span>' : '<span class="pm ' + (x.pm > 0 ? 'up' : x.pm < 0 ? 'dn' : '') + '">' + pmTxt(x.pm) + '</span>') : '');
     h += '<div class="card flush box" style="gap:10px"><div class="px"><h2 style="font-size:18px">Box Score</h2><div class="note small">Swipe sideways for every column · tap a player for their page</div></div><div class="xscroll"><div>' +
-      '<div class="trow th" style="grid-template-columns:' + cols + '"><span class="stick">PLAYER</span>' + ['PTS', 'REB', 'AST', 'STL', 'BLK', 'TO', 'FG', 'FG%', '3PT', '3P%', 'FT', 'FT%', 'OREB', 'DREB', 'PF'].map((c) => '<span>' + c + '</span>').join('') + '</div>' +
+      '<div class="trow th" style="grid-template-columns:' + cols + '"><span class="stick">PLAYER</span>' + (XM ? '<span>MIN</span>' : '') + ['PTS', 'REB', 'AST', 'STL', 'BLK', 'TO', 'FG', 'FG%', '3PT', '3P%', 'FT', 'FT%', 'OREB', 'DREB', 'PF'].concat(XT ? ['+/-'] : []).map((c) => '<span>' + c + '</span>').join('') + '</div>' +
       g.lines.slice().sort((a, b) => b.pts - a.pts).map((l) => '<a class="trow" style="grid-template-columns:' + cols + '" href="' + href(['player', l.p], { team: g.t }) + '"><span class="stick">' + avatar(l.p, 'sq44', g.t) +
         '<span><span class="t1" style="font-size:14px;white-space:normal;line-height:1.2">' + esc(D.players[l.p].name) + '</span><span class="t2" style="font-size:12px">#' + esc(l.n) + '</span></span></span>' + cells(l) + '</a>').join('') +
-      '<div class="trow strong total" style="grid-template-columns:' + cols + '"><span class="stick">' + (T.partialStats ? 'TRACKED TOTALS' : 'TEAM TOTALS') + '</span>' + cells(S) + '</div>' +
+      '<div class="trow strong total" style="grid-template-columns:' + cols + '"><span class="stick">' + (T.partialStats ? 'TRACKED TOTALS' : 'TEAM TOTALS') + '</span>' + cells(S, true) + '</div>' +
       '</div></div></div>';
     h += '<div class="card"><h2 style="font-size:18px">Team Shooting</h2>' + shotBar('Field goals', S.fgm, S.fga, S.fgm + '/' + S.fga) + shotBar('3 pointers', S.tpm, S.tpa, S.tpm + '/' + S.tpa) + shotBar('Free throws', S.ftm, S.fta, S.ftm + '/' + S.fta) +
       '<div class="tiles">' + tile(S.reb, 'Reb') + tile(S.oreb + ' / ' + S.dreb, 'Off / Def') + tile(S.ast, 'Ast') + tile(S.stl, 'Stl') + tile(S.blk, 'Blk') + tile(S.to, 'TO') + '</div>' +
-      '<div class="note small">' + (T.partialStats ? esc(T.partialNote) + ' ' : '') + 'Opponent stats aren’t tracked, only their final score.</div></div></div>';
+      '<div class="note small">' + (T.partialStats ? esc(T.partialNote) + ' ' : '') + 'Opponent stats aren’t tracked, only their final score.</div></div>' +
+      (g.X ? trackedGameCards(g) : '') + '</div>';
     return shell(g.t, h, 'games', g.t).replace('<div class="app"', '<div class="app wide"');
   };
 

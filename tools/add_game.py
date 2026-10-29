@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Add EasyStats exports to the site.
+"""Add games to the site: EasyStats exports or MyStat Tracker files (.mstat.json).
 
 One script for every team: it works out which team played from the names in
 the export. Players are matched by NAME (jersey numbers are only stored for
@@ -9,6 +9,12 @@ Examples
     python tools/add_game.py "Swish cheese vs Pretty good box-scores-27 Oct 2026.html" --season "2026 Spring" --opp-score 42
     python tools/add_game.py game.html --season "2026 Spring" --playoff --opp-score 51
     python tools/add_game.py *.html --season "2026 Spring"          (several at once; asks for each opponent score)
+
+MyStat Tracker files carry the team, opponent, date, season, score and finals
+flag themselves, so usually no options are needed:
+    python tools/add_game.py 2026-10-29-chuckers-chuckers-vs-iceman.mstat.json
+Players added on the phone are created automatically, unless their surname
+matches someone already on the site; then it asks you to use --new or --link.
 
 If the export has a name the site doesn't know yet, it stops and tells you.
 Then either add them as a new player:
@@ -24,6 +30,7 @@ Options
     --team-score N           our real final score, for teams where only some players are
                              stat-tracked (Chuckers); otherwise it's the export's total
     --team pretty-good       only needed if the team name in the export isn't recognised
+    --away                   (tracker files) the game was an away game; tracker games count as home otherwise
     --replace                overwrite a game that's already been added
     --dry-run                show what would be saved without saving
 """
@@ -35,6 +42,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from build import build
+from tracker_file import check_against_summary, load as load_tracker, replay as replay_tracker, tracked_block, was_on_court
 from common import (DATA, GAMES_DIR, PLAYERS_FILE, Roster, load_json, norm, parse_export, save_json,
                     season_key, season_name, short_form, slug)
 
@@ -71,6 +79,7 @@ def main():
     ap.add_argument('--new', action='append', default=[])
     ap.add_argument('--link', action='append', default=[])
     ap.add_argument('--replace', action='store_true')
+    ap.add_argument('--away', action='store_true')
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args()
 
@@ -102,6 +111,17 @@ def main():
 
     saved = 0
     for path in args.files:
+        if str(path).endswith('.mstat.json'):
+            res = add_tracker_game(path, args, teams, players, roster)
+            if res is None:
+                continue
+            if res == 'players':
+                changed = True
+                roster = Roster(players)
+                continue
+            saved += 1
+            changed = changed or res == 'saved+players'
+            continue
         ex = parse_export(path)
         tid, side = find_team(teams, ex, args.team)
         other = 'away' if side == 'home' else 'home'
@@ -182,6 +202,106 @@ def main():
         save_json(PLAYERS_FILE, dict(sorted(players.items())))
     if saved or changed:
         build()
+
+
+def add_tracker_game(path, args, teams, players, roster):
+    """Add one MyStat Tracker file. Returns None (skipped), 'saved' or 'saved+players'."""
+    data = load_tracker(path)
+    g = data['game']
+    tid = args.team or g['team']
+    if tid not in teams:
+        sys.exit(f'{Path(path).name}: unknown team "{tid}". Use --team.')
+    if g.get('status') == 'live':
+        print(f'Note: {Path(path).name} was exported before the game was finished on the phone.')
+
+    # map phone ids to site ids, creating new players where it is safe
+    idmap, new_players, problems = {}, [], []
+    links = {}
+    for item in args.link:
+        name, _, pid = item.partition('=')
+        links[norm(name)] = pid.strip()
+    news = {norm(item.partition('=')[0]) for item in args.new}
+    for r in data['roster']:
+        if r['id'] in players:
+            idmap[r['id']] = r['id']
+            continue
+        if norm(r['name']) in links:
+            idmap[r['id']] = links[norm(r['name'])]
+            continue
+        pid, _ = roster.resolve(r['name'])
+        if pid:
+            idmap[r['id']] = pid
+            continue
+        hint = suggestions(players, r['name'])
+        if hint and norm(r['name']) not in news:
+            problems.append(f'  {r["name"]} is new on the phone. Did you mean: {", ".join(hint)}? '
+                            f'Use --link "{r["name"]}=<id>", or --new "{r["name"]}" if it really is someone new.')
+            continue
+        pid = slug(r['name'])
+        if pid in players:
+            idmap[r['id']] = pid
+            continue
+        new_players.append((pid, r['name']))
+        idmap[r['id']] = pid
+    if problems:
+        print(f'\n{Path(path).name}: some names need sorting out first:')
+        print('\n'.join(problems))
+        sys.exit(1)
+
+    S = replay_tracker(data)
+    diffs = check_against_summary(data, S)
+    if diffs:
+        print(f'{Path(path).name}: the phone and this script disagree, using the replay:')
+        print('\n'.join('  ' + d for d in diffs[:10]))
+
+    nums = {r['id']: str(r.get('num') or '') for r in data['roster']}
+    lines, dnp = [], []
+    for r in data['roster']:
+        p = S['P'][r['id']]
+        played = any(p[k] for k in ('fga', 'fta', 'oreb', 'dreb', 'ast', 'stl', 'blk', 'to', 'pf')) or p['sec'] > 0 or was_on_court(data, r['id'])
+        row = {'p': idmap[r['id']], 'n': nums[r['id']]}
+        if played:
+            row.update({k: p[k] for k in ('fgm', 'fga', 'tpm', 'tpa', 'ftm', 'fta', 'oreb', 'dreb', 'pf', 'stl', 'to', 'blk', 'ast', 'pts')})
+            lines.append(row)
+        else:
+            dnp.append(row)
+
+    season_text = (args.season or g.get('season') or '').strip()
+    if not season_text:
+        sys.exit(f'{Path(path).name}: no season on the phone, so please give --season "2026 Spring".')
+    try:
+        skey = season_key(season_text)
+    except ValueError as err:
+        sys.exit(f'{Path(path).name}: {err}. Use --season "2026 Spring".')
+    opponent = g['opponent'].strip()
+    gid = f'{g["date"]}-{slug(opponent)}'
+    out = GAMES_DIR / tid / f'{gid}.json'
+    if out.exists() and not args.replace:
+        print(f'Skipped {Path(path).name}: {tid}/{gid} is already added (use --replace to overwrite).')
+        return None
+    us = args.team_score if args.team_score is not None else S['us']
+    them = args.opp_score if args.opp_score is not None else S['them']
+    game = {
+        'id': gid, 'team': tid, 'date': g['date'], 'season': skey, 'opponent': opponent,
+        'home': not args.away and g.get('home', True), 'us': us, 'them': them, 'playoff': bool(args.playoff or g.get('final')),
+        'source': 'tracker', 'lines': sorted(lines, key=lambda l: -l['pts']), 'dnp': dnp,
+        'tracked': tracked_block(data, S, idmap),
+    }
+    result = 'W' if us > them else 'L' if us < them else 'T'
+    print(f'{teams[tid]["name"]} {us}-{them} {opponent} ({result}) · {g["date"]} · {season_name(skey)}'
+          f'{" · finals" if game["playoff"] else ""} · {len(lines)} played, {len(dnp)} DNP · '
+          f'{len(game["tracked"]["shots"])} shots with a spot')
+    for pid, name in new_players:
+        print(f'New player: {name} ({pid})')
+    if args.dry_run:
+        return None
+    for pid, name in new_players:
+        players[pid] = {'name': name, 'short': short_form(name), 'aliases': [], 'images': {}}
+    save_json(out, game)
+    keep = DATA.parent / 'exports' / tid / f'{gid}.mstat.json'
+    keep.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(path, keep)
+    return 'saved+players' if new_players else 'saved'
 
 
 if __name__ == '__main__':

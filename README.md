@@ -82,7 +82,8 @@ Then re-run `python tools/migrate_v4.py ../mystats.pro-v4 exports`. Or simply pu
 - On first load it reads player names from `data/bundle.json`, so names match the site. Players added during a game are marked as new.
 - **Track every player** off (the default for Chuckers) tracks only the ticked players; everyone else scores on the Rest of team buttons so the score stays right.
 - Each game exports as one `.mstat.json` file: the game details, the roster and a list of every event (shot with court x/y and zone, shot type, assist, fast break, second chance, points off turnover, and-1, rebounds, steals, blocks, turnovers, fouls, subs, opponent scores, quarter ends, clock times). It also carries a box score summary for checking.
-- Adding a `.mstat.json` to the site with `add_game.py` is the next step and isn't built yet. Keep the exported files until it is.
+- Add a tracker game to the site with `python tools/add_game.py 2026-10-29-chuckers-chuckers-vs-iceman.mstat.json`. The file already has the team, opponent, date, season, score and finals flag, so no options are usually needed (`--away`, `--season`, `--replace` and `--dry-run` work as for EasyStats files). Players added on the phone are created automatically, unless their surname matches someone already on the site; then it asks for `--new` or `--link`. A copy of the file is kept in `exports/<team>/`.
+- Tracker games show extra stats on the site: minutes and +/- in the box score, game flow by quarter, team extras (paint, second-chance, fast-break and points off turnovers), a shot chart with zone percentages, who assisted who, and lineups. Player pages get a Tracked Games card, a shot chart and a Playmaking card covering their tracker games.
 - After changing tracker files, bump `VERSION` in `tracker/sw.js` so phones pick up the new copy.
 
 ## Hosting on GitHub Pages
