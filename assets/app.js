@@ -55,6 +55,15 @@
       return game;
     });
     games.sort((a, b) => a.date - b.date || (a.t < b.t ? -1 : 1));
+    // finals: the first finals game of a team's season is the semi final, the second the grand final
+    const finalsCount = {};
+    games.forEach((g) => {
+      if (!g.po) return;
+      const k = g.t + '|' + g.s;
+      finalsCount[k] = (finalsCount[k] || 0) + 1;
+      g.round = finalsCount[k] === 1 ? 'sf' : 'gf';
+      g.roundName = g.round === 'sf' ? 'Semi Final' : 'Grand Final';
+    });
     games.forEach((g) => {
       g.lines.concat(g.dnp).forEach((l) => {
         const p = players[l.p];
@@ -198,12 +207,13 @@
       .concat(opts.seasons.slice().reverse().map((k) => ({ label: D.seasonName(k), on: opts.season === k, attr: tog({ season: k, sel: null, opp: null }) })));
     h += '<div class="scroller">' + chips(ss) + '</div>';
     if (opts.phase !== undefined) {
-      h += seg([['all', 'All'], ['reg', 'Regular'], ['po', 'Playoffs']].map((p) => ({ label: p[1], on: opts.phase === p[0], attr: tog({ phase: p[0] === 'all' ? null : p[0], sel: null, opp: null }) })));
+      h += seg([['all', 'All'], ['reg', 'Regular'], ['po', 'Finals']].map((p) => ({ label: p[1], on: opts.phase === p[0], attr: tog({ phase: p[0] === 'all' ? null : p[0], sel: null, opp: null }) })));
     }
     if (opts.scope) h += '<div class="scope">' + esc(opts.scope) + '</div>';
     return h + '</section>';
   }
-  const phaseName = (ph) => ({ all: 'Reg + Playoffs', reg: 'Regular season', po: 'Playoffs' }[ph]);
+  const phaseName = (ph) => ({ all: 'Regular + Finals', reg: 'Regular season', po: 'Finals' }[ph]);
+  const roundTag = (g) => (g.po ? '<span class="tag final' + (g.round === 'gf' ? ' gf' : '') + '">' + (g.round === 'gf' ? 'GRAND FINAL' : 'SEMI FINAL') + '</span>' : '');
 
   // donut chart
   function donut(segs, center, centerLbl) {
@@ -284,12 +294,8 @@
         '<span class="more">' + ICON.back.replace('M15 5l-7 7 7 7', 'M9 5l7 7-7 7') + '</span></a>';
     });
     const recent = D.games.slice(-6).reverse().map((g) => gameRow(g, true)).join('');
-    const all = D.games, w = all.filter((g) => g.win).length;
-    const inner = '<header class="hero"><div class="hero-top"><h1>MyStatPro</h1>' + themeBtn() + '</div>' +
-      '<div class="meta">' + all.length + ' games · ' + w + '–' + (all.length - w) + ' across ' + D.teamIds.length + ' teams · ' + Object.keys(D.players).length + ' players</div></header>' +
+    const inner = '<header class="hero"><div class="hero-top"><h1>MyStatsPro</h1>' + themeBtn() + '</div></header>' +
       '<div class="wrap" style="padding-top:16px">' + cards +
-      '<div class="tiles two"><a class="tile" href="' + href(['leaders'], {}) + '"><div class="v">Leaders</div><div class="l">All teams combined</div></a>' +
-      '<a class="tile" href="' + href(['records'], {}) + '"><div class="v">Records</div><div class="l">All-time bests</div></a></div>' +
       '<div class="card list"><div class="head"><h2>Latest Games</h2><a class="more" href="' + href(['games'], { season: 'all' }) + '">All games</a></div>' + recent + '</div></div>';
     return shell('all', inner, 'home', null);
   };
@@ -298,7 +304,7 @@
     const top = g.lines.slice().sort((a, b) => b.pts - a.pts)[0];
     return '<a class="lrow" href="' + href(['game', g.t, g.id], {}) + '"><span class="wl ' + wlClass(g) + '">' + (g.win ? 'W' : 'L') + '</span>' +
       '<span class="grow"><span style="display:flex;align-items:center;gap:6px;min-width:0">' + (showTeam ? '<span class="tag" style="background:' + D.teams[g.t].color + '">' + D.teams[g.t].short + '</span>' : '') +
-      '<span class="t1" style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(vsName(g)) + '</span>' + (g.po ? '<span class="tag" style="background:var(--acc)">PLAYOFF</span>' : '') + '</span>' +
+      '<span class="t1" style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(vsName(g)) + '</span>' + roundTag(g) + '</span>' +
       '<span class="note small">' + fmtDY(g.date) + (top ? ' · Top: ' + esc(D.players[top.p].name) + ' ' + top.pts + ' pts' : '') + '</span></span>' +
       '<span class="big" style="font-size:22px">' + g.us + '–' + g.them + '</span></a>';
   }
@@ -314,7 +320,7 @@
     const phase = qv('phase', 'all');
     const G = filterGames({ team: tid, season, phase });
     const n = G.length, w = G.filter((g) => g.win).length;
-    const roster = Object.values(D.players).filter((p) => p.teams[tid]);
+    const roster = Object.values(D.players).filter((p) => p.teams[tid] && p.teams[tid].gp > 0);
 
     const tabs = '<div class="hero-seg">' + D.teamIds.map((t) => '<a class="' + (t === tid ? 'on' : '') + '" href="' + href(['team', t], {}) + '">' + esc(D.teams[t].short === 'CC' ? 'Chuckers' : D.teams[t].name) + '</a>').join('') + '</div>';
     let h = '<header class="hero"><div class="hero-top"><a class="hbtn" href="#/">' + ICON.back + 'All teams</a>' + themeBtn() + '</div>' +
@@ -333,7 +339,7 @@
         '<span style="display:flex;flex-direction:column;align-items:flex-end"><span class="big" style="font-size:26px;line-height:1">' + lineVal(key, b) + '</span><span class="note small" style="font-weight:700">' + lbl + '</span></span></a>';
     };
     h += '<div class="wrap">';
-    h += '<div class="card"><div class="head"><span class="note small" style="font-weight:700;letter-spacing:.08em">LATEST RESULT · ' + fmtDY(last.date).toUpperCase() + '</span><a class="more" href="' + href(['game', tid, last.id], {}) + '">Box score</a></div>' +
+    h += '<div class="card"><div class="head"><span class="note small" style="font-weight:700;letter-spacing:.08em;display:flex;gap:8px;align-items:center;flex-wrap:wrap">LATEST RESULT · ' + fmtDY(last.date).toUpperCase() + roundTag(last) + '</span><a class="more" href="' + href(['game', tid, last.id], {}) + '">Box score</a></div>' +
       '<div class="board"><div>' + logoSq(tid) + esc(T.name) + '</div><div><div class="score">' + last.us + '<i>–</i>' + last.them + '</div><span class="resbadge" style="background:var(--' + (last.win ? 'win' : 'loss') + '-bg)">' + (last.win ? 'WIN' : 'LOSS') + '</span></div>' +
       '<div><span class="sq" style="background:var(--chip)">' + esc(initials(last.o)) + '</span>' + esc(last.o) + '</div></div>' +
       '<div style="border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:4px"><span class="note small" style="font-weight:700;letter-spacing:.08em">TOP PERFORMERS</span>' +
@@ -384,9 +390,9 @@
     const rows = roster.map((p) => { const S = byP[p.id] ? agg(byP[p.id]) : null; return { p, S }; }).sort((a, b) => (b.S ? b.S.n : -1) - (a.S ? a.S.n : -1) || (b.S ? metric('pts', b.S) : 0) - (a.S ? metric('pts', a.S) : 0));
     h += '<div class="card"><div><h2>Roster</h2><div class="sub">Coloured dots show other teams they play for</div></div><div class="tiles two pgrid">' +
       rows.map((r) => {
-        const others = Object.keys(r.p.teams).filter((t) => t !== tid);
+        const others = Object.keys(r.p.teams).filter((t) => t !== tid && r.p.teams[t].gp > 0);
         return '<a class="pcard" href="' + href(['player', r.p.id], { team: tid }) + '"><span class="top">' + avatar(r.p.id, 's44', tid) + '<span class="num">#' + esc(r.p.teams[tid].number) + '</span></span>' +
-          '<span style="display:flex;flex-direction:column;gap:2px"><b>' + esc(r.p.name) + '</b><span class="t2">' + (r.p.position ? esc(r.p.position) + ' · ' : '') + (r.S ? f1(metric('pts', r.S)) + ' PPG · ' + r.S.n + ' GP' : 'No games in this filter') + '</span></span>' +
+          '<span style="display:flex;flex-direction:column;gap:2px"><b>' + esc(r.p.name) + '</b><span class="t2">' + (r.S ? f1(metric('pts', r.S)) + ' PPG · ' + r.S.n + ' GP' : 'No games in this filter') + '</span></span>' +
           '<span style="display:flex;gap:8px;min-height:12px">' + others.map((t) => '<span class="note small" style="display:flex;align-items:center;gap:4px"><span class="dot" style="background:' + D.teams[t].color + '"></span>' + D.teams[t].short + '</span>').join('') + '</span></a>';
       }).join('') + '</div></div>';
 
@@ -431,7 +437,8 @@
     const G = filterGames({ team, season: seasons.indexOf(season) >= 0 ? season : 'all', phase: 'all' });
     const byP = {};
     linesOf(G).forEach((l) => { (byP[l.p] = byP[l.p] || []).push(l); });
-    let list = Object.values(D.players).filter((p) => team === 'all' || p.teams[team]).map((p) => ({ p, S: agg(byP[p.id] || []) }));
+    const played = (p) => Object.keys(p.teams).filter((t) => p.teams[t].gp > 0);
+    let list = Object.values(D.players).filter((p) => (team === 'all' ? p.gp > 0 : p.teams[team] && p.teams[team].gp > 0)).map((p) => ({ p, S: agg(byP[p.id] || []) }));
     list.sort((a, b) => sort === 'name' ? a.p.name.localeCompare(b.p.name) : sort === 'ppg' ? metric('pts', b.S) - metric('pts', a.S) : b.S.n - a.S.n || a.p.name.localeCompare(b.p.name));
     let h = '<header class="hero"><div class="hero-top"><h1>Players</h1>' + themeBtn() + '</div><div class="hero-seg">' +
       [['all', 'All Teams']].concat(D.teamIds.map((t) => [t, D.teams[t].short === 'CC' ? 'Chuckers' : D.teams[t].name])).map((x) => '<a class="' + (team === x[0] ? 'on' : '') + '" ' + tog({ team: x[0] === 'all' ? null : x[0], season: null }) + '>' + esc(x[1]) + '</a>').join('') + '</div></header>';
@@ -439,11 +446,12 @@
       '<div class="scroller">' + chips([{ label: 'All seasons', on: season === 'all', attr: tog({ season: null }) }].concat(seasons.slice().reverse().map((k) => ({ label: D.seasonName(k), on: season === k, attr: tog({ season: k }) })))) + '</div>' +
       seg([['gp', 'Most games'], ['ppg', 'Points'], ['name', 'A–Z']].map((x) => ({ label: x[1], on: sort === x[0], attr: tog({ sort: x[0] === 'gp' ? null : x[0] }) }))) + '</section>';
     h += '<div class="wrap"><div class="tiles two pgrid">' + list.map((r) => {
-      const ts = Object.keys(r.p.teams).filter((t) => team === 'all' || t === team);
+      const ts = played(r.p).filter((t) => team === 'all' || t === team);
+      const nums = ts.map((t) => r.p.teams[t].number).filter((n, i, a) => a.indexOf(n) === i);
       return '<a class="pcard" data-name="' + esc((r.p.name + ' ' + r.p.short + ' ' + (r.p.aliases || []).join(' ')).toLowerCase()) + '" href="' + href(['player', r.p.id], { team: team === 'all' ? null : team }) + '">' +
-        '<span class="top">' + avatar(r.p.id, 's44', team === 'all' ? null : team) + '<span class="num">' + ts.map((t) => '#' + esc(r.p.teams[t].number)).join(' ') + '</span></span>' +
+        '<span class="top">' + avatar(r.p.id, 's44', team === 'all' ? null : team) + '<span class="num">' + nums.map((n) => '#' + esc(n)).join(' ') + '</span></span>' +
         '<span style="display:flex;flex-direction:column;gap:2px"><b>' + esc(r.p.name) + '</b><span class="t2">' + (r.S.n ? r.S.n + ' GP · ' + f1(metric('pts', r.S)) + ' PPG · ' + f1(metric('reb', r.S)) + ' RPG' : 'No games in this filter') + '</span></span>' +
-        '<span style="display:flex;gap:6px;flex-wrap:wrap">' + Object.keys(r.p.teams).map((t) => '<span class="tag" style="background:' + D.teams[t].color + '">' + D.teams[t].short + '</span>').join('') + '</span></a>';
+        '<span style="display:flex;gap:6px;flex-wrap:wrap">' + played(r.p).map((t) => '<span class="tag" style="background:' + D.teams[t].color + '">' + D.teams[t].short + '</span>').join('') + '</span></a>';
     }).join('') + '</div><div class="empty hidden" data-search-empty>No players match that search.</div></div>';
     return shell(team, h, 'players', team);
   };
@@ -479,16 +487,23 @@
     const teamName = team === 'all' ? 'All teams' : D.teams[team].name;
 
     // header
+    const pnums = teamsPlayed.map((t) => P.teams[t].number);
+    const oneNum = pnums.length && pnums.every((n) => n === pnums[0]) ? pnums[0] : null;
     const others = Object.values(D.players).filter((p) => p.gp > 0).sort((a, b) => a.name.localeCompare(b.name));
     let h = '<header class="hero"><div class="hero-top"><a class="hbtn icon" href="' + (team !== 'all' ? href(['team', team], {}) : href(['players'], {})) + '" aria-label="Back">' + ICON.back + '</a>' +
       '<div style="display:flex;gap:8px"><button class="hbtn" data-menu-toggle aria-expanded="false">Switch player' + ICON.down + '</button>' + themeBtn() + '</div></div>' +
       '<div class="menu hidden" data-menu><input class="search" type="search" placeholder="Search" aria-label="Search players" data-search=".menu a">' +
-      others.map((p) => '<a class="' + (p.id === pid ? 'on' : '') + '" data-name="' + esc(p.name.toLowerCase() + ' ' + p.short.toLowerCase()) + '" href="' + href(['player', p.id], { tab: view === 'ov' ? null : view }) + '"><b>' + esc(p.name) + '</b><span>' + Object.keys(p.teams).map((t) => D.teams[t].short === 'CC' ? 'Chuckers' : D.teams[t].name).join(' · ') + '</span></a>').join('') + '</div>' +
-      '<div class="hero-id">' + avatar(pid, 'big', team === 'all' ? null : team) + '<div>' + (P.position ? '<div class="kicker">' + esc(P.position) + '</div>' : '') +
-      '<h1>' + esc(P.name).replace(' ', '<br>') + '</h1><div class="meta">' + allA.n + ' games · ' + allA.w + '–' + (allA.n - allA.w) + ' record' + (teamsPlayed.length > 1 ? ' · ' + teamsPlayed.length + ' teams' : '') + '</div></div></div>' +
-      '<div class="pills">' + teamsPlayed.map((t) => '<a class="pill" href="' + href(['team', t], {}) + '">' + teamBadge(t, 's26') + '#' + esc(P.teams[t].number) + ' ' + esc(D.teams[t].name) + '</a>').join('') + '</div></header>';
+      others.map((p) => '<a class="' + (p.id === pid ? 'on' : '') + '" data-name="' + esc(p.name.toLowerCase() + ' ' + p.short.toLowerCase()) + '" href="' + href(['player', p.id], { tab: view === 'ov' ? null : view }) + '"><b>' + esc(p.name) + '</b><span>' + Object.keys(p.teams).filter((t) => p.teams[t].gp > 0).map((t) => D.teams[t].short === 'CC' ? 'Chuckers' : D.teams[t].name).join(' · ') + '</span></a>').join('') + '</div>' +
+      '<div class="hero-id">' + avatar(pid, 'big', team === 'all' ? null : team) + '<div>' +
+      '<h1>' + esc(P.name).replace(' ', '<br>') + '</h1><div class="meta">' + (oneNum ? '#' + esc(oneNum) + ' · ' : '') + allA.n + ' games · ' + allA.w + '–' + (allA.n - allA.w) + ' record' + (teamsPlayed.length > 1 ? ' · ' + teamsPlayed.length + ' teams' : '') + '</div></div></div>' +
+      (function () {
+        const nums = teamsPlayed.map((t) => P.teams[t].number);
+        const same = nums.every((n) => n === nums[0]);
+        return '<div class="pills">' + teamsPlayed.map((t) => '<a class="pill" href="' + href(['team', t], {}) + '">' + teamBadge(t, 's26') + (same ? '' : '#' + esc(P.teams[t].number) + ' ') + esc(D.teams[t].name) + '</a>').join('') + '</div>';
+      })() + '</header>';
     h += '<nav class="tabs" aria-label="Player sections">' + [['ov', 'Overview'], ['stats', 'Stats'], ['log', 'Game Log'], ['opp', 'Versus']].map((v) => '<a class="' + (view === v[0] ? 'on' : '') + '" ' + tog({ tab: v[0] === 'ov' ? null : v[0], sel: null }) + '>' + v[1] + '</a>').join('') + '</nav>';
-    h += filterBlock({ teams: teamsPlayed.length > 1 ? teamsPlayed : null, team, seasons, season, phase, scope: teamName + ' · ' + (season === 'all' ? 'All seasons' : D.seasonName(season)) + ' · ' + phaseName(phase) + ' · ' + A.n + ' GP' });
+    h += filterBlock({ teams: teamsPlayed.length > 1 ? teamsPlayed : null, team, seasons, season, phase, scope: teamName + ' · ' + (season === 'all' ? 'All seasons' : D.seasonName(season)) + ' · ' + phaseName(phase) + ' · ' + A.n + ' GP' })
+      .replace('</section>', (view === 'log' || view === 'opp' ? '<div class="scope">Tap a game to see its box score.</div>' : '') + '</section>');
     if (!A.n) return shell(accentTid, h + '<div class="wrap"><div class="empty">No games match these filters yet.</div></div>', 'players', team);
 
     h += '<div class="wrap">';
@@ -610,12 +625,12 @@
   const highTile = (h) => '<a class="tile" href="' + esc(h.link || '#') + '"><span class="l">' + esc(h.label) + '</span><span class="v">' + esc(h.val) + '</span><span class="s">' + esc(h.sub) + '</span></a>';
 
   function playerStats(pid, list, A, team, teamName, phase, teamGames, inPhase) {
-    const mode = qv('mode', 'pg'), group = GROUPS[qv('group')] ? qv('group') : 'scoring';
+    const mode = qv('mode', 'pg'), group = GROUPS[qv('group')] ? qv('group') : 'all';
     const keys = GROUPS[group];
     const rows = careerRows(pid, teamGames.filter(inPhase), team);
     const cols = '150px 40px repeat(' + keys.length + ', 58px)';
     let h = '<div class="card flush"><div class="head px"><h2>Full Stats</h2>' + seg([['pg', 'Per game'], ['tot', 'Totals']].map((x) => ({ label: x[1], on: mode === x[0], attr: tog({ mode: x[0] === 'pg' ? null : x[0] }) })), 'inline') + '</div>' +
-      '<div class="scroller px">' + chips([['scoring', 'Scoring'], ['shooting', '3PT & FT'], ['reb', 'Rebounding'], ['other', 'Playmaking & D'], ['all', 'Everything']].map((x) => ({ label: x[1], on: group === x[0], attr: tog({ group: x[0] === 'scoring' ? null : x[0] }) }))) + '</div>' +
+      '<div class="scroller px">' + chips([['all', 'Everything'], ['scoring', 'Scoring'], ['shooting', '3PT & FT'], ['reb', 'Rebounding'], ['other', 'Playmaking & D']].map((x) => ({ label: x[1], on: group === x[0], attr: tog({ group: x[0] === 'all' ? null : x[0] }) }))) + '</div>' +
       '<div class="xscroll"><div><div class="trow th" style="grid-template-columns:' + cols + '"><span class="stick">SEASON</span><span>GP</span>' + keys.map((k) => '<span>' + LABEL[k] + '</span>').join('') + '</div>' +
       rows.map((r) => '<div class="trow' + (r.strong ? ' strong' : '') + '" style="grid-template-columns:' + cols + '"><span class="stick">' + r.badge.replace('s30', 's24') + '<span><span class="t1" style="font-size:13px">' + esc(r.season) + '</span><span class="t2" style="font-size:11px">' + esc(r.team) + '</span></span></span><span>' + r.S.n + '</span>' +
         keys.map((k) => '<span>' + fmtStat(k, r.S, mode) + '</span>').join('') + '</div>').join('') + '</div></div><div class="note small px">Swipe the table sideways for more columns. Career and season rows use the filters above.</div></div>';
@@ -623,7 +638,7 @@
     const sr = (label, ls) => { const S = agg(ls); return S.n ? '<div class="trow" style="grid-template-columns:minmax(0,1fr) 30px 40px 36px 36px 44px 44px;min-height:48px;font-size:14px"><span style="text-align:left;font-weight:600">' + label + '</span><span>' + S.n + '</span><b>' + f1(metric('pts', S)) + '</b><span>' + f1(metric('reb', S)) + '</span><span>' + f1(metric('ast', S)) + '</span><span>' + f1(metric('fgp', S)) + '</span><span>' + f1(metric('tpp', S)) + '</span></div>' : ''; };
     h += '<div class="card list"><div class="head"><div><h2>Splits</h2><div class="sub">Per game</div></div></div><div class="trow th" style="grid-template-columns:minmax(0,1fr) 30px 40px 36px 36px 44px 44px"><span style="text-align:left">SPLIT</span><span>GP</span><span>PTS</span><span>REB</span><span>AST</span><span>FG%</span><span>3P%</span></div>' +
       sr('Home', list.filter((l) => l.g.home)) + sr('Away', list.filter((l) => !l.g.home)) + sr('Wins', list.filter((l) => l.g.win)) + sr('Losses', list.filter((l) => !l.g.win)) +
-      sr('Regular season', list.filter((l) => !l.g.po)) + sr('Playoffs', list.filter((l) => l.g.po)) + '</div>';
+      sr('Regular season', list.filter((l) => !l.g.po)) + sr('Finals', list.filter((l) => l.g.po)) + '</div>';
     return h;
   }
 
@@ -634,7 +649,7 @@
     const shown = showAll ? sorted : sorted.slice(0, 15);
     const colKey = ['pts', 'reb', 'oreb', 'ast', 'stl', 'blk', 'to', 'pf', 'fgm', 'tpm', 'ftm', 'fgp'];
     const cols = '170px repeat(8, 40px) repeat(3, 52px) 52px';
-    let h = '<div class="card flush"><div class="head px" style="align-items:flex-end"><div><h2>Game Log</h2><div class="sub">' + list.length + ' games · tap a game for its box score</div></div>' +
+    let h = '<div class="card flush"><div class="head px" style="align-items:flex-end"><div><h2>Game Log</h2><div class="sub">' + list.length + ' games</div></div>' +
       '<label class="ctl">Sort by<select data-param="sort">' + [['date', 'Newest'], ['pts', 'Points'], ['reb', 'Rebounds'], ['ast', 'Assists'], ['stl', 'Steals'], ['blk', 'Blocks'], ['to', 'Turnovers'], ['fgm', 'FG made'], ['tpm', '3PT made'], ['ftm', 'FT made'], ['fgp', 'FG %']]
         .map((o) => '<option value="' + o[0] + '"' + (o[0] === sort ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select></label></div>' +
       '<div class="xscroll"><div><div class="trow th" style="grid-template-columns:' + cols + '"><span class="stick">GAME</span><span>PTS</span><span>REB</span><span>OR</span><span>AST</span><span>STL</span><span>BLK</span><span>TO</span><span>PF</span><span>FG</span><span>3P</span><span>FT</span><span>FG%</span></div>';
@@ -702,7 +717,7 @@
       [['all', 'All Teams']].concat(D.teamIds.map((t) => [t, D.teams[t].short === 'CC' ? 'Chuckers' : D.teams[t].name])).map((x) => '<a class="' + (team === x[0] ? 'on' : '') + '" ' + tog({ team: x[0] === 'all' ? null : x[0], season: null }) + '>' + esc(x[1]) + '</a>').join('') + '</div></header>';
     h += filterBlock({ seasons, season, phase }).replace('</section>', '') +
       '<div class="head" style="display:flex;justify-content:space-between;gap:8px;align-items:center">' + seg([['pg', 'Per game'], ['tot', 'Totals']].map((x) => ({ label: x[1], on: mode === x[0], attr: tog({ mode: x[0] === 'pg' ? null : x[0] }) })), 'inline') +
-      '<a class="chip' + (qual ? ' on' : '') + '" ' + tog({ qual: qual ? '0' : null }) + '>Qualified only</a></div>' +
+      '<a class="chip' + (qual ? ' on' : '') + '" ' + tog({ qual: qual ? '0' : null }) + '>3+ games only</a></div>' +
       '<div class="scroller">' + chips(CATS.map((c) => ({ label: c.l, on: c.k === cat.k, attr: tog({ cat: c.k === 'pts' ? null : c.k }) })), 'tall') + '</div></section>';
     h += '<div class="wrap">';
     if (list.length) {
@@ -721,8 +736,8 @@
         return '<a class="lrow" style="min-height:60px" href="' + href(['player', x.p.pid], { team: team === 'all' ? null : team }) + '"><span class="rank">' + (i + 1) + '</span>' + avatar(x.p.pid, 's40', team === 'all' ? null : team) +
           '<span class="grow"><span style="display:flex;align-items:center;gap:6px;min-width:0"><b style="font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(D.players[x.p.pid].name) + '</b>' + x.p.teams.map((t) => '<span class="dot" style="width:9px;height:9px;background:' + D.teams[t].color + '"></span>').join('') + '</span>' +
           '<span class="track thin"><div style="width:' + Math.max(0, (x.v / topV) * 100).toFixed(1) + '%"></div></span><span class="note small">' + sub + '</span></span><span class="big" style="font-size:26px;min-width:56px">' + show(cat, x.v) + '</span></a>';
-      }).join('') + (list.length ? '' : '<div class="note" style="padding:20px 0;text-align:center">Nobody qualifies yet. Turn off Qualified only to see everyone.</div>') +
-      '<div class="note small" style="padding:12px 0;border-top:1px solid var(--line)">' + (qual ? 'Qualified: at least 3 games. Shooting % also needs 20 FG, 10 3PT or 10 FT attempts.' : 'Showing everyone, including players with very few games.') + '</div></div>';
+      }).join('') + (list.length ? '' : '<div class="note" style="padding:20px 0;text-align:center">Nobody has 3+ games here yet. Turn off “3+ games only” to see everyone.</div>') +
+      '<div class="note small" style="padding:12px 0;border-top:1px solid var(--line)">' + (qual ? 'Only players with 3 or more games are ranked, so one big night doesn’t top the list. Shooting % also needs 20 FG, 10 3PT or 10 FT attempts. Turn off “3+ games only” to see everyone.' : 'Showing everyone, including players with very few games.') + '</div></div>';
     h += '<div class="card"><div><h2>Category Leaders</h2><div class="sub">Tap one to see the full list</div></div><div class="tiles two">' +
       CATS.map((c) => { const b = rank(c)[0]; return '<a class="tile" ' + tog({ cat: c.k === 'pts' ? null : c.k }) + ' style="border:1px solid ' + (c.k === cat.k ? 'var(--acc)' : 'transparent') + '"><span class="l">' + esc(c.long) + '</span><span class="v">' + (b ? show(c, b.v) : '–') + '</span><span class="s" style="font-weight:600;color:var(--text)">' + (b ? esc(D.players[b.p.pid].name) : 'Nobody qualifies') + '</span></a>'; }).join('') + '</div></div>';
     h += '</div>';
@@ -746,7 +761,7 @@
 
     if (who === 'player' && scope === 'game') {
       const L = linesOf(G);
-      const pg = (title, f, filt, show) => rec(title, by(filt ? L.filter(filt) : L, f).map((l) => ({ name: D.players[l.p].name, sub: (show ? l.fgm + '/' + l.fga + ' · ' : '') + gameSub(l.g), val: show ? show(l) : String(f(l)), link: gameLink(l.g) })));
+      const pg = (title, f, filt, show) => rec(title, by(filt ? L.filter(filt) : L, f).map((l) => ({ pid: l.p, tid: l.g.t, name: D.players[l.p].name, sub: (show ? l.fgm + '/' + l.fga + ' · ' : '') + gameSub(l.g), val: show ? show(l) : String(f(l)), link: gameLink(l.g) })));
       recs = [pg('Most points', (l) => l.pts), pg('Most rebounds', (l) => l.reb), pg('Most assists', (l) => l.ast), pg('Most steals', (l) => l.stl),
         pg('Most blocks', (l) => l.blk), pg('Most 3 pointers', (l) => l.tpm), pg('Most offensive rebounds', (l) => l.oreb), pg('Most field goals', (l) => l.fgm),
         pg('Most free throws', (l) => l.ftm), pg('Most PTS + REB + AST', (l) => lineVal('pra', l)),
@@ -756,7 +771,7 @@
       linesOf(G).forEach((l) => { const key = scope === 'season' ? l.p + '|' + l.g.s : l.p; (groups[key] = groups[key] || { pid: l.p, s: l.g.s, lines: [] }).lines.push(l); });
       const P = Object.values(groups).map((x) => ({ pid: x.pid, s: x.s, S: agg(x.lines), tm: D.teamIds.filter((t) => x.lines.some((l) => l.g.t === t)).map((t) => D.teams[t].short).join(' + ') }));
       const sub = (x) => (scope === 'season' ? D.seasonName(x.s) + ' · ' : '') + x.tm + ' · ' + x.S.n + ' GP';
-      const pr = (title, f, show, minGp) => rec(title, by(P.filter((x) => x.S.n >= (minGp || 1)), f).map((x) => ({ name: D.players[x.pid].name, sub: sub(x), val: show(f(x)), link: href(['player', x.pid], { season: scope === 'season' ? x.s : null }) })));
+      const pr = (title, f, show, minGp) => rec(title, by(P.filter((x) => x.S.n >= (minGp || 1)), f).map((x) => ({ pid: x.pid, name: D.players[x.pid].name, sub: sub(x), val: show(f(x)), link: href(['player', x.pid], { season: scope === 'season' ? x.s : null }) })));
       const one = (v) => f1(v), int = (v) => String(v), pc = (v) => f1(v) + '%';
       if (scope === 'season') {
         recs = [pr('Highest points per game', (x) => metric('pts', x.S), one, 3), pr('Highest rebounds per game', (x) => metric('reb', x.S), one, 3), pr('Highest assists per game', (x) => metric('ast', x.S), one, 3),
@@ -771,7 +786,7 @@
     } else if (scope === 'game') {
       const T = G.map((g) => ({ g, S: agg(g.lines) }));
       const full = T.filter((x) => !D.teams[x.g.t].partialStats);
-      const tr = (title, arr, f, show, asc, filt) => rec(title, by(filt ? arr.filter(filt) : arr, f, asc).map((x) => ({ name: D.teams[x.g.t].name, sub: (x.g.win ? 'W ' : 'L ') + x.g.us + '–' + x.g.them + ' ' + gameSub(x.g), val: show(f(x)), link: gameLink(x.g) })));
+      const tr = (title, arr, f, show, asc, filt) => rec(title, by(filt ? arr.filter(filt) : arr, f, asc).map((x) => ({ team: x.g.t, name: D.teams[x.g.t].name, sub: (x.g.win ? 'W ' : 'L ') + x.g.us + '–' + x.g.them + ' ' + gameSub(x.g), val: show(f(x)), link: gameLink(x.g) })));
       const int = (v) => String(v);
       recs = [tr('Most points scored', T, (x) => x.g.us, int), tr('Fewest points allowed', T, (x) => x.g.them, int, true),
         tr('Biggest win', T, (x) => x.g.us - x.g.them, (v) => '+' + v, false, (x) => x.g.win), tr('Most points in a loss', T, (x) => x.g.us, int, false, (x) => !x.g.win),
@@ -783,14 +798,15 @@
       const TT = Object.values(groups).map((x) => {
         const gs = x.games, n = gs.length, w = gs.filter((g) => g.win).length;
         let best = 0, cur = 0; gs.forEach((g) => { if (g.win) { cur++; best = Math.max(best, cur); } else cur = 0; });
-        return { t: x.t, s: x.s, n, w, pf: gs.reduce((a, g) => a + g.us, 0) / n, pa: gs.reduce((a, g) => a + g.them, 0) / n, streak: best, pow: gs.filter((g) => g.po && g.win).length };
+        return { t: x.t, s: x.s, n, w, pf: gs.reduce((a, g) => a + g.us, 0) / n, pa: gs.reduce((a, g) => a + g.them, 0) / n, streak: best, pow: gs.filter((g) => g.po && g.win).length, titles: gs.filter((g) => g.round === 'gf' && g.win).length };
       });
       const sub = (x) => (scope === 'season' ? D.seasonName(x.s) : 'All-time') + ' · ' + x.w + '–' + (x.n - x.w);
-      const tt = (title, f, show, asc) => rec(title, by(TT, f, asc).map((x) => ({ name: D.teams[x.t].name, sub: sub(x), val: show(f(x)), link: href(['team', x.t], { season: scope === 'season' ? x.s : 'all' }) })));
+      const tt = (title, f, show, asc) => rec(title, by(TT, f, asc).map((x) => ({ team: x.t, name: D.teams[x.t].name, sub: sub(x), val: show(f(x)), link: href(['team', x.t], { season: scope === 'season' ? x.s : 'all' }) })));
       const one = (v) => f1(v), int = (v) => String(v);
       recs = [tt('Best win %', (x) => (x.w / x.n) * 100, (v) => v.toFixed(0) + '%'), tt('Most wins', (x) => x.w, int), tt('Most points per game', (x) => x.pf, one),
         tt('Best defence (points allowed)', (x) => x.pa, one, true), tt('Best point differential', (x) => x.pf - x.pa, (v) => (v >= 0 ? '+' : '') + f1(v)),
-        tt('Longest winning streak', (x) => x.streak, int), tt('Most playoff wins', (x) => x.pow, int)];
+        tt('Longest winning streak', (x) => x.streak, int), tt('Most finals wins', (x) => x.pow, int)];
+      if (scope === 'career') recs.unshift(tt('Championships (grand final wins)', (x) => x.titles, int));
     }
     recs = recs.filter(Boolean);
 
@@ -799,13 +815,15 @@
     h += '<section class="filters">' + seg([['player', 'Player'], ['team', 'Team']].map((x) => ({ label: x[1], on: who === x[0], attr: tog({ who: x[0] === 'player' ? null : x[0] }) }))) +
       seg([['game', 'Single game'], ['season', 'Season'], ['career', 'All-time']].map((x) => ({ label: x[1], on: scope === x[0], attr: tog({ scope: x[0] === 'game' ? null : x[0] }) })));
     if (scope !== 'career') h += '<div class="scroller">' + chips([{ label: 'All seasons', on: season === 'all', attr: tog({ season: null }) }].concat(seasons.slice().reverse().map((k) => ({ label: D.seasonName(k), on: season === k, attr: tog({ season: k }) })))) + '</div>';
-    h += '<div class="chips">' + chips([['all', 'Reg + Playoffs'], ['reg', 'Regular'], ['po', 'Playoffs']].map((x) => ({ label: x[1], on: phase === x[0], attr: tog({ phase: x[0] === 'all' ? null : x[0] }) }))) + '</div>' +
+    h += '<div class="chips">' + chips([['all', 'Regular + Finals'], ['reg', 'Regular'], ['po', 'Finals']].map((x) => ({ label: x[1], on: phase === x[0], attr: tog({ phase: x[0] === 'all' ? null : x[0] }) }))) + '</div>' +
       '<div class="scope">' + (who === 'player' ? 'Player records' : 'Team records') + ' · ' + (team === 'all' ? 'All teams' : esc(D.teams[team].name)) + ' · ' + (season === 'all' ? 'All seasons' : esc(D.seasonName(season))) + ' · ' + G.length + ' games</div></section>';
     h += '<div class="wrap">' + (recs.length ? '' : '<div class="empty">No games match these filters yet.</div>') + recs.map((r) => {
       const t = r.items[0];
-      return '<div class="rec"><a class="top" href="' + esc(t.link) + '"><span class="trophy">' + ICON.trophy + '</span><span style="flex:1;display:flex;flex-direction:column;gap:2px;min-width:0"><span class="note small" style="font-weight:700;letter-spacing:.08em">' + esc(r.title.toUpperCase()) + '</span>' +
+      const face = (x, cls) => (x.pid ? avatar(x.pid, cls, team === 'all' ? x.tid : team) : x.team ? '<span class="av ' + cls + '" style="background:' + D.teams[x.team].color + ';color:#fff">' + esc(D.teams[x.team].short) + (D.teams[x.team].logo ? '<img src="' + esc(D.teams[x.team].logo) + '" alt="" style="object-fit:contain;background:#fff;padding:3px" onerror="this.remove()">' : '') + '</span>' : '<span class="trophy">' + ICON.trophy + '</span>');
+      const medal = (rank, x, cls) => '<span class="medal-wrap">' + face(x, cls) + '<span class="medal m' + rank + '" aria-label="' + ['', 'First', 'Second', 'Third'][rank] + '">' + rank + '</span></span>';
+      return '<div class="rec"><a class="top" href="' + esc(t.link) + '">' + medal(1, t, 's56') + '<span style="flex:1;display:flex;flex-direction:column;gap:2px;min-width:0"><span class="note small" style="font-weight:700;letter-spacing:.08em">' + esc(r.title.toUpperCase()) + '</span>' +
         '<b style="font-size:16px">' + esc(t.name) + '</b><span class="note small">' + esc(t.sub) + '</span></span><span class="val">' + esc(t.val) + '</span></a>' +
-        r.items.slice(1).map((x, i) => '<a class="lrow" href="' + esc(x.link) + '"><span style="width:44px;text-align:center" class="rank">' + (i + 2) + '</span><span class="grow" style="gap:0"><span style="font-size:14px;font-weight:600">' + esc(x.name) + '</span><span class="note small" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(x.sub) + '</span></span><span class="big" style="font-size:22px">' + esc(x.val) + '</span></a>').join('') + '</div>';
+        r.items.slice(1).map((x, i) => '<a class="lrow" href="' + esc(x.link) + '"><span style="width:56px;display:flex;justify-content:center">' + medal(i + 2, x, 's36') + '</span><span class="grow" style="gap:0"><span style="font-size:14px;font-weight:600">' + esc(x.name) + '</span><span class="note small" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(x.sub) + '</span></span><span class="big" style="font-size:22px">' + esc(x.val) + '</span></a>').join('') + '</div>';
     }).join('');
     h += '<div class="note small" style="padding:4px">' + (who === 'player' && scope !== 'game' ? 'All Teams combines a player’s games across every team. Pick a team to see records with that team only.' : who === 'team' && scope === 'game' ? 'Team stat records leave out Chuckers, where only some players are tracked.' : 'Tap a record to open the game or page behind it.') + '</div></div>';
     return shell(team, h, 'records', team);
@@ -840,7 +858,7 @@
           const top = g.lines.slice().sort((a, b) => b.pts - a.pts)[0];
           return '<a class="lrow" style="min-height:68px" href="' + href(['game', g.t, g.id], {}) + '"><span class="daybox"><b>' + g.date.getDate() + '</b><span>' + WD[g.date.getDay()] + '</span></span>' +
             '<span class="grow" style="gap:3px"><span style="display:flex;align-items:center;gap:6px;min-width:0"><span class="tag" style="background:' + D.teams[g.t].color + '">' + D.teams[g.t].short + '</span><span style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(vsName(g)) + '</span>' +
-            (g.po ? '<span style="font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--acc)">PLAYOFF</span>' : '') + '</span><span class="note small">' + (top ? 'Top: ' + esc(D.players[top.p].name) + ' · ' + top.pts + ' pts' : '') + '</span></span>' +
+            roundTag(g) + '</span><span class="note small">' + (top ? 'Top: ' + esc(D.players[top.p].name) + ' · ' + top.pts + ' pts' : '') + '</span></span>' +
             '<span style="display:flex;align-items:center;gap:8px"><span class="big" style="font-size:22px;white-space:nowrap">' + g.us + '–' + g.them + '</span><span class="wl ' + wlClass(g) + '" style="width:26px;height:26px">' + (g.win ? 'W' : 'L') + '</span></span></a>';
         }).join('') + '</div>';
     }).join('') || '<div class="empty">No games match these filters.</div>';
@@ -861,7 +879,7 @@
       return b ? '<a class="lrow nob" style="min-height:52px" href="' + href(['player', b.p], { team: g.t }) + '">' + avatar(b.p, 's40', g.t) + '<span class="grow"><b style="font-size:14px">' + esc(D.players[b.p].name) + '</b><span class="note small">' + b.pts + ' pts · ' + b.reb + ' reb · ' + b.ast + ' ast · ' + b.fgm + '/' + b.fga + ' FG</span></span>' +
         '<span style="display:flex;flex-direction:column;align-items:flex-end"><span class="big" style="font-size:28px;line-height:1">' + lineVal(key, b) + '</span><span class="note small" style="font-weight:700">' + lbl + '</span></span></a>' : '';
     };
-    let h = '<header class="hero" style="gap:18px"><div class="hero-top"><a class="hbtn" href="' + href(['games'], { team: g.t, season: g.s }) + '">' + ICON.back + 'All games</a><span class="kicker">' + (g.po ? 'PLAYOFF · ' : '') + esc(D.seasonName(g.s).toUpperCase()) + '</span></div>' +
+    let h = '<header class="hero" style="gap:18px"><div class="hero-top"><a class="hbtn" href="' + href(['games'], { team: g.t, season: g.s }) + '">' + ICON.back + 'All games</a><span class="kicker">' + (g.po ? esc(g.roundName.toUpperCase()) + ' · ' : '') + esc(D.seasonName(g.s).toUpperCase()) + '</span></div>' +
       '<div class="board"><div>' + logoSq(g.t, 'border:2px solid rgba(255,255,255,.6)') + '<a href="' + href(['team', g.t], { season: g.s }) + '" style="color:#fff;text-decoration:none">' + esc(T.name) + '</a></div>' +
       '<div><div class="score">' + g.us + '<i>–</i>' + g.them + '</div><span class="resbadge" style="background:var(--' + (g.win ? 'win' : 'loss') + '-bg)">' + (g.win ? 'WIN' : 'LOSS') + '</span></div>' +
       '<div><span class="sq" style="background:rgba(0,0,0,.25);color:#fff">' + esc(initials(g.o)) + '</span>' + esc(g.o) + '</div></div>' +
@@ -869,11 +887,11 @@
     h += '<div class="wrap" style="padding-top:16px"><div class="grid2"><a class="pbtn' + (prev ? '' : ' off') + '" href="' + (prev ? href(['game', g.t, prev.id], {}) : '#') + '">' + (prev ? 'Previous · ' + esc(prev.o) : 'No earlier game') + '</a>' +
       '<a class="pbtn' + (next ? '' : ' off') + '" href="' + (next ? href(['game', g.t, next.id], {}) : '#') + '">' + (next ? 'Next · ' + esc(next.o) : 'No later game') + '</a></div>';
     h += '<div class="card" style="gap:6px"><h2 style="font-size:18px;margin-bottom:6px">Game Leaders</h2>' + lead('pts', 'PTS') + lead('reb', 'REB') + lead('ast', 'AST') + '</div>';
-    const cols = '140px repeat(9, 38px) repeat(3, 50px) 46px';
+    const cols = '170px repeat(9, 38px) repeat(3, 50px) 46px';
     const cells = (x) => [x.pts, x.reb, x.oreb, x.dreb, x.ast, x.stl, x.blk, x.to, x.pf, x.fgm + '-' + x.fga, x.tpm + '-' + x.tpa, x.ftm + '-' + x.fta, x.fga ? Math.round((x.fgm / x.fga) * 100) : '–'].map((v, k) => (k === 0 ? '<b>' + v + '</b>' : '<span>' + v + '</span>')).join('');
     h += '<div class="card flush" style="gap:10px"><div class="px"><h2 style="font-size:18px">Box Score</h2><div class="note small">Swipe sideways for every column · tap a player for their page</div></div><div class="xscroll"><div>' +
       '<div class="trow th" style="grid-template-columns:' + cols + '"><span class="stick">PLAYER</span><span>PTS</span><span>REB</span><span>OR</span><span>DR</span><span>AST</span><span>STL</span><span>BLK</span><span>TO</span><span>PF</span><span>FG</span><span>3P</span><span>FT</span><span>FG%</span></div>' +
-      g.lines.slice().sort((a, b) => b.pts - a.pts).map((l) => '<a class="trow" style="grid-template-columns:' + cols + '" href="' + href(['player', l.p], { team: g.t }) + '"><span class="stick"><span><span class="t1" style="font-size:13px;max-width:116px">' + esc(D.players[l.p].name) + '</span><span class="t2" style="font-size:11px">#' + esc(l.n) + (D.players[l.p].position ? ' · ' + esc(D.players[l.p].position) : '') + '</span></span></span>' + cells(l) + '</a>').join('') +
+      g.lines.slice().sort((a, b) => b.pts - a.pts).map((l) => '<a class="trow" style="grid-template-columns:' + cols + '" href="' + href(['player', l.p], { team: g.t }) + '"><span class="stick">' + avatar(l.p, 's28', g.t) + '<span><span class="t1" style="font-size:13px;max-width:100px">' + esc(D.players[l.p].name) + '</span><span class="t2" style="font-size:11px">#' + esc(l.n) + '</span></span></span>' + cells(l) + '</a>').join('') +
       '<div class="trow strong" style="grid-template-columns:' + cols + '"><span class="stick"><span><span class="t1" style="font-size:13px">' + (T.partialStats ? 'Tracked totals' : 'Team totals') + '</span><span class="t2" style="font-size:11px">' + g.lines.length + ' players</span></span></span>' + cells(S) + '</div>' +
       '</div></div>' + (g.dnp.length ? '<div class="note small px">Did not play: ' + g.dnp.map((d) => esc((D.players[d.p] || { name: d.p }).name) + ' (#' + esc(d.n) + ')').join(', ') + '</div>' : '') + '</div>';
     h += '<div class="card"><h2 style="font-size:18px">Team Shooting</h2>' + shotBar('Field goals', S.fgm, S.fga, S.fgm + '/' + S.fga) + shotBar('3 pointers', S.tpm, S.tpa, S.tpm + '/' + S.tpa) + shotBar('Free throws', S.ftm, S.fta, S.ftm + '/' + S.fta) +
@@ -893,11 +911,19 @@
     const view = VIEWS[R.path[0] || 'home'] || notFound;
     const samePage = lastPath === R.path.join('/');
     const y = window.scrollY;
+    const xs = samePage ? Array.prototype.map.call(document.querySelectorAll('.scroller, .xscroll'), (el) => el.scrollLeft) : [];
     $app.innerHTML = view();
+    document.querySelectorAll('.scroller, .xscroll').forEach((el, i) => {
+      if (xs[i] != null) el.scrollLeft = xs[i];
+      const on = el.querySelector('.on');
+      if (on && (on.offsetLeft < el.scrollLeft || on.offsetLeft + on.offsetWidth > el.scrollLeft + el.clientWidth)) {
+        el.scrollLeft = Math.max(0, on.offsetLeft - 16);
+      }
+    });
     lastPath = R.path.join('/');
     if (samePage) window.scrollTo(0, y); else window.scrollTo(0, 0);
     const p = R.path[0];
-    document.title = (p === 'player' && D.players[R.path[1]] ? D.players[R.path[1]].name + ' · ' : p === 'team' && D.teams[R.path[1]] ? D.teams[R.path[1]].name + ' · ' : p ? p.charAt(0).toUpperCase() + p.slice(1) + ' · ' : '') + 'MyStatPro';
+    document.title = (p === 'player' && D.players[R.path[1]] ? D.players[R.path[1]].name + ' · ' : p === 'team' && D.teams[R.path[1]] ? D.teams[R.path[1]].name + ' · ' : p ? p.charAt(0).toUpperCase() + p.slice(1) + ' · ' : '') + 'MyStatsPro';
   }
 
   document.addEventListener('click', (e) => {

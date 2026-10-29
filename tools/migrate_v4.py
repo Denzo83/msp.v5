@@ -108,7 +108,7 @@ def main():
     for n in sorted(names):
         if is_full(n):
             pid = slug(n)
-            players[pid] = {'name': n, 'short': short_form(n), 'aliases': [], 'position': '', 'images': {}}
+            players[pid] = {'name': n, 'short': short_form(n), 'aliases': [], 'images': {}}
             alias_of[n] = pid
     for n in sorted(names):
         if n in alias_of:
@@ -126,16 +126,14 @@ def main():
                 players[match[0]]['aliases'].append(n)
         else:
             pid = slug(n)
-            players[pid] = {'name': n, 'short': n, 'aliases': [], 'position': '', 'images': {}}
+            players[pid] = {'name': n, 'short': n, 'aliases': [], 'images': {}}
             alias_of[n] = pid
 
-    # positions and photos (photo files are copied into assets/players)
+    # photos (photo files are copied into assets/players)
     (ROOT / 'assets' / 'players').mkdir(parents=True, exist_ok=True)
     (ROOT / 'assets' / 'teams').mkdir(parents=True, exist_ok=True)
     for n, info in names.items():
         p = players[alias_of[n]]
-        if info['positions'] and not p['position']:
-            p['position'] = sorted(info['positions'])[0]
         for tid, img in info['images'].items():
             src = v4 / img
             if not src.exists() or 'placeholder' in src.name:
@@ -194,7 +192,7 @@ def main():
                     pid, how = alias_of[roster[num]['name']], 'roster'
                 else:
                     pid, how = f'unknown-{tid}-{num}', 'unknown'
-                    players.setdefault(pid, {'name': f'Unknown #{num}', 'short': f'#{num}', 'aliases': [], 'position': '', 'images': {}})
+                    players.setdefault(pid, {'name': f'Unknown #{num}', 'short': f'#{num}', 'aliases': [], 'images': {}})
                 counts[how] += 1
                 if how in ('roster', 'unknown'):
                     report[(tid, skey, num)].append((g['date'], gid, pid, line['pts']))

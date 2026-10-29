@@ -85,7 +85,7 @@ def main():
         pid = slug(display)
         if pid in players:
             sys.exit(f'A player with id "{pid}" already exists ({players[pid]["name"]}). Use --link instead.')
-        players[pid] = {'name': display, 'short': short_form(display), 'aliases': [], 'position': '', 'images': {}}
+        players[pid] = {'name': display, 'short': short_form(display), 'aliases': [], 'images': {}}
         if norm(export_name) != norm(display) and norm(export_name) != norm(short_form(display)):
             players[pid]['aliases'].append(export_name)
         print(f'New player: {display} ({pid})')

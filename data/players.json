@@ -3,14 +3,12 @@
     "name": "Callan Beamish",
     "short": "C. Beamish",
     "aliases": [],
-    "position": "C",
     "images": {}
   },
   "dan": {
     "name": "Dan",
     "short": "Dan",
     "aliases": [],
-    "position": "",
     "images": {
       "default": "assets/players/dan.png"
     }
@@ -19,7 +17,6 @@
     "name": "E. Swift",
     "short": "E. Swift",
     "aliases": [],
-    "position": "",
     "images": {
       "default": "assets/players/e-swift.png"
     }
@@ -28,14 +25,12 @@
     "name": "Ethan Todd",
     "short": "E. Todd",
     "aliases": [],
-    "position": "G",
     "images": {}
   },
   "findlay-wendtman": {
     "name": "Findlay Wendtman",
     "short": "F. Wendtman",
     "aliases": [],
-    "position": "G",
     "images": {
       "default": "assets/players/findlay-wendtman.png",
       "chuckers-chuckers": "assets/players/findlay-wendtman-chuckers.png"
@@ -45,7 +40,6 @@
     "name": "J. Summers",
     "short": "J. Summers",
     "aliases": [],
-    "position": "",
     "images": {
       "default": "assets/players/j-summers.png"
     }
@@ -54,21 +48,18 @@
     "name": "Jackson Neaves",
     "short": "J. Neaves",
     "aliases": [],
-    "position": "C",
     "images": {}
   },
   "jarren-owen": {
     "name": "Jarren Owen",
     "short": "J. Owen",
     "aliases": [],
-    "position": "G",
     "images": {}
   },
   "josh-todd": {
     "name": "Josh Todd",
     "short": "J. Todd",
     "aliases": [],
-    "position": "F",
     "images": {
       "default": "assets/players/josh-todd.png"
     }
@@ -77,7 +68,6 @@
     "name": "Kyle Denzin",
     "short": "K. Denzin",
     "aliases": [],
-    "position": "G/F",
     "images": {
       "default": "assets/players/kyle-denzin.png",
       "all-stars": "assets/players/k-denzin.png"
@@ -87,7 +77,6 @@
     "name": "Lance",
     "short": "Lance",
     "aliases": [],
-    "position": "",
     "images": {
       "default": "assets/players/lance.png"
     }
@@ -96,7 +85,6 @@
     "name": "Levi Denzin",
     "short": "L. Denzin",
     "aliases": [],
-    "position": "F",
     "images": {
       "default": "assets/players/levi-denzin.png",
       "all-stars": "assets/players/levi-allstars.png"
@@ -106,7 +94,6 @@
     "name": "O. Diamante",
     "short": "O. Diamante",
     "aliases": [],
-    "position": "",
     "images": {
       "default": "assets/players/o-diamante.png"
     }
@@ -115,7 +102,6 @@
     "name": "P. Budden",
     "short": "P. Budden",
     "aliases": [],
-    "position": "",
     "images": {
       "default": "assets/players/p-budden.png"
     }
@@ -124,14 +110,12 @@
     "name": "Rhys Ogle",
     "short": "R. Ogle",
     "aliases": [],
-    "position": "F",
     "images": {}
   },
   "t-ajayi": {
     "name": "T. Ajayi",
     "short": "T. Ajayi",
     "aliases": [],
-    "position": "",
     "images": {
       "default": "assets/players/t-ajayi.png"
     }
@@ -140,7 +124,6 @@
     "name": "T. Johnson",
     "short": "T. Johnson",
     "aliases": [],
-    "position": "",
     "images": {
       "default": "assets/players/t-johnson.png"
     }
@@ -149,7 +132,6 @@
     "name": "T. Noonan",
     "short": "T. Noonan",
     "aliases": [],
-    "position": "",
     "images": {
       "default": "assets/players/player-a.jpeg"
     }
@@ -158,7 +140,6 @@
     "name": "Tim Pendlebury",
     "short": "T. Pendlebury",
     "aliases": [],
-    "position": "G/F",
     "images": {
       "default": "assets/players/t-pendlebury.png"
     }
@@ -167,7 +148,6 @@
     "name": "Tunde",
     "short": "Tunde",
     "aliases": [],
-    "position": "",
     "images": {}
   }
 }

@@ -211,3 +211,15 @@ img { display: block; }
   .tiles.wide { grid-template-columns: repeat(6, minmax(0, 1fr)); }
   .pgrid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
 }
+
+/* finals tags */
+.tag.final { background: var(--chip); color: var(--text); border: 1px solid var(--line); letter-spacing: .04em; }
+.tag.final.gf { background: #B8860B; border-color: #B8860B; color: #fff; }
+
+/* record medals */
+.av.s56 { width: 56px; height: 56px; font-size: 18px; }
+.medal-wrap { position: relative; display: inline-flex; flex-shrink: 0; }
+.medal { position: absolute; right: -4px; bottom: -4px; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: #1a1300; border: 2px solid var(--card); }
+.medal.m1 { background: linear-gradient(145deg, #FFE27A, #D4A017); }
+.medal.m2 { background: linear-gradient(145deg, #F1F3F6, #A8B0BC); width: 18px; height: 18px; font-size: 10px; }
+.medal.m3 { background: linear-gradient(145deg, #F0C39A, #B87333); width: 18px; height: 18px; font-size: 10px; }

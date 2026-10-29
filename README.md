@@ -19,7 +19,7 @@ git add -A && git commit -m "Add Swish cheese game" && git push
 ```
 
 - The team is worked out from the export, so the same command works for every team.
-- Add `--playoff` for playoff games.
+- Add `--playoff` for finals games. The site labels a season's first finals game as the Semi Final and the second as the Grand Final.
 - Use `--opp-score` because EasyStats usually exports the opponent's score as 0. If you leave it off, it will ask.
 - **Chuckers:** only some players are tracked, so the export's total isn't the real score. Add `--team-score 40`, or it will ask.
 - Leave off `--season` to use the team's latest season.
@@ -36,7 +36,7 @@ If an export has a name the site hasn't seen, nothing is saved. It tells you whi
 --link "T. Smith=tom-smith"       # an existing player, written differently
 ```
 
-Player ids, names, positions and photos are all in `data/players.json`, which you can edit by hand. After any hand edit, run `python tools/build.py`.
+Player ids, names and photos are all in `data/players.json`, which you can edit by hand. After any hand edit, run `python tools/build.py`.
 
 ## Files
 
@@ -44,7 +44,7 @@ Player ids, names, positions and photos are all in `data/players.json`, which yo
 |------|------------|
 | `index.html`, `assets/` | The site. `assets/players/` holds the photos and `assets/teams/` the logos. |
 | `data/games/<team>/<game>.json` | One file per game. This is the source of truth. |
-| `data/players.json` | Every player: name, short name, other spellings, position and photo. |
+| `data/players.json` | Every player: name, short name, other spellings and photo. |
 | `data/teams.json` | Team names, colours, logos and the spellings used in exports. |
 | `data/opponents.json` | Extra opponent spellings to merge, like "Kone wankenobi" into "Kobe wan kenobi". |
 | `data/bundle.json` | Built from everything above by `tools/build.py`. Don't edit it. |
