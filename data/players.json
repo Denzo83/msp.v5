@@ -4,7 +4,7 @@
     "short": "C. Beamish",
     "aliases": [],
     "images": {
-      "default": "assets/players/placeholder3.png"
+      "default": "assets/players/callan-beamish.jpg"
     }
   },
   "dan": {
@@ -12,7 +12,7 @@
     "short": "Dan",
     "aliases": [],
     "images": {
-      "default": "assets/players/dan.png"
+      "default": "assets/players/dan.jpg"
     }
   },
   "elliot-swift": {
@@ -20,7 +20,7 @@
     "short": "E. Swift",
     "aliases": [],
     "images": {
-      "default": "assets/players/e-swift.png"
+      "default": "assets/players/elliot-swift.jpg"
     }
   },
   "ethan-todd": {
@@ -28,7 +28,7 @@
     "short": "E. Todd",
     "aliases": [],
     "images": {
-      "default": "assets/players/placeholder6.png"
+      "default": "assets/players/ethan-todd.jpg"
     }
   },
   "findlay-wendtman": {
@@ -36,8 +36,8 @@
     "short": "F. Wendtman",
     "aliases": [],
     "images": {
-      "default": "assets/players/findlay-wendtman-pretty-good.png",
-      "chuckers-chuckers": "assets/players/findlay-wendtman-chuckers.png"
+      "chuckers-chuckers": "assets/players/findlay-wendtman--chuckers-chuckers.jpg",
+      "default": "assets/players/findlay-wendtman.jpg"
     }
   },
   "jackson-neaves": {
@@ -45,8 +45,8 @@
     "short": "J. Neaves",
     "aliases": [],
     "images": {
-      "default": "assets/players/placeholder4.png",
-      "chuckers-chuckers": "assets/players/placeholder4-chuckers.png"
+      "chuckers-chuckers": "assets/players/jackson-neaves--chuckers-chuckers.jpg",
+      "default": "assets/players/jackson-neaves.jpg"
     }
   },
   "jarren-owen": {
@@ -54,7 +54,7 @@
     "short": "J. Owen",
     "aliases": [],
     "images": {
-      "default": "assets/players/placeholder5.png"
+      "default": "assets/players/jarren-owen.jpg"
     }
   },
   "joey-summers": {
@@ -62,7 +62,7 @@
     "short": "J. Summers",
     "aliases": [],
     "images": {
-      "default": "assets/players/j-summers.png"
+      "default": "assets/players/joey-summers.jpg"
     }
   },
   "josh-todd": {
@@ -70,7 +70,7 @@
     "short": "J. Todd",
     "aliases": [],
     "images": {
-      "default": "assets/players/josh-todd.png"
+      "default": "assets/players/josh-todd.jpg"
     }
   },
   "kyle-denzin": {
@@ -78,10 +78,9 @@
     "short": "K. Denzin",
     "aliases": [],
     "images": {
-      "default": "assets/players/kyle-denzin-pretty-good.jpg",
-      "all-stars": "assets/players/kyle-denzin-all-stars.jpg",
-      "chuckers-chuckers": "assets/players/kyle-denzin-chuckers-chuckers.jpg",
-      "pretty-good": "assets/players/kyle-denzin-pretty-good.jpg"
+      "all-stars": "assets/players/kyle-denzin--all-stars.jpg",
+      "chuckers-chuckers": "assets/players/kyle-denzin--chuckers-chuckers.jpg",
+      "default": "assets/players/kyle-denzin.jpg"
     }
   },
   "lance": {
@@ -89,7 +88,7 @@
     "short": "Lance",
     "aliases": [],
     "images": {
-      "default": "assets/players/lance.png"
+      "default": "assets/players/lance.jpg"
     }
   },
   "levi-denzin": {
@@ -97,8 +96,8 @@
     "short": "L. Denzin",
     "aliases": [],
     "images": {
-      "default": "assets/players/levi-denzin.png",
-      "all-stars": "assets/players/levi-allstars.png"
+      "all-stars": "assets/players/levi-denzin--all-stars.jpg",
+      "default": "assets/players/levi-denzin.jpg"
     }
   },
   "oscar-diamante": {
@@ -106,7 +105,7 @@
     "short": "O. Diamante",
     "aliases": [],
     "images": {
-      "default": "assets/players/o-diamante.png"
+      "default": "assets/players/oscar-diamante.jpg"
     }
   },
   "perry-budden": {
@@ -114,7 +113,7 @@
     "short": "P. Budden",
     "aliases": [],
     "images": {
-      "default": "assets/players/p-budden.png"
+      "default": "assets/players/perry-budden.jpg"
     }
   },
   "rhys-ogle": {
@@ -122,7 +121,7 @@
     "short": "R. Ogle",
     "aliases": [],
     "images": {
-      "default": "assets/players/placeholder7.png"
+      "default": "assets/players/rhys-ogle.jpg"
     }
   },
   "tim-pendlebury": {
@@ -130,7 +129,7 @@
     "short": "T. Pendlebury",
     "aliases": [],
     "images": {
-      "default": "assets/players/t-pendlebury.png"
+      "default": "assets/players/tim-pendlebury.jpg"
     }
   },
   "tom-johnson": {
@@ -138,7 +137,7 @@
     "short": "T. Johnson",
     "aliases": [],
     "images": {
-      "default": "assets/players/t-johnson.png"
+      "default": "assets/players/tom-johnson.jpg"
     }
   },
   "tom-noonan": {
@@ -146,7 +145,7 @@
     "short": "T. Noonan",
     "aliases": [],
     "images": {
-      "default": "assets/players/player-a.jpeg"
+      "default": "assets/players/tom-noonan.jpg"
     }
   },
   "tunde-ajayi": {
@@ -156,8 +155,8 @@
       "Tunde"
     ],
     "images": {
-      "default": "assets/players/t-ajayi.png",
-      "pretty-good": "assets/players/tunde-ajayi-pretty-good.jpg"
+      "pretty-good": "assets/players/tunde-ajayi--pretty-good.jpg",
+      "default": "assets/players/tunde-ajayi.jpg"
     }
   }
 }

@@ -252,3 +252,17 @@ img { display: block; }
 
 /* keep the team dot visible on a selected chip */
 .chip.on .dot { box-shadow: 0 0 0 2px #fff; }
+
+/* portrait photo cards everywhere (5:6), matching the box score */
+.av { border-radius: 8px; }
+.av.s24 { width: 24px; height: 29px; border-radius: 5px; }
+.av.s28 { width: 28px; height: 34px; border-radius: 6px; }
+.av.s30 { width: 30px; height: 36px; border-radius: 6px; }
+.av.s36 { width: 36px; height: 43px; }
+.av.s40 { width: 40px; height: 48px; }
+.av.s44, .av.sq44 { width: 44px; height: 53px; }
+.av.s56 { width: 56px; height: 67px; border-radius: 10px; }
+.av.s76 { width: 76px; height: 91px; border-radius: 12px; }
+.av.big { width: 100px; height: 120px; border-radius: 16px; }
+.av.logo { border-radius: 22px; width: 84px; height: 84px; }
+.av img { object-fit: cover; object-position: center top; }

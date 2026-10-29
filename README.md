@@ -53,13 +53,12 @@ Player ids, names and photos are all in `data/players.json`, which you can edit 
 
 ## Player photos
 
-Put the image in `assets/players/`, then set it in `data/players.json`:
+1. Put the original image in `assets/players/originals/`, named after the player id:
+   - `kyle-denzin.jpg` for the main photo
+   - `kyle-denzin--all-stars.jpg` for a different photo on one team
+2. Run `python tools/photos.py`. This needs `pip install pillow numpy` once.
 
-```json
-"kyle-denzin": { "images": { "default": "assets/players/kyle-denzin.png", "all-stars": "assets/players/k-denzin.png" } }
-```
-
-A team key, like `all-stars` above, sets a different photo for that team's pages. If a player has no photo, their initials show instead.
+The script frames every photo the same way. It finds the top of the hair and the width of the head, then crops so they land in the same place on every card. That way a player's photo doesn't jump around when you switch teams, and nobody's hair gets cut off. It then updates `data/players.json` and rebuilds the site data. A player without a photo shows their initials.
 
 ## The v4 migration
 
