@@ -73,6 +73,18 @@ To fix a wrong line, add it to `data/overrides.json`:
 
 Then re-run `python tools/migrate_v4.py ../mystats.pro-v4 exports`. Or simply put the original export into `exports/<team>/` and re-run it. The script refuses to run once newer games have been added, so it can't wipe them by accident.
 
+## MyStat Tracker (tracker/)
+
+`tracker/` is a separate phone app for entering stats while you watch a game replay, instead of EasyStats. It shares no code with the site, so it can move to its own repo later.
+
+- Open `https://denzo83.github.io/msp.v5/tracker/` on the phone and use **Add to Home Screen**. It then opens full-screen and works offline.
+- Every tap saves on the phone straight away. Games stay there until you delete them.
+- On first load it reads player names from `data/bundle.json`, so names match the site. Players added during a game are marked as new.
+- **Track every player** off (the default for Chuckers) tracks only the ticked players; everyone else scores on the Rest of team buttons so the score stays right.
+- Each game exports as one `.mstat.json` file: the game details, the roster and a list of every event (shot with court x/y and zone, shot type, assist, fast break, second chance, points off turnover, and-1, rebounds, steals, blocks, turnovers, fouls, subs, opponent scores, quarter ends, clock times). It also carries a box score summary for checking.
+- Adding a `.mstat.json` to the site with `add_game.py` is the next step and isn't built yet. Keep the exported files until it is.
+- After changing tracker files, bump `VERSION` in `tracker/sw.js` so phones pick up the new copy.
+
 ## Hosting on GitHub Pages
 
 Push this folder to a new repo, then go to **Settings → Pages → Deploy from a branch → `main` / root**. The site appears at `https://<username>.github.io/<repo>/`.
