@@ -10,7 +10,7 @@ Every game below had no export left, so the player was taken from the v4 roster 
 
 then run the migration again.
 
-## All Stars · 2026-spring · #15 → T. Ajayi (2 games)
+## All Stars · 2026-spring · #15 → Tunde Ajayi (2 games)
 - 2026-09-21 `2026-09-21-castle-rollers` (9 pts)
 - 2026-10-19 `2026-10-19-revo-rim-shots` (14 pts)
 
@@ -18,15 +18,15 @@ then run the migration again.
 - 2026-09-21 `2026-09-21-castle-rollers` (18 pts)
 - 2026-10-19 `2026-10-19-revo-rim-shots` (7 pts)
 
-## All Stars · 2026-spring · #43 → O. Diamante (2 games)
+## All Stars · 2026-spring · #43 → Oscar Diamante (2 games)
 - 2026-09-21 `2026-09-21-castle-rollers` (14 pts)
 - 2026-10-19 `2026-10-19-revo-rim-shots` (11 pts)
 
-## All Stars · 2026-spring · #5 → J. Summers (2 games)
+## All Stars · 2026-spring · #5 → Joey Summers (2 games)
 - 2026-09-21 `2026-09-21-castle-rollers` (2 pts)
 - 2026-10-19 `2026-10-19-revo-rim-shots` (10 pts)
 
-## All Stars · 2026-spring · #95 → T. Johnson (2 games)
+## All Stars · 2026-spring · #95 → Tom Johnson (2 games)
 - 2026-09-21 `2026-09-21-castle-rollers` (4 pts)
 - 2026-10-19 `2026-10-19-revo-rim-shots` (12 pts)
 
@@ -53,7 +53,7 @@ then run the migration again.
 - 2026-08-13 `2026-08-13-noideer` (8 pts)
 - 2026-08-20 `2026-08-20-btk` (9 pts)
 
-## Pretty Good · 2026-spring · #00 → E. Swift (3 games)
+## Pretty Good · 2026-spring · #00 → Elliot Swift (3 games)
 - 2026-09-22 `2026-09-22-taco-tuesdays` (18 pts)
 - 2026-09-29 `2026-09-29-rice` (12 pts)
 - 2026-10-06 `2026-10-06-swish-cheese` (16 pts)
@@ -182,7 +182,7 @@ then run the migration again.
 - 2026-03-31 `2026-03-31-taco-tuesdays` (15 pts)
 - 2026-04-28 `2026-04-28-little-big-men` (15 pts)
 
-## Pretty Good · 2026-summer · #9 → P. Budden (5 games)
+## Pretty Good · 2026-summer · #9 → Perry Budden (5 games)
 - 2026-03-11 `2026-03-11-rice` (6 pts)
 - 2026-03-24 `2026-03-24-wins-n-tins` (2 pts)
 - 2026-03-31 `2026-03-31-taco-tuesdays` (0 pts)
@@ -250,7 +250,7 @@ then run the migration again.
 - 2026-08-04 `2026-08-04-taco-tuesdays` (0 pts)
 - 2026-08-18 `2026-08-18-rippit-good` (3 pts)
 
-## Pretty Good · 2026-winter · #3 → Tunde (1 games)
+## Pretty Good · 2026-winter · #3 → Tunde Ajayi (1 games)
 - 2026-05-26 `2026-05-26-taco-tuesdays` (5 pts)
 
 ## Pretty Good · 2026-winter · #37 → Kyle Denzin (14 games)
@@ -299,5 +299,5 @@ then run the migration again.
 - 2026-08-18 `2026-08-18-rippit-good` (33 pts)
 - 2026-08-25 `2026-08-25-rice` (16 pts)
 
-## Pretty Good · 2026-winter · #9 → P. Budden (1 games)
+## Pretty Good · 2026-winter · #9 → Perry Budden (1 games)
 - 2026-05-26 `2026-05-26-taco-tuesdays` (2 pts)

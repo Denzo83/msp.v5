@@ -11,7 +11,7 @@
   "source": "export",
   "lines": [
     {
-      "p": "t-ajayi",
+      "p": "tunde-ajayi",
       "n": "15",
       "fgm": 10,
       "fga": 19,
@@ -29,7 +29,7 @@
       "pts": 22
     },
     {
-      "p": "t-johnson",
+      "p": "tom-johnson",
       "n": "95",
       "fgm": 5,
       "fga": 12,
@@ -65,7 +65,7 @@
       "pts": 12
     },
     {
-      "p": "o-diamante",
+      "p": "oscar-diamante",
       "n": "43",
       "fgm": 4,
       "fga": 15,
@@ -83,7 +83,7 @@
       "pts": 8
     },
     {
-      "p": "j-summers",
+      "p": "joey-summers",
       "n": "5",
       "fgm": 2,
       "fga": 4,
@@ -103,7 +103,7 @@
   ],
   "dnp": [
     {
-      "p": "t-noonan",
+      "p": "tom-noonan",
       "n": "23"
     },
     {

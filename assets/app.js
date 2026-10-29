@@ -892,17 +892,20 @@
     h += '<div class="wrap" style="padding-top:16px"><div class="grid2"><a class="pbtn' + (prev ? '' : ' off') + '" href="' + (prev ? href(['game', g.t, prev.id], {}) : '#') + '">' + (prev ? 'Previous · ' + esc(prev.o) : 'No earlier game') + '</a>' +
       '<a class="pbtn' + (next ? '' : ' off') + '" href="' + (next ? href(['game', g.t, next.id], {}) : '#') + '">' + (next ? 'Next · ' + esc(next.o) : 'No later game') + '</a></div>';
     h += '<div class="card" style="gap:6px"><h2 style="font-size:18px;margin-bottom:6px">Game Leaders</h2>' + lead('pts', 'PTS') + lead('reb', 'REB') + lead('ast', 'AST') + '</div>';
-    const cols = '170px repeat(9, 38px) repeat(3, 50px) 46px';
-    const cells = (x) => [x.pts, x.reb, x.oreb, x.dreb, x.ast, x.stl, x.blk, x.to, x.pf, x.fgm + '-' + x.fga, x.tpm + '-' + x.tpa, x.ftm + '-' + x.fta, x.fga ? Math.round((x.fgm / x.fga) * 100) : '–'].map((v, k) => (k === 0 ? '<b>' + v + '</b>' : '<span>' + v + '</span>')).join('');
-    h += '<div class="card flush" style="gap:10px"><div class="px"><h2 style="font-size:18px">Box Score</h2><div class="note small">Swipe sideways for every column · tap a player for their page</div></div><div class="xscroll"><div>' +
-      '<div class="trow th" style="grid-template-columns:' + cols + '"><span class="stick">PLAYER</span><span>PTS</span><span>REB</span><span>OR</span><span>DR</span><span>AST</span><span>STL</span><span>BLK</span><span>TO</span><span>PF</span><span>FG</span><span>3P</span><span>FT</span><span>FG%</span></div>' +
-      g.lines.slice().sort((a, b) => b.pts - a.pts).map((l) => '<a class="trow" style="grid-template-columns:' + cols + '" href="' + href(['player', l.p], { team: g.t }) + '"><span class="stick">' + avatar(l.p, 's28', g.t) + '<span><span class="t1" style="font-size:13px;max-width:100px">' + esc(D.players[l.p].name) + '</span><span class="t2" style="font-size:11px">#' + esc(l.n) + '</span></span></span>' + cells(l) + '</a>').join('') +
-      '<div class="trow strong" style="grid-template-columns:' + cols + '"><span class="stick"><span><span class="t1" style="font-size:13px">' + (T.partialStats ? 'Tracked totals' : 'Team totals') + '</span><span class="t2" style="font-size:11px">' + g.lines.length + ' players</span></span></span>' + cells(S) + '</div>' +
-      '</div></div>' + (g.dnp.length ? '<div class="note small px">Did not play: ' + g.dnp.map((d) => esc((D.players[d.p] || { name: d.p }).name) + ' (#' + esc(d.n) + ')').join(', ') + '</div>' : '') + '</div>';
+    const A = 'minmax(44px, 1fr)', W = 'minmax(60px, 1.3fr)';
+    const cols = '200px ' + [A, A, A, A, A, A, W, A, W, A, W, A, A, A, A].join(' ');
+    const pc = (m, a) => (a ? Math.round((m / a) * 100) + '%' : '–');
+    const cells = (x) => '<b class="pts">' + x.pts + '</b>' + [x.reb, x.ast, x.stl, x.blk, x.to, x.fgm + '-' + x.fga, pc(x.fgm, x.fga), x.tpm + '-' + x.tpa, pc(x.tpm, x.tpa), x.ftm + '-' + x.fta, pc(x.ftm, x.fta), x.oreb, x.dreb, x.pf].map((v) => '<span>' + v + '</span>').join('');
+    h += '<div class="card flush box" style="gap:10px"><div class="px"><h2 style="font-size:18px">Box Score</h2><div class="note small">Swipe sideways for every column · tap a player for their page</div></div><div class="xscroll"><div>' +
+      '<div class="trow th" style="grid-template-columns:' + cols + '"><span class="stick">PLAYER</span>' + ['PTS', 'REB', 'AST', 'STL', 'BLK', 'TO', 'FG', 'FG%', '3PT', '3P%', 'FT', 'FT%', 'OREB', 'DREB', 'PF'].map((c) => '<span>' + c + '</span>').join('') + '</div>' +
+      g.lines.slice().sort((a, b) => b.pts - a.pts).map((l) => '<a class="trow" style="grid-template-columns:' + cols + '" href="' + href(['player', l.p], { team: g.t }) + '"><span class="stick">' + avatar(l.p, 'sq44', g.t) +
+        '<span><span class="t1" style="font-size:14px;white-space:normal;line-height:1.2">' + esc(D.players[l.p].name) + '</span><span class="t2" style="font-size:12px">#' + esc(l.n) + '</span></span></span>' + cells(l) + '</a>').join('') +
+      '<div class="trow strong total" style="grid-template-columns:' + cols + '"><span class="stick">' + (T.partialStats ? 'TRACKED TOTALS' : 'TEAM TOTALS') + '</span>' + cells(S) + '</div>' +
+      '</div></div></div>';
     h += '<div class="card"><h2 style="font-size:18px">Team Shooting</h2>' + shotBar('Field goals', S.fgm, S.fga, S.fgm + '/' + S.fga) + shotBar('3 pointers', S.tpm, S.tpa, S.tpm + '/' + S.tpa) + shotBar('Free throws', S.ftm, S.fta, S.ftm + '/' + S.fta) +
       '<div class="tiles">' + tile(S.reb, 'Reb') + tile(S.oreb + ' / ' + S.dreb, 'Off / Def') + tile(S.ast, 'Ast') + tile(S.stl, 'Stl') + tile(S.blk, 'Blk') + tile(S.to, 'TO') + '</div>' +
       '<div class="note small">' + (T.partialStats ? esc(T.partialNote) + ' ' : '') + 'Opponent stats aren’t tracked, only their final score.</div></div></div>';
-    return shell(g.t, h, 'games', g.t);
+    return shell(g.t, h, 'games', g.t).replace('<div class="app"', '<div class="app wide"');
   };
 
   function notFound() {

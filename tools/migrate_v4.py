@@ -24,7 +24,7 @@ from collections import defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import (DATA, GAMES_DIR, ROOT, load_json, norm, parse_export, save_json,
+from common import (DATA, GAMES_DIR, ROOT, Roster, load_json, norm, parse_export, save_json,
                     season_key, short_form, slug, stat_signature)
 
 TEAMS = load_json(DATA / 'teams.json')
@@ -104,8 +104,18 @@ def main():
         parts = n.split()
         return len(parts) >= 2 and not parts[0].endswith('.')
 
-    players, alias_of = {}, {}
+    # start from the current data/players.json so hand edits (full names, merges, photos) survive a re-run
+    existing = {k: v for k, v in load_json(DATA / 'players.json', {}).items() if not k.startswith('unknown-')}
+    players = {k: dict(v, images=dict(v.get('images', {})), aliases=list(v.get('aliases', []))) for k, v in existing.items()}
+    known = Roster(players)
+    alias_of = {}
     for n in sorted(names):
+        pid, _ = known.resolve(n)
+        if pid:
+            alias_of[n] = pid
+    for n in sorted(names):
+        if n in alias_of:
+            continue
         if is_full(n):
             pid = slug(n)
             players[pid] = {'name': n, 'short': short_form(n), 'aliases': [], 'images': {}}
@@ -136,15 +146,16 @@ def main():
         p = players[alias_of[n]]
         for tid, img in info['images'].items():
             src = v4 / img
-            if not src.exists() or 'placeholder' in src.name:
+            if not src.exists():
                 continue
             dest = ROOT / 'assets' / 'players' / src.name.lower()
             shutil.copyfile(src, dest)
             shrink(dest)
             rel = f'assets/players/{dest.name}'
-            p['images'].setdefault('default', rel)
-            if rel != p['images']['default']:
-                p['images'][tid] = rel
+            if not p['images'].get('default'):
+                p['images']['default'] = rel
+            elif rel != p['images']['default']:
+                p['images'].setdefault(tid, rel)
     for tid, t in TEAMS.items():
         src = v4 / 'Assets' / 'teams' / f'{tid}-logo.png'
         if src.exists():
