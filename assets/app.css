@@ -291,3 +291,14 @@ img { display: block; }
 .pm.up { color: var(--win); }
 .pm.dn { color: var(--loss); }
 .scorenote { align-self: center; max-width: 440px; text-align: center; font-size: 13px; font-weight: 600; line-height: 1.4; padding: 8px 14px; border-radius: 12px; background: rgba(0,0,0,.24); color: #fff; }
+
+/* championship rings in the player header */
+.rings { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-top: 2px; }
+.rings::-webkit-scrollbar { display: none; }
+.rings { gap: 10px; }
+.ring { flex-shrink: 0; width: 92px; display: flex; flex-direction: column; align-items: center; gap: 5px; text-decoration: none; color: #fff; }
+.ring img { height: 88px; width: auto; filter: drop-shadow(0 3px 4px rgba(0,0,0,.4)); }
+.ring span { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 12px; line-height: 1.15; text-align: center; }
+.ring span b { font-weight: 700; white-space: nowrap; }
+.ring span i { font-style: normal; display: inline-flex; align-items: center; gap: 4px; font-size: 11px; opacity: .92; white-space: nowrap; }
+.tb.s18 { width: 18px; height: 18px; font-size: 8px; border-radius: 9px; border: 1.5px solid rgba(255,255,255,.8); }

@@ -88,6 +88,12 @@ Then re-run `python tools/migrate_v4.py ../mystats.pro-v4 exports`. Or simply pu
 - Every game is at the same stadium, so the site shows "vs" for all games. Which court each game was on lives in `data/courts.json` (every game is listed; fill in values like `"Court 1"` from the Newy Bball game log, then run `python tools/build.py`). The box score shows the court, player pages get a **Courts** tab (stats on each court, like Versus) and team pages a **By Court** record.
 - After changing tracker files, bump `VERSION` in `tracker/sw.js` so phones pick up the new copy.
 
+## Championship rings
+
+Player pages show a ring for every championship (a grand final win) won by a team they played at least one game for that season. Each ring has the season's year on its side and the team's colour on its gems and banners (blue for Pretty Good, purple for Chuckers, amber for All Stars), with the season and team written under it. Tapping a ring opens that grand final.
+
+The images live in `assets/rings/<team>-<year>.png` and are made from `assets/rings/originals/ring.jpg` by `python tools/rings.py` (needs `pip install pillow numpy opencv-python-headless`). Images exist up to 2027; run `python tools/rings.py 2030` to make later years.
+
 ## Hosting on GitHub Pages
 
 Push this folder to a new repo, then go to **Settings → Pages → Deploy from a branch → `main` / root**. The site appears at `https://<username>.github.io/<repo>/`.
