@@ -535,7 +535,7 @@
           '<img src="assets/rings/' + esc(x.t) + '-' + esc(x.year) + '.png" alt="' + esc(D.seasonName(x.s) + ' ' + D.teams[x.t].name + ' championship ring') + '" onerror="this.src=\'assets/trophy.png\'">' +
           '<span class="yr"><b>' + esc(x.year) + '</b><span>' + esc(D.seasonName(x.s).slice(5)) + '</span></span></a>').join('') + '</div>' +
           '<div class="tally">' + tally.map((x) => '<span>' + teamBadge(x.t, 's16') + '×' + x.n + '</span>').join('') + '</div></div>' : '';
-        return '<div class="pills">' + teamsPlayed.map((t) => '<a class="pill" href="' + href(['team', t], {}) + '">' + teamBadge(t, 's26') + (same ? '' : '#' + esc(P.teams[t].number) + ' ') + esc(D.teams[t].name) + '</a>').join('') + '</div>' + ringRow;
+        return '<div class="pfoot"><div class="pills">' + teamsPlayed.map((t) => '<a class="pill" href="' + href(['team', t], {}) + '">' + teamBadge(t, 's26') + (same ? '' : '#' + esc(P.teams[t].number) + ' ') + esc(D.teams[t].name) + '</a>').join('') + '</div>' + ringRow + '</div>';
       })() + '</header>';
     h += '<nav class="tabs" aria-label="Player sections">' + [['ov', 'Overview'], ['stats', 'Stats']].concat(myGamesAll.some((g) => g.X) ? [['shots', 'Shooting']] : []).concat([['log', 'Game Log'], ['opp', 'Versus'], ['court', 'Courts']]).map((v) => '<a class="' + (view === v[0] ? 'on' : '') + '" ' + tog({ tab: v[0] === 'ov' ? null : v[0], sel: null, sg: null, sv: null, sk: null, court: null }) + '>' + v[1] + '</a>').join('') + '</nav>';
     h += filterBlock({ teams: teamsPlayed.length > 1 ? teamsPlayed : null, team, seasons, season, phase, scope: teamName + ' · ' + (season === 'all' ? 'All seasons' : D.seasonName(season)) + ' · ' + phaseName(phase) + ' · ' + A.n + ' GP' })

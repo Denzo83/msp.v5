@@ -296,11 +296,14 @@ img { display: block; }
 .scorenote { align-self: center; max-width: 440px; text-align: center; font-size: 13px; font-weight: 600; line-height: 1.4; padding: 8px 14px; border-radius: 12px; background: rgba(0,0,0,.24); color: #fff; }
 
 /* championship rings in the player header: their own row, bottom right */
-.rings { align-self: flex-end; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; margin-top: -4px; }
+/* pills on the left; rings beside them at the bottom right when they fit, otherwise on the next line */
+.pfoot { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; }
+.pfoot .pills { flex: 1 1 0; min-width: min-content; }
+.rings { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
 .ring-row { display: flex; align-items: flex-end; }
 .ring { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; text-decoration: none; color: #fff; }
-.ring + .ring { margin-left: var(--ring-overlap, -14px); }
-.ring img { height: var(--ring-h, 64px); width: auto; filter: drop-shadow(0 2px 3px rgba(0,0,0,.45)); }
-.tally { display: flex; gap: 10px; font-size: 12px; font-weight: 800; }
+.ring + .ring { margin-left: var(--ring-overlap, -10px); }
+.ring img { height: var(--ring-h, 48px); width: auto; filter: drop-shadow(0 2px 3px rgba(0,0,0,.45)); }
+.tally { display: flex; gap: 8px; font-size: 11px; font-weight: 800; }
 .tally span { display: inline-flex; align-items: center; gap: 4px; }
 .tb.s16 { width: 18px; height: 18px; font-size: 7px; border-radius: 9px; border: 1.5px solid rgba(255,255,255,.85); }
