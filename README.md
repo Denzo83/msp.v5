@@ -94,6 +94,13 @@ Player pages show a ring for every championship (a grand final win) won by a tea
 
 The images live in `assets/rings/<team>-<year>.png` and are made from `assets/rings/originals/ring.jpg` by `python tools/rings.py` (needs `pip install pillow numpy opencv-python-headless`). Images exist up to 2027; run `python tools/rings.py 2030` to make later years.
 
+## Badges, records and recaps
+
+- **Double-doubles and triple-doubles** (10+ in two or three of points, rebounds, assists, steals, blocks) are counted everywhere: a DD/TD tag in game logs and box scores, DD and TD columns in Full Stats, Leaders categories, and season and all-time records.
+- **Badges tab** on player pages: championship rings, career milestones (Bronze, Silver, Gold, Platinum, Diamond; thresholds in `MILESTONES` in `assets/app.js`) and single-game feats (`FEATS`). It uses career totals across every team.
+- **Record tags:** a game that sets a team record (most points, rebounds, assists, steals, blocks or threes by a player, most team points, biggest win) or a player's career-high points gets a tag in game lists and a Records Set card on its box score. A team or player needs 5 earlier games before records count.
+- **Season recap:** picking a finished season on a team page shows a recap card with the record, finish, leaders, best game and every result. Share card saves it as an image.
+
 ## Hosting on GitHub Pages
 
 Push this folder to a new repo, then go to **Settings → Pages → Deploy from a branch → `main` / root**. The site appears at `https://<username>.github.io/<repo>/`.

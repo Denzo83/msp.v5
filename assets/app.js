@@ -49,6 +49,8 @@
         const l = { p: row[0], n: row[1], g: game };
         K.forEach((k, i) => { l[k] = row[i + 2]; });
         l.reb = l.oreb + l.dreb;
+        const tens = [l.pts, l.reb, l.ast, l.stl, l.blk].filter((v) => v >= 10).length;
+        l.dd = tens >= 2 ? 1 : 0; l.td = tens >= 3 ? 1 : 0;
         return l;
       });
       game.dnp = g.D.map((r) => ({ p: r[0], n: r[1] }));
@@ -82,6 +84,35 @@
     });
     const byId = {};
     games.forEach((g) => { byId[g.t + '/' + g.id] = g; });
+    // records: what each game set, at the time it was played (needs 5 earlier games to count)
+    const REC_STATS = [['pts', 'Most points', 'points'], ['reb', 'Most rebounds', 'rebounds'], ['ast', 'Most assists', 'assists'], ['stl', 'Most steals', 'steals'], ['blk', 'Most blocks', 'blocks'], ['tpm', 'Most 3-pointers', 'threes']];
+    const tBest = {}, tCount = {}, pBest = {}, pCount = {};
+    games.forEach((g) => {
+      g.recs = [];
+      if (g.noStats) return;
+      const t = g.t, tb = tBest[t] || (tBest[t] = {});
+      const enough = (tCount[t] || 0) >= 5;
+      const teamLevel = [['us', 'Most points scored', g.us], ['margin', 'Biggest win', g.us - g.them]];
+      teamLevel.forEach(([k, label, v]) => {
+        const old = tb[k];
+        if (enough && old && v > old.v && (k !== 'margin' || g.win)) g.recs.push({ kind: 'team', label, val: k === 'margin' ? '+' + v : v, prev: k === 'margin' ? '+' + old.v : old.v, prevG: old.g });
+        if (!old || v > old.v) tb[k] = { v, g };
+      });
+      const careerHits = {};
+      g.lines.forEach((l) => {
+        REC_STATS.forEach(([k, label, unit]) => {
+          const old = tb[k], v = l[k];
+          if (enough && old && v > old.v) { g.recs.push({ kind: 'team', label, val: v, unit, pid: l.p, prev: old.v, prevP: old.p, prevG: old.g }); careerHits[l.p] = 1; }
+          if (!old || v > old.v) tb[k] = { v, p: l.p, g };
+        });
+        const pb = pBest[l.p];
+        if ((pCount[l.p] || 0) >= 5 && pb && l.pts > pb.v && !careerHits[l.p]) g.recs.push({ kind: 'career', label: 'Points', val: l.pts, unit: 'points', pid: l.p, prev: pb.v, prevG: pb.g });
+        if (!pb || l.pts > pb.v) pBest[l.p] = { v: l.pts, g };
+        pCount[l.p] = (pCount[l.p] || 0) + 1;
+      });
+      tCount[t] = (tCount[t] || 0) + 1;
+      g.recs.sort((a, b) => (a.kind === b.kind ? 0 : a.kind === 'team' ? -1 : 1));
+    });
     // championships: a grand final win. Anyone who played at least 2 games for that team that season gets a ring.
     const RING_MIN_GAMES = 2;
     const titles = games.filter((g) => g.round === 'gf' && g.win).map((gf) => {
@@ -98,9 +129,9 @@
 
   const SUMK = ['fgm', 'fga', 'tpm', 'tpa', 'ftm', 'fta', 'oreb', 'dreb', 'pf', 'stl', 'to', 'blk', 'ast', 'pts'];
   function agg(lines) {
-    const s = { n: lines.length, w: 0, d: 0, pm: 0, tn: 0 };
+    const s = { n: lines.length, w: 0, d: 0, pm: 0, tn: 0, dd: 0, td: 0 };
     SUMK.forEach((k) => { s[k] = 0; });
-    lines.forEach((l) => { SUMK.forEach((k) => { s[k] += l[k]; }); if (l.g && l.g.win) s.w++; if (l.g && l.g.draw) s.d++; if (l.pm != null) { s.pm += l.pm; s.tn++; } });
+    lines.forEach((l) => { SUMK.forEach((k) => { s[k] += l[k]; }); if (l.g && l.g.win) s.w++; if (l.g && l.g.draw) s.d++; if (l.pm != null) { s.pm += l.pm; s.tn++; } s.dd += l.dd || 0; s.td += l.td || 0; });
     s.reb = s.oreb + s.dreb; s.twom = s.fgm - s.tpm; s.twoa = s.fga - s.tpa;
     return s;
   }
@@ -108,12 +139,13 @@
   const LABEL = {
     gp: 'GP', pts: 'PTS', reb: 'REB', oreb: 'OREB', dreb: 'DREB', ast: 'AST', stl: 'STL', blk: 'BLK', to: 'TO', pf: 'PF',
     fgm: 'FGM', fga: 'FGA', fgp: 'FG%', twom: '2PM', twoa: '2PA', twop: '2P%', tpm: '3PM', tpa: '3PA', tpp: '3P%',
-    pm: '+/-', ftm: 'FTM', fta: 'FTA', ftp: 'FT%', efg: 'eFG%', ts: 'TS%', astto: 'AST/TO', stocks: 'STL+BLK', pra: 'PTS+REB+AST'
+    pm: '+/-', dd: 'DD', td: 'TD', ftm: 'FTM', fta: 'FTA', ftp: 'FT%', efg: 'eFG%', ts: 'TS%', astto: 'AST/TO', stocks: 'STL+BLK', pra: 'PTS+REB+AST'
   };
   function metric(k, S) {
     if (!S.n) return 0;
     switch (k) {
       case 'gp': return S.n;
+      case 'dd': case 'td': return S[k];
       case 'pm': return S.tn ? S.pm / S.tn : 0;
       case 'fgp': return pct(S.fgm, S.fga);
       case 'twop': return pct(S.twom, S.twoa);
@@ -130,6 +162,7 @@
     if (PCT[k]) return f1(metric(k, S));
     if (k === 'astto') return metric(k, S).toFixed(2);
     if (k === 'gp') return String(S.n);
+    if (k === 'dd' || k === 'td') return String(S[k]);
     return mode === 'tot' ? String(S[k]) : f1(metric(k, S));
   }
   const lineVal = (k, l) => (k === 'reb' ? l.oreb + l.dreb : k === 'stocks' ? l.stl + l.blk : k === 'pra' ? l.pts + l.oreb + l.dreb + l.ast : l[k]);
@@ -327,7 +360,7 @@
     return '<a class="lrow" href="' + href(['game', g.t, g.id], {}) + '"><span class="wl ' + wlClass(g) + '">' + resL(g) + '</span>' +
       '<span class="grow"><span style="display:flex;align-items:center;gap:6px;min-width:0">' + (showTeam ? '<span class="tag" style="background:' + D.teams[g.t].color + '">' + D.teams[g.t].short + '</span>' : '') +
       '<span class="t1" style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(vsName(g)) + '</span>' + roundTag(g) + '</span>' +
-      '<span class="note small">' + fmtDY(g.date) + (g.official ? ' · logged ' + g.official.us + '–' + g.official.them : '') + (g.noStats ? ' · no stats' : '') + (top ? ' · Top: ' + esc(D.players[top.p].name) + ' ' + top.pts + ' pts' : '') + '</span></span>' +
+      '<span class="note small">' + fmtDY(g.date) + (g.official ? ' · logged ' + g.official.us + '–' + g.official.them : '') + (g.noStats ? ' · no stats' : '') + (g.recs && g.recs.length ? '</span><span class="note small rline">' + recTag(g) + esc(recLine(g)) : top ? ' · Top: ' + esc(D.players[top.p].name) + ' ' + top.pts + ' pts' : '') + '</span></span>' +
       '<span class="big" style="font-size:22px">' + g.us + '–' + g.them + '</span></a>';
   }
 
@@ -365,6 +398,7 @@
         '<span style="display:flex;flex-direction:column;align-items:flex-end"><span class="big" style="font-size:26px;line-height:1">' + lineVal(key, b) + '</span><span class="note small" style="font-weight:700">' + lbl + '</span></span></a>';
     };
     h += '<div class="wrap">';
+    if (season !== 'all') h += seasonRecap(tid, season, G);
     h += '<div class="card"><div class="head"><span class="note small" style="font-weight:700;letter-spacing:.08em;display:flex;gap:8px;align-items:center;flex-wrap:wrap">LATEST RESULT · ' + fmtDY(last.date).toUpperCase() + roundTag(last) + '</span><a class="more" href="' + href(['game', tid, last.id], {}) + '">Box score</a></div>' +
       '<div class="board"><div>' + logoSq(tid) + esc(T.name) + '</div><div><div class="score">' + last.us + '<i>–</i>' + last.them + '</div><span class="resbadge" style="background:var(--' + resBg(last) + '-bg)">' + resWord(last) + '</span></div>' +
       '<div><span class="sq" style="background:var(--chip)">' + esc(initials(last.o)) + '</span>' + esc(last.o) + '</div></div>' +
@@ -492,7 +526,7 @@
     scoring: ['pts', 'fgm', 'fga', 'fgp', 'twom', 'twoa', 'twop'],
     shooting: ['tpm', 'tpa', 'tpp', 'ftm', 'fta', 'ftp', 'efg', 'ts'],
     reb: ['oreb', 'dreb', 'reb'],
-    other: ['ast', 'stl', 'blk', 'to', 'pf', 'astto']
+    other: ['ast', 'stl', 'blk', 'to', 'pf', 'astto', 'dd', 'td']
   };
   GROUPS.all = GROUPS.scoring.concat(GROUPS.shooting, GROUPS.reb, GROUPS.other);
 
@@ -539,7 +573,8 @@
           '<div class="tally">' + tally.map((x) => '<span>' + teamBadge(x.t, 's16') + '×' + x.n + '</span>').join('') + '</div></div>' : '';
         return '<div class="pfoot"><div class="pills">' + teamsPlayed.map((t) => '<a class="pill" href="' + href(['team', t], {}) + '">' + teamBadge(t, 's26') + (same ? '' : '#' + esc(P.teams[t].number) + ' ') + esc(D.teams[t].name) + '</a>').join('') + '</div>' + ringRow + '</div>';
       })() + '</header>';
-    h += '<nav class="tabs" aria-label="Player sections">' + [['ov', 'Overview'], ['stats', 'Stats']].concat(myGamesAll.some((g) => g.X) ? [['shots', 'Shooting']] : []).concat([['log', 'Game Log'], ['opp', 'Versus'], ['court', 'Courts']]).map((v) => '<a class="' + (view === v[0] ? 'on' : '') + '" ' + tog({ tab: v[0] === 'ov' ? null : v[0], sel: null, sg: null, sv: null, sk: null, court: null }) + '>' + v[1] + '</a>').join('') + '</nav>';
+    h += '<nav class="tabs" aria-label="Player sections">' + [['ov', 'Overview'], ['stats', 'Stats']].concat(myGamesAll.some((g) => g.X) ? [['shots', 'Shooting']] : []).concat([['badges', 'Badges'], ['log', 'Game Log'], ['opp', 'Versus'], ['court', 'Courts']]).map((v) => '<a class="' + (view === v[0] ? 'on' : '') + '" ' + tog({ tab: v[0] === 'ov' ? null : v[0], sel: null, sg: null, sv: null, sk: null, court: null }) + '>' + v[1] + '</a>').join('') + '</nav>';
+    if (view === 'badges') return shell(accentTid, h + '<div class="wrap" style="padding-top:16px">' + playerBadges(pid) + '</div>', 'players', team);
     h += filterBlock({ teams: teamsPlayed.length > 1 ? teamsPlayed : null, team, seasons, season, phase, scope: teamName + ' · ' + (season === 'all' ? 'All seasons' : D.seasonName(season)) + ' · ' + phaseName(phase) + ' · ' + A.n + ' GP' })
       .replace('</section>', (view === 'log' || view === 'opp' || view === 'court' ? '<div class="scope">Tap a game to see its box score.</div>' : '') + '</section>');
     if (!A.n) return shell(accentTid, h + '<div class="wrap"><div class="empty">No games match these filters yet.</div></div>', 'players', team);
@@ -699,7 +734,7 @@
     shown.forEach((l) => {
       const v = [l.pts, l.reb, l.oreb, l.ast, l.stl, l.blk, l.to, l.pf, l.fgm + '-' + l.fga, l.tpm + '-' + l.tpa, l.ftm + '-' + l.fta, l.fga ? Math.round((l.fgm / l.fga) * 100) : '–'].concat(anyT ? [l.pm == null ? '–' : pmTxt(l.pm)] : []);
       h += '<a class="trow" style="grid-template-columns:' + cols + ';min-height:56px" href="' + href(['game', l.g.t, l.g.id], {}) + '"><span class="stick">' + teamBadge(l.g.t, 's24') +
-        '<span><span class="t1" style="font-size:13px;max-width:120px">' + esc(vsName(l.g)) + '</span><span class="t2" style="font-size:11px"><span class="res-' + wlClass(l.g) + '">' + resL(l.g) + '</span> ' + l.g.us + '–' + l.g.them + ' · ' + fmtD(l.g.date) + ' ' + String(l.g.date.getFullYear()).slice(2) + '</span></span></span>' +
+        '<span><span class="t1" style="font-size:13px;max-width:120px">' + esc(vsName(l.g)) + '</span><span class="t2" style="font-size:11px"><span class="res-' + wlClass(l.g) + '">' + resL(l.g) + '</span> ' + l.g.us + '–' + l.g.them + ' · ' + fmtD(l.g.date) + ' ' + String(l.g.date.getFullYear()).slice(2) + ' ' + ddTag(l) + '</span></span></span>' +
         v.map((x, i) => '<span' + (colKey[i] === sort ? ' class="hl"' : '') + '>' + x + '</span>').join('') + '</a>';
     });
     h += '</div></div>';
@@ -769,7 +804,7 @@
     { k: 'ts', l: 'TS%', long: 'True shooting %', a: 'fga', min: 20 }, { k: 'oreb', l: 'OREB', long: 'Offensive rebounds' },
     { k: 'dreb', l: 'DREB', long: 'Defensive rebounds' }, { k: 'fgm', l: 'FGM', long: 'Field goals made' }, { k: 'fga', l: 'FGA', long: 'Field goal attempts' },
     { k: 'ftm', l: 'FTM', long: 'Free throws made' }, { k: 'astto', l: 'AST/TO', long: 'Assist to turnover', min: 10 },
-    { k: 'to', l: 'TO', long: 'Turnovers' }, { k: 'pf', l: 'PF', long: 'Fouls' }, { k: 'pm', l: '+/-', long: 'Plus-minus', tracked: true }, { k: 'gp', l: 'GP', long: 'Games played' }
+    { k: 'to', l: 'TO', long: 'Turnovers' }, { k: 'pf', l: 'PF', long: 'Fouls' }, { k: 'pm', l: '+/-', long: 'Plus-minus', tracked: true }, { k: 'dd', l: 'DD', long: 'Double-doubles', total: true }, { k: 'td', l: 'TD', long: 'Triple-doubles', total: true }, { k: 'gp', l: 'GP', long: 'Games played' }
   ];
   VIEWS.leaders = function () {
     const team = D.teams[qv('team')] ? qv('team') : 'all';
@@ -783,10 +818,10 @@
     linesOf(G).forEach((l) => { (byP[l.p] = byP[l.p] || []).push(l); });
     const players = Object.keys(byP).map((pid) => ({ pid, S: agg(byP[pid]), teams: D.teamIds.filter((t) => byP[pid].some((l) => l.g.t === t)) }));
     const isP = (c) => !!PCT[c.k];
-    const value = (c, S) => (c.k === 'gp' || isP(c) || c.k === 'astto' ? metric(c.k, S) : mode === 'tot' ? S[c.k] : metric(c.k, S));
-    const show = (c, v) => (c.k === 'pm' ? (v > 0 ? '+' : v < 0 ? '−' : '') + (mode === 'tot' ? String(Math.abs(Math.round(v))) : f1(Math.abs(v))) : isP(c) ? f1(v) + '%' : c.k === 'astto' ? v.toFixed(2) : c.k === 'gp' || mode === 'tot' ? String(Math.round(v)) : f1(v));
+    const value = (c, S) => (c.total ? S[c.k] : c.k === 'gp' || isP(c) || c.k === 'astto' ? metric(c.k, S) : mode === 'tot' ? S[c.k] : metric(c.k, S));
+    const show = (c, v) => (c.total ? String(v) : c.k === 'pm' ? (v > 0 ? '+' : v < 0 ? '−' : '') + (mode === 'tot' ? String(Math.abs(Math.round(v))) : f1(Math.abs(v))) : isP(c) ? f1(v) + '%' : c.k === 'astto' ? v.toFixed(2) : c.k === 'gp' || mode === 'tot' ? String(Math.round(v)) : f1(v));
     const qualifies = (c, S) => c.tracked ? S.tn > 0 : !qual || (S.n >= 3 && (!c.min || (c.a ? S[c.a] >= c.min : c.k === 'astto' ? S.ast + S.to >= c.min : true)));
-    const rank = (c) => players.filter((p) => qualifies(c, p.S)).map((p) => ({ p, v: value(c, p.S) })).sort((a, b) => b.v - a.v);
+    const rank = (c) => players.filter((p) => (c.total ? p.S[c.k] > 0 : qualifies(c, p.S))).map((p) => ({ p, v: value(c, p.S) })).sort((a, b) => b.v - a.v);
     const list = rank(cat), topV = list.length ? list[0].v || 1 : 1;
     const tag = (t) => '<span class="tag" style="background:' + D.teams[t].color + '">' + D.teams[t].short + '</span>';
     let h = '<header class="hero"><div class="hero-top"><h1>Leaders</h1>' + themeBtn() + '</div><div class="hero-seg">' +
@@ -801,13 +836,14 @@
       h += '<a class="card" style="flex-direction:row;align-items:center;gap:16px;text-decoration:none;color:var(--text)" href="' + href(['player', top.p.pid], { team: team === 'all' ? null : team, season: season === 'all' ? null : season }) + '">' + avatar(top.p.pid, 's76', team === 'all' ? null : team) +
         '<span style="flex:1;display:flex;flex-direction:column;gap:4px;min-width:0"><span class="note small" style="font-weight:700;letter-spacing:.08em">' + esc(cat.long.toUpperCase()) + ' LEADER</span><b style="font-size:18px">' + esc(D.players[top.p.pid].name) + '</b>' +
         '<span style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">' + top.p.teams.map(tag).join('') + '<span class="note small">' + (cat.tracked ? top.p.S.tn : top.p.S.n) + ' GP</span></span></span>' +
-        '<span style="display:flex;flex-direction:column;align-items:flex-end"><span class="big-num" style="font-size:46px;font-weight:800">' + show(cat, top.v) + '</span><span class="note small" style="font-weight:700">' + (cat.k === 'gp' ? 'GAMES' : isP(cat) ? 'PERCENT' : cat.k === 'astto' ? 'RATIO' : mode === 'tot' ? 'TOTAL' : 'PER GAME') + '</span></span></a>';
+        '<span style="display:flex;flex-direction:column;align-items:flex-end"><span class="big-num" style="font-size:46px;font-weight:800">' + show(cat, top.v) + '</span><span class="note small" style="font-weight:700">' + (cat.k === 'gp' ? 'GAMES' : isP(cat) ? 'PERCENT' : cat.k === 'astto' ? 'RATIO' : cat.total ? 'CAREER' : mode === 'tot' ? 'TOTAL' : 'PER GAME') + '</span></span></a>';
     }
     h += '<div class="card list"><div class="head"><div><h2>' + esc(cat.long) + '</h2><div class="sub">' + (team === 'all' ? 'All teams combined' : esc(D.teams[team].name)) + ' · ' + (season === 'all' ? 'All seasons' : esc(D.seasonName(season))) + ' · ' + G.length + ' games' + (cat.tracked ? ' · only games entered with MyStat Tracker' : '') + '</div></div></div>' +
       list.map((x, i) => {
         const S = x.p.S;
         let sub = (cat.tracked ? S.tn + ' tracked' : S.n) + ' GP';
         if (cat.m) sub += ' · ' + S[cat.m] + '/' + S[cat.a];
+        else if (cat.total) sub += ' · ' + (S[cat.k] / S.n * 100).toFixed(0) + '% of games';
         else if (mode === 'pg' && cat.k !== 'gp' && !isP(cat) && cat.k !== 'astto') sub += ' · ' + S[cat.k] + ' total';
         return '<a class="lrow" style="min-height:60px" href="' + href(['player', x.p.pid], { team: team === 'all' ? null : team }) + '"><span class="rank">' + (i + 1) + '</span>' + avatar(x.p.pid, 's40', team === 'all' ? null : team) +
           '<span class="grow"><span style="display:flex;align-items:center;gap:6px;min-width:0"><b style="font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(D.players[x.p.pid].name) + '</b>' + x.p.teams.map((t) => '<span class="dot" style="width:9px;height:9px;background:' + D.teams[t].color + '"></span>').join('') + '</span>' +
@@ -847,17 +883,19 @@
       linesOf(G).forEach((l) => { const key = scope === 'season' ? l.p + '|' + l.g.s : l.p; (groups[key] = groups[key] || { pid: l.p, s: l.g.s, lines: [] }).lines.push(l); });
       const P = Object.values(groups).map((x) => ({ pid: x.pid, s: x.s, S: agg(x.lines), tm: D.teamIds.filter((t) => x.lines.some((l) => l.g.t === t)).map((t) => D.teams[t].short).join(' + ') }));
       const sub = (x) => (scope === 'season' ? D.seasonName(x.s) + ' · ' : '') + x.tm + ' · ' + x.S.n + ' GP';
-      const pr = (title, f, show, minGp) => rec(title, by(P.filter((x) => x.S.n >= (minGp || 1)), f).map((x) => ({ pid: x.pid, name: D.players[x.pid].name, sub: sub(x), val: show(f(x)), link: href(['player', x.pid], { season: scope === 'season' ? x.s : null }) })));
+      const pr = (title, f, show, minGp, nonZero) => rec(title, by(P.filter((x) => x.S.n >= (minGp || 1) && (!nonZero || f(x) > 0)), f).map((x) => ({ pid: x.pid, name: D.players[x.pid].name, sub: sub(x), val: show(f(x)), link: href(['player', x.pid], { season: scope === 'season' ? x.s : null }) })));
       const one = (v) => f1(v), int = (v) => String(v), pc = (v) => f1(v) + '%';
       if (scope === 'season') {
         recs = [pr('Highest points per game', (x) => metric('pts', x.S), one, 3), pr('Highest rebounds per game', (x) => metric('reb', x.S), one, 3), pr('Highest assists per game', (x) => metric('ast', x.S), one, 3),
           pr('Most points in a season', (x) => x.S.pts, int), pr('Most rebounds in a season', (x) => x.S.reb, int), pr('Most assists in a season', (x) => x.S.ast, int),
           pr('Most 3 pointers in a season', (x) => x.S.tpm, int), pr('Most steals in a season', (x) => x.S.stl, int), pr('Most blocks in a season', (x) => x.S.blk, int),
-          pr('Best FG% in a season (30+ att)', (x) => (x.S.fga >= 30 ? metric('fgp', x.S) : 0), pc, 3), pr('Most games in a season', (x) => x.S.n, int)];
+          pr('Best FG% in a season (30+ att)', (x) => (x.S.fga >= 30 ? metric('fgp', x.S) : 0), pc, 3), pr('Most games in a season', (x) => x.S.n, int),
+          pr('Most double-doubles in a season', (x) => x.S.dd, int, 1, true), pr('Most triple-doubles in a season', (x) => x.S.td, int, 1, true)];
       } else {
         recs = [pr('Most career points', (x) => x.S.pts, int), pr('Most career rebounds', (x) => x.S.reb, int), pr('Most career assists', (x) => x.S.ast, int),
           pr('Most career 3 pointers', (x) => x.S.tpm, int), pr('Most career steals', (x) => x.S.stl, int), pr('Most career blocks', (x) => x.S.blk, int),
-          pr('Most games played', (x) => x.S.n, int), pr('Best career PPG (8+ GP)', (x) => metric('pts', x.S), one, 8), pr('Best career FG% (8+ GP)', (x) => metric('fgp', x.S), pc, 8)];
+          pr('Most games played', (x) => x.S.n, int), pr('Best career PPG (8+ GP)', (x) => metric('pts', x.S), one, 8), pr('Best career FG% (8+ GP)', (x) => metric('fgp', x.S), pc, 8),
+          pr('Most career double-doubles', (x) => x.S.dd, int, 1, true), pr('Most career triple-doubles', (x) => x.S.td, int, 1, true)];
       }
     } else if (scope === 'game') {
       const T = G.map((g) => ({ g, S: agg(g.lines) }));
@@ -934,7 +972,7 @@
           const top = g.lines.slice().sort((a, b) => b.pts - a.pts)[0];
           return '<a class="lrow" style="min-height:68px" href="' + href(['game', g.t, g.id], {}) + '"><span class="daybox"><b>' + g.date.getDate() + '</b><span>' + WD[g.date.getDay()] + '</span></span>' +
             '<span class="grow" style="gap:3px"><span style="display:flex;align-items:center;gap:6px;min-width:0"><span class="tag" style="background:' + D.teams[g.t].color + '">' + D.teams[g.t].short + '</span><span style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(vsName(g)) + '</span>' +
-            roundTag(g) + '</span><span class="note small">' + (top ? 'Top: ' + esc(D.players[top.p].name) + ' · ' + top.pts + ' pts' : g.noStats ? 'No stats recorded' : '') + '</span></span>' +
+            roundTag(g) + '</span><span class="note small rline">' + (g.recs && g.recs.length ? recTag(g) + esc(recLine(g)) : top ? 'Top: ' + esc(D.players[top.p].name) + ' · ' + top.pts + ' pts' : g.noStats ? 'No stats recorded' : '') + '</span></span>' +
             '<span style="display:flex;align-items:center;gap:8px"><span class="big" style="font-size:22px;white-space:nowrap">' + g.us + '–' + g.them + '</span><span class="wl ' + wlClass(g) + '" style="width:26px;height:26px">' + resL(g) + '</span></span></a>';
         }).join('') + '</div>';
     }).join('') || '<div class="empty">No games match these filters.</div>';
@@ -943,6 +981,142 @@
   };
 
   // ---------- box score
+  // ------------------------------------------------------------------ double-doubles, records, badges, recaps
+  const ddTag = (l) => (l.td ? '<span class="dtag td">TD</span>' : l.dd ? '<span class="dtag">DD</span>' : '');
+  // first record a game set, for tags in game lists
+  const recTag = (g) => {
+    const r = (g.recs || [])[0];
+    return r ? '<span class="rtag' + (r.kind === 'career' ? ' career' : '') + '">' + (r.kind === 'career' ? 'Career high' : '★ Team record') + '</span>' : '';
+  };
+  const recLine = (g) => {
+    const r = (g.recs || [])[0];
+    return r ? (r.pid ? D.players[r.pid].name + ' ' + r.val + ' ' + r.unit : r.label + ': ' + r.val) : '';
+  };
+  function recordsBox(g) {
+    if (!g.recs || !g.recs.length) return '';
+    return '<div class="card" style="gap:10px"><h2 style="font-size:18px">Records Set</h2>' + g.recs.map((r) =>
+      '<div class="recbox' + (r.kind === 'career' ? ' career' : '') + '">' + (r.pid ? avatar(r.pid, 's44', g.t) : logoSq(g.t, 'width:44px;height:44px')) +
+      '<span class="rb"><b>' + (r.kind === 'career' ? 'Career high · ' : 'Team record · ') + esc(r.label) + '</b><span>' +
+      (r.pid ? esc(D.players[r.pid].name) + (r.prev != null ? ' beat ' + (r.kind === 'career' ? 'their' : 'the') + ' old best of ' + r.prev + (r.prevP && r.prevP !== r.pid ? ' (' + esc(D.players[r.prevP].name) + (r.prevG ? ', ' + fmtDY(r.prevG.date) : '') + ')' : r.prevG ? ' (' + fmtDY(r.prevG.date) + ')' : '') : '')
+        : (r.prev != null ? 'Beat the old best of ' + r.prev + (r.prevG ? ' (' + esc(vsName(r.prevG)) + ', ' + fmtDY(r.prevG.date) + ')' : '') : '')) +
+      '</span></span><span class="big rv">' + esc(String(r.val)) + '</span></div>').join('') +
+      '<div class="note small">Team records are the best by any ' + esc(D.teams[g.t].name) + ' player or team game up to then. Career highs are a player’s best across every team.</div></div>';
+  }
+
+  // career milestones: [key, title, unit, thresholds for bronze, silver, gold, platinum, diamond]
+  const TIERS = ['Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond'];
+  const MILESTONES = [
+    ['gp', 'Ironman', 'games', [10, 25, 50, 100, 150]], ['pts', 'Bucket getter', 'points', [100, 250, 500, 1000, 1500]],
+    ['reb', 'Board man', 'rebounds', [100, 250, 500, 750, 1000]], ['ast', 'Dime dropper', 'assists', [50, 100, 200, 300, 500]],
+    ['stl', 'Pickpocket', 'steals', [50, 100, 200, 300, 500]], ['blk', 'Rim protector', 'blocks', [25, 50, 100, 150, 250]],
+    ['tpm', 'Splash', '3-pointers', [25, 50, 100, 150, 250]], ['dd', 'Double trouble', 'double-doubles', [1, 5, 10, 25, 50]]
+  ];
+  // single-game feats: [title, test, how to describe the closest miss]
+  const FEATS = [
+    ['20-point game', (l) => l.pts >= 20, 'pts'], ['30-point game', (l) => l.pts >= 30, 'pts'],
+    ['Double-double', (l) => l.dd, null], ['Triple-double', (l) => l.td, null],
+    ['Glass cleaner: 15 rebounds', (l) => l.reb >= 15, 'reb'], ['Floor general: 10 assists', (l) => l.ast >= 10, 'ast'],
+    ['Thief: 5+ steals', (l) => l.stl >= 5, 'stl'], ['Swat team: 5+ blocks', (l) => l.blk >= 5, 'blk'],
+    ['Sniper: 5 threes', (l) => l.tpm >= 5, 'tpm'], ['Perfect night: 5+ shots, no misses', (l) => l.fga >= 5 && l.fgm === l.fga, null],
+    ['Two-way: 10 pts + 5 steals', (l) => l.pts >= 10 && l.stl >= 5, null], ['Grand final', (l) => l.g.round === 'gf', null]
+  ];
+  const FEAT_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg>';
+  const LOCK_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
+  const MS_ICON = {
+    gp: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>', pts: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
+    reb: '<path d="M12 3v12M7 10l5 5 5-5M5 21h14"/>', ast: '<path d="M4 17l6-6 4 4 6-8"/><path d="M15 7h5v5"/>',
+    stl: '<path d="M7 11V6a2 2 0 0 1 4 0v5M11 10V4a2 2 0 0 1 4 0v6M15 10V6a2 2 0 0 1 4 0v8a7 7 0 0 1-7 7h-1a7 7 0 0 1-6-3l-3-5a2 2 0 0 1 3-2l2 2"/>',
+    blk: '<path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/>', tpm: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/>',
+    dd: '<rect x="4" y="5" width="7" height="14" rx="2"/><rect x="13" y="5" width="7" height="14" rx="2"/>'
+  };
+
+  function playerBadges(pid) {
+    const lines = linesOf(D.games.filter((g) => !g.noStats), pid).sort((a, b) => a.g.date - b.g.date);
+    if (!lines.length) return '<div class="empty">No games yet.</div>';
+    // milestones, with the game each tier was reached in
+    const run = {}, reached = {};
+    MILESTONES.forEach((m) => { run[m[0]] = 0; reached[m[0]] = []; });
+    lines.forEach((l, i) => {
+      MILESTONES.forEach((m) => {
+        const k = m[0];
+        run[k] = k === 'gp' ? i + 1 : run[k] + (l[k] || 0);
+        m[3].forEach((t, ti) => { if (run[k] >= t && !reached[k][ti]) reached[k][ti] = l.g; });
+      });
+    });
+    let tiers = 0;
+    const ms = MILESTONES.map((m) => {
+      const k = m[0], v = run[k], got = m[3].filter((t) => v >= t).length, nxt = m[3][got];
+      tiers += got;
+      const prev = got ? m[3][got - 1] : 0, p = nxt ? Math.round(((v - prev) / (nxt - prev)) * 100) : 100;
+      const cls = got ? TIERS[got - 1].toLowerCase() : 'locked';
+      const when = got ? reached[k][got - 1] : null;
+      return { k, v, got, nxt, cls, html: '<div class="mile"><div class="medal ' + cls + '"><svg viewBox="0 0 24 24" aria-hidden="true">' + MS_ICON[k] + '</svg><span class="pip">' + got + '</span></div>' +
+        '<div class="mtext"><div class="mtop"><b>' + m[1] + '</b><span class="tier ' + cls + '">' + (got ? TIERS[got - 1] : 'Locked') + '</span></div>' +
+        '<div class="mval"><span class="big">' + v + '</span> ' + m[2] + '</div>' +
+        (nxt ? '<div class="track thin"><div style="width:' + Math.max(2, p) + '%"></div></div><div class="note small">' + (nxt - v) + ' to ' + nxt + ' for ' + TIERS[got] + '</div>' : '<div class="note small">Top tier reached</div>') +
+        (when ? '<a class="note small" style="color:var(--sub);text-decoration:none" href="' + href(['game', when.t, when.id], {}) + '">' + prev + ' reached ' + vsName(when) + ', ' + fmtDY(when.date) + '</a>' : '') + '</div></div>' };
+    });
+    // feats
+    let featsDone = 0;
+    const feats = FEATS.map((f) => {
+      const hit = lines.filter(f[1]);
+      if (hit.length) {
+        featsDone++;
+        const last = hit[hit.length - 1];
+        return '<a class="feat" href="' + href(['game', last.g.t, last.g.id], {}) + '"><span class="fic">' + FEAT_ICON + '</span><span class="ft"><b>' + esc(f[0]) + '</b><span>Latest ' + esc(vsName(last.g)) + ', ' + fmtD(last.g.date) + ' ' + String(last.g.date.getFullYear()).slice(2) + '</span></span><span class="fx">×' + hit.length + '</span></a>';
+      }
+      let miss = '';
+      if (f[2]) { const best = Math.max.apply(null, lines.map((l) => l[f[2]])); miss = 'Career high ' + best; }
+      return '<div class="feat off"><span class="fic">' + LOCK_ICON + '</span><span class="ft"><b>' + esc(f[0]) + '</b><span>' + esc(miss || 'Not yet') + '</span></span></div>';
+    }).join('');
+    const rings = D.titles.filter((x) => x.roster[pid]).sort((a, b) => a.gf.date - b.gf.date);
+    const total = tiers + featsDone + rings.length, possible = MILESTONES.length * 5 + FEATS.length + rings.length;
+    // nearest next milestone, by share of the way there
+    const near = ms.filter((m) => m.nxt).map((m) => ({ m, left: m.nxt - m.v, frac: m.v / m.nxt })).sort((a, b) => b.frac - a.frac)[0];
+    let h = '<div class="card"><div class="level"><div class="lvl" style="--p:' + Math.round((total / possible) * 100) + '%"><b>' + total + '</b><span>BADGES</span></div>' +
+      '<p><b>' + total + ' badges</b>: ' + tiers + ' milestone tier' + (tiers === 1 ? '' : 's') + ', ' + featsDone + ' feat' + (featsDone === 1 ? '' : 's') + (rings.length ? ' and ' + rings.length + ' ring' + (rings.length === 1 ? '' : 's') : '') + '.' +
+      (near ? '<br>Closest next: <b>' + near.m.nxt + ' ' + MILESTONES.find((x) => x[0] === near.m.k)[2] + '</b> (' + near.left + ' to go).' : '') + '</p></div>' +
+      '<div class="note small">Career totals across every team, so filters don’t change this tab.</div></div>';
+    if (rings.length) {
+      h += '<div class="card"><div class="head"><h2>Championships</h2><span class="note small">' + rings.length + ' ring' + (rings.length === 1 ? '' : 's') + '</span></div><div class="ringgrid">' + rings.map((x) =>
+        '<a href="' + href(['game', x.t, x.gf.id], {}) + '"><img src="assets/rings/' + esc(x.t) + '-' + esc(x.year) + '.png" alt="' + esc(D.seasonName(x.s) + ' ' + D.teams[x.t].name + ' ring') + '"><span><b>' + esc(D.seasonName(x.s)) + '</b>' + teamBadge(x.t, 's16') + '</span></a>').join('') + '</div></div>';
+    }
+    h += '<div class="card"><div class="head"><h2>Career Milestones</h2><span class="note small">Bronze to Diamond</span></div>' + ms.map((m) => m.html).join('') + '</div>';
+    h += '<div class="card"><div class="head"><h2>Single-Game Feats</h2><span class="note small">' + featsDone + ' of ' + FEATS.length + '</span></div><div class="feats">' + feats + '</div></div>';
+    return h;
+  }
+
+  // ---------- season recap (team page, a finished season picked)
+  function seasonRecap(tid, season, G) {
+    const all = D.games.filter((g) => g.t === tid);
+    const later = all.some((g) => (D.seasonIdx[g.s] || 0) > (D.seasonIdx[season] || 0));
+    const gf = G.find((g) => g.round === 'gf');
+    if (!G.length || (!later && !gf)) return '';
+    const T = D.teams[tid], n = G.length, w = G.filter((g) => g.win).length;
+    let best = 0, cur = 0;
+    G.forEach((g) => { if (g.win) { cur++; best = Math.max(best, cur); } else cur = 0; });
+    const big = G.filter((g) => g.win).sort((a, b) => (b.us - b.them) - (a.us - a.them))[0];
+    const fin = G.filter((g) => g.po), fw = fin.filter((g) => g.win).length;
+    const champ = gf && gf.win;
+    const finish = champ ? 'Champions' : gf ? 'Grand finalists' : fin.length ? 'Semi finalists' : 'Regular season';
+    const byP = {};
+    G.forEach((g) => g.lines.forEach((l) => { (byP[l.p] = byP[l.p] || []).push(l); }));
+    const minGp = Math.max(2, Math.ceil(G.filter((g) => !g.noStats).length * 0.4));
+    const P = Object.keys(byP).map((p) => ({ p, S: agg(byP[p]) })).filter((x) => x.S.n >= minGp);
+    const lead = (k) => P.slice().sort((a, b) => metric(k, b.S) - metric(k, a.S))[0];
+    const bestLine = G.reduce((acc, g) => acc.concat(g.lines), []).sort((a, b) => b.pts - a.pts)[0];
+    const ld = (x, k, lbl, why) => (x ? '<a class="ld" href="' + href(['player', x.p], { team: tid, season }) + '">' + avatar(x.p, 's36', tid) + '<span class="n"><b>' + esc(D.players[x.p].name) + '</b><span>' + esc(why) + '</span></span><span class="v">' + f1(metric(k, x.S)) + '<small>' + lbl + '</small></span></a>' : '');
+    const ts = lead('pts'), tr = lead('reb'), ta = lead('ast');
+    return '<div class="recap" id="recap"><div class="rtop"><div><div class="kick">Season recap · ' + esc(D.seasonName(season)) + '</div><h3>' + esc(T.name) + '</h3><div class="finish' + (champ ? ' champ' : '') + '">' + finish + '</div></div>' +
+      (champ ? '<img src="assets/trophy.png" alt="Championship trophy">' : '') + '</div>' +
+      '<div class="rstats"><div><b>' + recOf(G) + '</b><span>Record</span></div><div><b>' + f1(G.reduce((a, g) => a + g.us, 0) / n) + '</b><span>Pts for</span></div><div><b>' + f1(G.reduce((a, g) => a + g.them, 0) / n) + '</b><span>Pts against</span></div>' +
+      '<div><b>' + best + '</b><span>Win streak</span></div><div><b>' + (big ? '+' + (big.us - big.them) : '–') + '</b><span>Biggest win</span></div><div><b>' + (fin.length ? fw + '–' + (fin.length - fw) : '–') + '</b><span>Finals</span></div></div>' +
+      '<div class="leaders">' + ld(ts, 'pts', 'PPG', 'Top scorer') + (tr && (!ts || tr.p !== ts.p) ? ld(tr, 'reb', 'RPG', 'Top rebounder') : ld(ta, 'ast', 'APG', 'Top playmaker')) +
+      (bestLine ? '<a class="ld" href="' + href(['game', tid, bestLine.g.id], {}) + '">' + avatar(bestLine.p, 's36', tid) + '<span class="n"><b>Best game: ' + esc(D.players[bestLine.p].name) + '</b><span>' + esc(vsName(bestLine.g)) + ', ' + fmtD(bestLine.g.date) + '</span></span><span class="v">' + bestLine.pts + '<small>PTS</small></span></a>' : '') + '</div>' +
+      '<div class="rform"><span class="kick">Every result</span><div>' + G.map((g) => '<i class="' + wlClass(g) + '" title="' + esc(vsName(g) + ' ' + g.us + '–' + g.them) + '">' + resL(g) + '</i>').join('') + '</div></div>' +
+      '<div class="rshare"><button type="button" data-share-recap>Share card</button></div></div>';
+  }
+
   // ------------------------------------------------------------------ tracked games (MyStat Tracker)
   // shots: [player, x, y, made, pts, zoneGroup, shotType, fastBreak, secondChance, assist]
   // Court units are decimetres of a FIBA half court; the basket sits near the top.
@@ -1226,6 +1400,7 @@
       h += '<div class="card"><h2 style="font-size:18px">No Stats</h2><div class="note">' + esc(g.noStats) + '</div></div></div>';
       return shell(g.t, h, 'games', g.t).replace('<div class="app"', '<div class="app wide"');
     }
+    h += recordsBox(g);
     h += '<div class="card" style="gap:6px"><h2 style="font-size:18px;margin-bottom:6px">Game Leaders</h2>' + lead('pts', 'PTS') + lead('reb', 'REB') + lead('ast', 'AST') + '</div>';
     const A = 'minmax(44px, 1fr)', W = 'minmax(60px, 1.3fr)';
     const XT = !!g.X, XM = XT && !!g.X.clock;
@@ -1236,7 +1411,7 @@
     h += '<div class="card flush box" style="gap:10px"><div class="px"><h2 style="font-size:18px">Box Score</h2><div class="note small">Swipe sideways for every column · tap a player for their page</div></div><div class="xscroll"><div>' +
       '<div class="trow th" style="grid-template-columns:' + cols + '"><span class="stick">PLAYER</span>' + (XM ? '<span>MIN</span>' : '') + ['PTS', 'REB', 'AST', 'STL', 'BLK', 'TO', 'FG', 'FG%', '3PT', '3P%', 'FT', 'FT%', 'OREB', 'DREB', 'PF'].concat(XT ? ['+/-'] : []).map((c) => '<span>' + c + '</span>').join('') + '</div>' +
       g.lines.slice().sort((a, b) => b.pts - a.pts).map((l) => '<a class="trow" style="grid-template-columns:' + cols + '" href="' + href(['player', l.p], { team: g.t }) + '"><span class="stick">' + avatar(l.p, 'sq44', g.t) +
-        '<span><span class="t1" style="font-size:14px;white-space:normal;line-height:1.2">' + esc(D.players[l.p].name) + '</span><span class="t2" style="font-size:12px">#' + esc(l.n) + '</span></span></span>' + cells(l) + '</a>').join('') +
+        '<span><span class="t1" style="font-size:14px;white-space:normal;line-height:1.2">' + esc(D.players[l.p].name) + '</span><span class="t2" style="font-size:12px">#' + esc(l.n) + ' ' + ddTag(l) + '</span></span></span>' + cells(l) + '</a>').join('') +
       '<div class="trow strong total" style="grid-template-columns:' + cols + '"><span class="stick">' + (T.partialStats ? 'TRACKED TOTALS' : 'TEAM TOTALS') + '</span>' + cells(S, true) + '</div>' +
       '</div></div></div>';
     h += '<div class="card"><h2 style="font-size:18px">Team Shooting</h2>' + shotBar('Field goals', S.fgm, S.fga, S.fgm + '/' + S.fga) + shotBar('3 pointers', S.tpm, S.tpa, S.tpm + '/' + S.tpa) + shotBar('Free throws', S.ftm, S.fta, S.ftm + '/' + S.fta) +
@@ -1272,7 +1447,30 @@
     document.title = (p === 'player' && D.players[R.path[1]] ? D.players[R.path[1]].name + ' · ' : p === 'team' && D.teams[R.path[1]] ? D.teams[R.path[1]].name + ' · ' : p ? p.charAt(0).toUpperCase() + p.slice(1) + ' · ' : '') + 'MyStatsPro';
   }
 
+  // save the season recap as an image (html2canvas is only loaded when someone taps Share)
+  function loadScript(src) {
+    return new Promise((ok, bad) => { const sc = document.createElement('script'); sc.src = src; sc.onload = ok; sc.onerror = bad; document.head.appendChild(sc); });
+  }
+  async function shareRecap(btn) {
+    const card = document.getElementById('recap');
+    if (!card) return;
+    const label = btn.textContent;
+    btn.textContent = 'Making image…'; btn.disabled = true;
+    try {
+      if (!window.html2canvas) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+      const canvas = await window.html2canvas(card, { backgroundColor: null, scale: 2, ignoreElements: (el) => el.classList && el.classList.contains('rshare') });
+      const blob = await new Promise((r) => canvas.toBlob(r, 'image/png'));
+      const name = (document.title.split(' · ')[0] || 'season').replace(/[^a-z0-9]+/gi, '-').toLowerCase() + '-recap.png';
+      const file = new File([blob], name, { type: 'image/png' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ files: [file] });
+      else { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000); }
+    } catch (err) { if (!err || err.name !== 'AbortError') alert('Could not make the image. Try a screenshot instead.'); }
+    btn.textContent = label; btn.disabled = false;
+  }
+
   document.addEventListener('click', (e) => {
+    const sh = e.target.closest('[data-share-recap]');
+    if (sh) { shareRecap(sh); return; }
     const t = e.target.closest('[data-theme-toggle]');
     if (t) {
       const next = isDark() ? 'light' : 'dark';
