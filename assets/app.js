@@ -82,10 +82,12 @@
     });
     const byId = {};
     games.forEach((g) => { byId[g.t + '/' + g.id] = g; });
-    // championships: a grand final win. Everyone who played for that team that season gets a ring.
+    // championships: a grand final win. Anyone who played at least 2 games for that team that season gets a ring.
+    const RING_MIN_GAMES = 2;
     const titles = games.filter((g) => g.round === 'gf' && g.win).map((gf) => {
-      const roster = {};
-      games.forEach((g) => { if (g.t === gf.t && g.s === gf.s) g.lines.forEach((l) => { roster[l.p] = 1; }); });
+      const played = {}, roster = {};
+      games.forEach((g) => { if (g.t === gf.t && g.s === gf.s) g.lines.forEach((l) => { played[l.p] = (played[l.p] || 0) + 1; }); });
+      Object.keys(played).forEach((p) => { if (played[p] >= RING_MIN_GAMES) roster[p] = 1; });
       return { t: gf.t, s: gf.s, year: gf.s.slice(0, 4), gf, roster };
     });
     D = {
