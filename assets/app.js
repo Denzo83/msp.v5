@@ -1014,6 +1014,7 @@
   // single-game feats: [title, test, how to describe the closest miss]
   const FEATS = [
     ['20-point game', (l) => l.pts >= 20, 'pts'], ['30-point game', (l) => l.pts >= 30, 'pts'],
+    ['40-point game', (l) => l.pts >= 40, 'pts'], ['50-point game', (l) => l.pts >= 50, 'pts'],
     ['Double-double', (l) => l.dd, null], ['Triple-double', (l) => l.td, null],
     ['Glass cleaner: 15 rebounds', (l) => l.reb >= 15, 'reb'], ['Floor general: 10 assists', (l) => l.ast >= 10, 'ast'],
     ['Thief: 5+ steals', (l) => l.stl >= 5, 'stl'], ['Swat team: 5+ blocks', (l) => l.blk >= 5, 'blk'],
