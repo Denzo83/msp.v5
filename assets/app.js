@@ -53,6 +53,7 @@
       });
       game.dnp = g.D.map((r) => ({ p: r[0], n: r[1] }));
       game.X = g.X || null; // extra stats from MyStat Tracker games
+      game.noStats = g.NS || null; // a played game with no player stats (no video)
       game.official = g.N || null; // { us, them, note } when the league logged a different score
       const ru = game.official ? game.official.us : g.us, rt = game.official ? game.official.them : g.them;
       game.res = ru > rt ? 'W' : ru < rt ? 'L' : 'D';
@@ -318,7 +319,7 @@
     return '<a class="lrow" href="' + href(['game', g.t, g.id], {}) + '"><span class="wl ' + wlClass(g) + '">' + resL(g) + '</span>' +
       '<span class="grow"><span style="display:flex;align-items:center;gap:6px;min-width:0">' + (showTeam ? '<span class="tag" style="background:' + D.teams[g.t].color + '">' + D.teams[g.t].short + '</span>' : '') +
       '<span class="t1" style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(vsName(g)) + '</span>' + roundTag(g) + '</span>' +
-      '<span class="note small">' + fmtDY(g.date) + (g.official ? ' · logged ' + g.official.us + '–' + g.official.them : '') + (top ? ' · Top: ' + esc(D.players[top.p].name) + ' ' + top.pts + ' pts' : '') + '</span></span>' +
+      '<span class="note small">' + fmtDY(g.date) + (g.official ? ' · logged ' + g.official.us + '–' + g.official.them : '') + (g.noStats ? ' · no stats' : '') + (top ? ' · Top: ' + esc(D.players[top.p].name) + ' ' + top.pts + ' pts' : '') + '</span></span>' +
       '<span class="big" style="font-size:22px">' + g.us + '–' + g.them + '</span></a>';
   }
 
@@ -397,10 +398,11 @@
 
     // team averages
     const TA = agg(linesOf(G));
-    const per = (k) => f1(TA[k] / n);
+    const sn = G.filter((g) => !g.noStats).length || 1; // games with player stats
+    const per = (k) => f1(TA[k] / sn);
     h += '<div class="card"><div><h2>Team Averages</h2><div class="sub">Per game' + (T.partialStats ? ' · tracked players only' : '') + '</div></div>' +
       '<div class="tiles">' + tile(T.partialStats ? f1(pf) : per('pts'), 'PTS') + tile(per('reb'), 'REB') + tile(per('ast'), 'AST') + tile(per('stl'), 'STL') + tile(per('blk'), 'BLK') + tile(per('to'), 'TO') + '</div>' +
-      shotBar('Field goals', TA.fgm, TA.fga, f1(TA.fgm / n) + '/' + f1(TA.fga / n)) + shotBar('3 pointers', TA.tpm, TA.tpa, f1(TA.tpm / n) + '/' + f1(TA.tpa / n)) + shotBar('Free throws', TA.ftm, TA.fta, f1(TA.ftm / n) + '/' + f1(TA.fta / n)) +
+      shotBar('Field goals', TA.fgm, TA.fga, f1(TA.fgm / sn) + '/' + f1(TA.fga / sn)) + shotBar('3 pointers', TA.tpm, TA.tpa, f1(TA.tpm / sn) + '/' + f1(TA.tpa / sn)) + shotBar('Free throws', TA.ftm, TA.fta, f1(TA.ftm / sn) + '/' + f1(TA.fta / sn)) +
       (T.partialStats ? '<div class="note small">' + esc(T.partialNote || '') + '</div>' : '') + '</div>';
 
     // roster
@@ -915,7 +917,7 @@
           const top = g.lines.slice().sort((a, b) => b.pts - a.pts)[0];
           return '<a class="lrow" style="min-height:68px" href="' + href(['game', g.t, g.id], {}) + '"><span class="daybox"><b>' + g.date.getDate() + '</b><span>' + WD[g.date.getDay()] + '</span></span>' +
             '<span class="grow" style="gap:3px"><span style="display:flex;align-items:center;gap:6px;min-width:0"><span class="tag" style="background:' + D.teams[g.t].color + '">' + D.teams[g.t].short + '</span><span style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(vsName(g)) + '</span>' +
-            roundTag(g) + '</span><span class="note small">' + (top ? 'Top: ' + esc(D.players[top.p].name) + ' · ' + top.pts + ' pts' : '') + '</span></span>' +
+            roundTag(g) + '</span><span class="note small">' + (top ? 'Top: ' + esc(D.players[top.p].name) + ' · ' + top.pts + ' pts' : g.noStats ? 'No stats recorded' : '') + '</span></span>' +
             '<span style="display:flex;align-items:center;gap:8px"><span class="big" style="font-size:22px;white-space:nowrap">' + g.us + '–' + g.them + '</span><span class="wl ' + wlClass(g) + '" style="width:26px;height:26px">' + resL(g) + '</span></span></a>';
         }).join('') + '</div>';
     }).join('') || '<div class="empty">No games match these filters.</div>';
@@ -1203,6 +1205,10 @@
       (g.official ? '<div class="scorenote" role="note">' + esc(g.official.note) + '</div>' : '') + '</header>';
     h += '<div class="wrap" style="padding-top:16px"><div class="grid2"><a class="pbtn' + (prev ? '' : ' off') + '" href="' + (prev ? href(['game', g.t, prev.id], {}) : '#') + '">' + (prev ? 'Previous · ' + esc(prev.o) : 'No earlier game') + '</a>' +
       '<a class="pbtn' + (next ? '' : ' off') + '" href="' + (next ? href(['game', g.t, next.id], {}) : '#') + '">' + (next ? 'Next · ' + esc(next.o) : 'No later game') + '</a></div>';
+    if (g.noStats) {
+      h += '<div class="card"><h2 style="font-size:18px">No Stats</h2><div class="note">' + esc(g.noStats) + '</div></div></div>';
+      return shell(g.t, h, 'games', g.t).replace('<div class="app"', '<div class="app wide"');
+    }
     h += '<div class="card" style="gap:6px"><h2 style="font-size:18px;margin-bottom:6px">Game Leaders</h2>' + lead('pts', 'PTS') + lead('reb', 'REB') + lead('ast', 'AST') + '</div>';
     const A = 'minmax(44px, 1fr)', W = 'minmax(60px, 1.3fr)';
     const XT = !!g.X, XM = XT && !!g.X.clock;

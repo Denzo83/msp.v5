@@ -41,7 +41,7 @@ These came over from v4, which only kept its own game data, so no export exists 
 - 2026-02-17-taco-tuesdays
 - 2026-02-24-taco-tuesdays
 - 2026-03-03-dkc
-- 2026-03-11-rice
+- 2026-03-10-rice
 - 2026-03-17-little-big-men
 - 2026-03-24-wins-n-tins
 - 2026-03-31-taco-tuesdays

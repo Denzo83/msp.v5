@@ -50,7 +50,7 @@ def build(quiet=False):
                 warnings.append(f'{f.name}: {l["p"]} has {l["pts"]} pts but shots add up to {calc}')
             lines.append([l['p'], number_for(l['p'], g['team'], g['date'], l['n'])] + [l[k] for k in STAT_KEYS])
         total = sum(l['pts'] for l in g['lines'])
-        if total != g['us'] and not teams.get(g['team'], {}).get('partialStats'):
+        if total != g['us'] and not g.get('noStats') and not teams.get(g['team'], {}).get('partialStats'):
             warnings.append(f'{f.name}: player points add to {total}, team score is {g["us"]}')
         ok = opp_key(g['opponent'])
         spellings[ok][opp_alias.get(g['opponent'], g['opponent'])] += 1
@@ -62,6 +62,8 @@ def build(quiet=False):
         venue = courts.get(f"{g['team']}/{g['id']}") or g.get('venue')
         if venue:
             games[-1]['V'] = venue
+        if g.get('noStats'):
+            games[-1]['NS'] = g.get('noStatsNote') or 'No player stats were recorded for this game.'
         if g.get('official'):
             games[-1]['N'] = g['official']
         if g.get('tracked'):
