@@ -228,12 +228,12 @@ img { display: block; }
 /* championship trophies in the team header */
 .hero-foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
 .hero-foot .hero-seg { flex: 1 1 auto; min-width: 0; }
-.trophies { display: flex; align-items: flex-end; margin-left: auto; flex-shrink: 0; }
-.trophies img { height: 82px; width: auto; filter: drop-shadow(0 2px 3px rgba(0,0,0,.35)); }
-.trophies img + img { margin-left: -8px; }
-.trophies span { font-family: var(--display); font-size: 22px; font-weight: 800; color: #fff; margin-left: 6px; line-height: 1; padding-bottom: 2px; }
+.trophies { display: flex; align-items: flex-end; gap: 4px; margin-left: auto; flex-shrink: 0; }
+.tro { display: flex; flex-direction: column; align-items: center; gap: 3px; text-decoration: none; color: #fff; }
+.tro img { height: var(--trophy-h, 82px); width: auto; filter: drop-shadow(0 2px 3px rgba(0,0,0,.35)); }
+.trophies.all .tro img { height: var(--trophy-h-all, 72px); }
+.tro span { font-size: var(--cap-size, 10px); font-weight: 700; line-height: 1.1; white-space: nowrap; opacity: .95; }
 
-.trophies.all img { height: 72px; }
 .board { align-items: start; }
 .board > div:not(:nth-child(2)) { padding-top: 6px; }
 .champs { font-family: var(--display); font-size: 20px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #FFD45A; text-shadow: 0 1px 2px rgba(0,0,0,.35); margin-top: 4px; }
@@ -292,13 +292,12 @@ img { display: block; }
 .pm.dn { color: var(--loss); }
 .scorenote { align-self: center; max-width: 440px; text-align: center; font-size: 13px; font-weight: 600; line-height: 1.4; padding: 8px 14px; border-radius: 12px; background: rgba(0,0,0,.24); color: #fff; }
 
-/* championship rings in the player header */
-.rings { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-top: 2px; }
-.rings::-webkit-scrollbar { display: none; }
-.rings { gap: 10px; }
-.ring { flex-shrink: 0; width: 92px; display: flex; flex-direction: column; align-items: center; gap: 5px; text-decoration: none; color: #fff; }
-.ring img { height: 88px; width: auto; filter: drop-shadow(0 3px 4px rgba(0,0,0,.4)); }
-.ring span { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 12px; line-height: 1.15; text-align: center; }
+/* championship rings in the player header, bottom right like the team trophies */
+.hero-foot .pills { flex: 1 1 auto; min-width: 0; }
+.rings { display: flex; align-items: flex-end; gap: 4px; margin-left: auto; flex-shrink: 0; }
+.ring { display: flex; flex-direction: column; align-items: center; gap: 3px; text-decoration: none; color: #fff; }
+.ring img { height: var(--ring-h, 64px); width: auto; filter: drop-shadow(0 2px 3px rgba(0,0,0,.4)); }
+.ring span { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: var(--cap-size, 10px); line-height: 1.1; text-align: center; }
 .ring span b { font-weight: 700; white-space: nowrap; }
-.ring span i { font-style: normal; display: inline-flex; align-items: center; gap: 4px; font-size: 11px; opacity: .92; white-space: nowrap; }
-.tb.s18 { width: 18px; height: 18px; font-size: 8px; border-radius: 9px; border: 1.5px solid rgba(255,255,255,.8); }
+.ring span i { font-style: normal; display: inline-flex; align-items: center; gap: 3px; opacity: .92; white-space: nowrap; }
+.tb.s16 { width: 14px; height: 14px; font-size: 6px; border-radius: 7px; border: 1px solid rgba(255,255,255,.8); }
