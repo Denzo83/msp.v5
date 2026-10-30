@@ -345,7 +345,7 @@
     // a trophy for every grand final won in the selected season(s)
     const titles = teamGames.filter((g) => g.round === 'gf' && g.win && (season === 'all' || g.s === season));
     const trophies = titles.length ? '<div class="trophies ' + (season === 'all' ? 'all' : 'one') + '" role="img" aria-label="' + titles.length + (titles.length === 1 ? ' championship' : ' championships') + '" title="Champions: ' + esc(titles.map((g) => D.seasonName(g.s)).join(', ')) + '">' +
-      titles.map((g) => '<a class="tro" href="' + href(['game', g.t, g.id], {}) + '"><img src="assets/trophy.png" alt=""><span>' + esc(D.seasonName(g.s)) + '</span></a>').join('') + '</div>' : '';
+      titles.map((g) => '<a class="tro" href="' + href(['game', g.t, g.id], {}) + '"><img src="assets/trophy.png" alt=""><span class="yr"><b>' + esc(g.s.slice(0, 4)) + '</b><span>' + esc(D.seasonName(g.s).slice(5)) + '</span></span></a>').join('') + '</div>' : '';
     const tabs = '<div class="hero-foot"><div class="hero-seg">' + D.teamIds.map((t) => '<a class="' + (t === tid ? 'on' : '') + '" href="' + href(['team', t], {}) + '">' + esc(D.teams[t].short === 'CC' ? 'Chuckers' : D.teams[t].name) + '</a>').join('') + '</div>' + trophies + '</div>';
     let h = '<header class="hero"><div class="hero-top"><a class="hbtn" href="#/">' + ICON.back + 'All teams</a>' + themeBtn() + '</div>' +
       '<div class="hero-id"><span class="av logo">' + esc(T.short) + (T.logo ? '<img src="' + esc(T.logo) + '" alt="" onerror="this.remove()">' : '') + '</span><div>' +
@@ -526,12 +526,16 @@
       (function () {
         const nums = teamsPlayed.map((t) => P.teams[t].number);
         const same = nums.every((n) => n === nums[0]);
-        const rings = D.titles.filter((x) => x.roster[pid] && (team === 'all' || x.t === team));
-        const ringRow = rings.length ? '<div class="rings" role="list" aria-label="' + rings.length + (rings.length === 1 ? ' championship' : ' championships') + '">' + rings.map((x) =>
-          '<a class="ring" role="listitem" href="' + href(['game', x.t, x.gf.id], {}) + '" title="' + esc(D.teams[x.t].name + ' · ' + D.seasonName(x.s) + ' champions') + '">' +
+        const order = D.teamIds;
+        const rings = D.titles.filter((x) => x.roster[pid] && (team === 'all' || x.t === team))
+          .sort((a, b) => order.indexOf(a.t) - order.indexOf(b.t) || a.gf.date - b.gf.date);
+        const tally = order.map((t) => ({ t, n: rings.filter((x) => x.t === t).length })).filter((x) => x.n);
+        const ringRow = rings.length ? '<div class="rings" role="list" aria-label="' + rings.length + (rings.length === 1 ? ' championship' : ' championships') + '"><div class="ring-row">' + rings.map((x, i) =>
+          '<a class="ring" role="listitem" style="z-index:' + (rings.length - i) + '" href="' + href(['game', x.t, x.gf.id], {}) + '" title="' + esc(D.teams[x.t].name + ' · ' + D.seasonName(x.s) + ' champions') + '">' +
           '<img src="assets/rings/' + esc(x.t) + '-' + esc(x.year) + '.png" alt="' + esc(D.seasonName(x.s) + ' ' + D.teams[x.t].name + ' championship ring') + '" onerror="this.src=\'assets/trophy.png\'">' +
-          '<span><b>' + esc(D.seasonName(x.s)) + '</b><i>' + teamBadge(x.t, 's16') + esc(D.teams[x.t].short === 'CC' ? 'Chuckers' : D.teams[x.t].name) + '</i></span></a>').join('') + '</div>' : '';
-        return '<div class="hero-foot"><div class="pills">' + teamsPlayed.map((t) => '<a class="pill" href="' + href(['team', t], {}) + '">' + teamBadge(t, 's26') + (same ? '' : '#' + esc(P.teams[t].number) + ' ') + esc(D.teams[t].name) + '</a>').join('') + '</div>' + ringRow + '</div>';
+          '<span class="yr"><b>' + esc(x.year) + '</b><span>' + esc(D.seasonName(x.s).slice(5)) + '</span></span></a>').join('') + '</div>' +
+          '<div class="tally">' + tally.map((x) => '<span>' + teamBadge(x.t, 's16') + '×' + x.n + '</span>').join('') + '</div></div>' : '';
+        return '<div class="pills">' + teamsPlayed.map((t) => '<a class="pill" href="' + href(['team', t], {}) + '">' + teamBadge(t, 's26') + (same ? '' : '#' + esc(P.teams[t].number) + ' ') + esc(D.teams[t].name) + '</a>').join('') + '</div>' + ringRow;
       })() + '</header>';
     h += '<nav class="tabs" aria-label="Player sections">' + [['ov', 'Overview'], ['stats', 'Stats']].concat(myGamesAll.some((g) => g.X) ? [['shots', 'Shooting']] : []).concat([['log', 'Game Log'], ['opp', 'Versus'], ['court', 'Courts']]).map((v) => '<a class="' + (view === v[0] ? 'on' : '') + '" ' + tog({ tab: v[0] === 'ov' ? null : v[0], sel: null, sg: null, sv: null, sk: null, court: null }) + '>' + v[1] + '</a>').join('') + '</nav>';
     h += filterBlock({ teams: teamsPlayed.length > 1 ? teamsPlayed : null, team, seasons, season, phase, scope: teamName + ' · ' + (season === 'all' ? 'All seasons' : D.seasonName(season)) + ' · ' + phaseName(phase) + ' · ' + A.n + ' GP' })
