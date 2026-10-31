@@ -6,9 +6,9 @@
   "opponent": "Swish cheese",
   "home": true,
   "us": 70,
-  "them": 42,
+  "them": 45,
   "playoff": false,
-  "source": "export",
+  "source": "tracker+export",
   "lines": [
     {
       "p": "rhys-ogle",
@@ -25,7 +25,7 @@
       "stl": 2,
       "to": 5,
       "blk": 1,
-      "ast": 0,
+      "ast": 1,
       "pts": 25
     },
     {
@@ -65,24 +65,6 @@
       "pts": 10
     },
     {
-      "p": "jarren-owen",
-      "n": "5",
-      "fgm": 3,
-      "fga": 10,
-      "tpm": 2,
-      "tpa": 8,
-      "ftm": 0,
-      "fta": 0,
-      "oreb": 1,
-      "dreb": 7,
-      "pf": 2,
-      "stl": 4,
-      "to": 4,
-      "blk": 0,
-      "ast": 11,
-      "pts": 8
-    },
-    {
       "p": "josh-todd",
       "n": "11",
       "fgm": 4,
@@ -101,6 +83,24 @@
       "pts": 8
     },
     {
+      "p": "jarren-owen",
+      "n": "5",
+      "fgm": 3,
+      "fga": 10,
+      "tpm": 2,
+      "tpa": 8,
+      "ftm": 0,
+      "fta": 0,
+      "oreb": 1,
+      "dreb": 7,
+      "pf": 2,
+      "stl": 4,
+      "to": 4,
+      "blk": 0,
+      "ast": 11,
+      "pts": 8
+    },
+    {
       "p": "callan-beamish",
       "n": "21",
       "fgm": 2,
@@ -109,7 +109,7 @@
       "tpa": 3,
       "ftm": 1,
       "fta": 2,
-      "oreb": 1,
+      "oreb": 2,
       "dreb": 4,
       "pf": 2,
       "stl": 2,
@@ -156,5 +156,1140 @@
       "p": "perry-budden",
       "n": "9"
     }
-  ]
+  ],
+  "tracked": {
+    "app": "mystat-tracker",
+    "trackAll": true,
+    "periods": 4,
+    "periodMinutes": 10,
+    "clock": false,
+    "byPeriod": [
+      [
+        24,
+        13
+      ],
+      [
+        15,
+        15
+      ],
+      [
+        19,
+        6
+      ],
+      [
+        12,
+        11
+      ]
+    ],
+    "starters": [
+      "josh-todd",
+      "jarren-owen",
+      "kyle-denzin",
+      "rhys-ogle",
+      "findlay-wendtman"
+    ],
+    "pm": {
+      "josh-todd": 24,
+      "jarren-owen": 28,
+      "callan-beamish": 13,
+      "kyle-denzin": 14,
+      "rhys-ogle": 23,
+      "findlay-wendtman": 23
+    },
+    "min": null,
+    "dunks": {},
+    "assisted": {
+      "josh-todd": [
+        4,
+        0
+      ],
+      "jarren-owen": [
+        2,
+        2
+      ],
+      "callan-beamish": [
+        2,
+        2
+      ],
+      "kyle-denzin": [
+        4,
+        2
+      ],
+      "rhys-ogle": [
+        11,
+        2
+      ],
+      "findlay-wendtman": [
+        5,
+        1
+      ]
+    },
+    "types": {
+      "kyle-denzin": {
+        "Layup": [
+          2,
+          2,
+          2
+        ],
+        "Catch & shoot": [
+          2,
+          6,
+          3
+        ]
+      },
+      "rhys-ogle": {
+        "Floater": [
+          1,
+          1,
+          2
+        ],
+        "Layup": [
+          7,
+          12,
+          2
+        ],
+        "Catch & shoot": [
+          2,
+          6,
+          3
+        ],
+        "Jumper": [
+          1,
+          1,
+          2
+        ]
+      },
+      "jarren-owen": {
+        "Catch & shoot": [
+          2,
+          8,
+          3
+        ],
+        "Layup": [
+          1,
+          2,
+          2
+        ]
+      },
+      "josh-todd": {
+        "Layup": [
+          4,
+          6,
+          2
+        ],
+        "Floater": [
+          0,
+          1,
+          2
+        ],
+        "Catch & shoot": [
+          0,
+          1,
+          3
+        ]
+      },
+      "findlay-wendtman": {
+        "Catch & shoot": [
+          1,
+          3,
+          3
+        ],
+        "Floater": [
+          2,
+          3,
+          2
+        ],
+        "Layup": [
+          2,
+          4,
+          2
+        ],
+        "Jumper": [
+          0,
+          1,
+          2
+        ],
+        "No type set (3PT)": [
+          0,
+          1,
+          3
+        ]
+      },
+      "callan-beamish": {
+        "Catch & shoot": [
+          2,
+          3,
+          3
+        ],
+        "Jumper": [
+          0,
+          1,
+          2
+        ],
+        "Floater": [
+          0,
+          2,
+          2
+        ]
+      }
+    },
+    "shots": [
+      [
+        "kyle-denzin",
+        81.9,
+        22.4,
+        1,
+        2,
+        "paint",
+        "Layup",
+        1,
+        0,
+        "josh-todd"
+      ],
+      [
+        "rhys-ogle",
+        52.8,
+        21.1,
+        1,
+        2,
+        "paint",
+        "Floater",
+        0,
+        0,
+        "kyle-denzin"
+      ],
+      [
+        "jarren-owen",
+        117.2,
+        78,
+        1,
+        3,
+        "w3",
+        "Catch & shoot",
+        0,
+        0,
+        "findlay-wendtman"
+      ],
+      [
+        "rhys-ogle",
+        65.7,
+        22.4,
+        0,
+        2,
+        "paint",
+        "Layup",
+        1,
+        0,
+        ""
+      ],
+      [
+        "jarren-owen",
+        132.1,
+        58.5,
+        0,
+        3,
+        "w3",
+        "Catch & shoot",
+        0,
+        0,
+        ""
+      ],
+      [
+        "rhys-ogle",
+        12,
+        56.4,
+        0,
+        3,
+        "w3",
+        "Catch & shoot",
+        0,
+        0,
+        ""
+      ],
+      [
+        "josh-todd",
+        66.5,
+        22.8,
+        1,
+        2,
+        "paint",
+        "Layup",
+        0,
+        0,
+        "findlay-wendtman"
+      ],
+      [
+        "kyle-denzin",
+        143.8,
+        19.5,
+        0,
+        3,
+        "c3",
+        "Catch & shoot",
+        0,
+        0,
+        ""
+      ],
+      [
+        "josh-todd",
+        80.2,
+        24.4,
+        1,
+        2,
+        "paint",
+        "Layup",
+        1,
+        0,
+        "jarren-owen"
+      ],
+      [
+        "kyle-denzin",
+        6.6,
+        6.2,
+        1,
+        3,
+        "c3",
+        "Catch & shoot",
+        0,
+        0,
+        "findlay-wendtman"
+      ],
+      [
+        "rhys-ogle",
+        67.3,
+        20.7,
+        1,
+        2,
+        "paint",
+        "Layup",
+        0,
+        0,
+        "jarren-owen"
+      ],
+      [
+        "findlay-wendtman",
+        144.2,
+        33.2,
+        1,
+        3,
+        "w3",
+        "Catch & shoot",
+        0,
+        0,
+        "josh-todd"
+      ],
+      [
+        "findlay-wendtman",
+        45.3,
+        13.6,
+        0,
+        2,
+        "mid",
+        "Floater",
+        0,
+        0,
+        ""
+      ],
+      [
+        "josh-todd",
+        86.8,
+        25.3,
+        0,
+        2,
+        "paint",
+        "Layup",
+        1,
+        0,
+        ""
+      ],
+      [
+        "rhys-ogle",
+        142.5,
+        16.1,
+        1,
+        3,
+        "c3",
+        "Catch & shoot",
+        0,
+        0,
+        "jarren-owen"
+      ],
+      [
+        "josh-todd",
+        83.9,
+        25.7,
+        1,
+        2,
+        "paint",
+        "Layup",
+        0,
+        0,
+        "jarren-owen"
+      ],
+      [
+        "rhys-ogle",
+        133.4,
+        59.3,
+        0,
+        3,
+        "w3",
+        "Catch & shoot",
+        0,
+        0,
+        ""
+      ],
+      [
+        "callan-beamish",
+        4.2,
+        16.1,
+        0,
+        3,
+        "c3",
+        "Catch & shoot",
+        0,
+        0,
+        ""
+      ],
+      [
+        "findlay-wendtman",
+        83.1,
+        27.3,
+        1,
+        2,
+        "paint",
+        "Layup",
+        1,
+        0,
+        "jarren-owen"
+      ],
+      [
+        "jarren-owen",
+        18.7,
+        65.6,
+        0,
+        3,
+        "w3",
+        "Catch & shoot",
+        0,
+        0,
+        ""
+      ],
+      [
+        "rhys-ogle",
+        65.2,
+        20.3,
+        1,
+        2,
+        "paint",
+        "Layup",
+        0,
+        0,
+        "jarren-owen"
+      ],
+      [
+        "findlay-wendtman",
+        43.2,
+        29,
+        0,
+        2,
+        "mid",
+        "Jumper",
+        1,
+        0,
+        ""
+      ],
+      [
+        "findlay-wendtman",
+        5,
+        24.4,
+        0,
+        3,
+        "c3",
+        "",
+        0,
+        0,
+        ""
+      ],
+      [
+        "findlay-wendtman",
+        36.1,
+        77.6,
+        0,
+        3,
+        "w3",
+        "Catch & shoot",
+        0,
+        0,
+        ""
+      ],
+      [
+        "rhys-ogle",
+        73.5,
+        25.7,
+        1,
+        2,
+        "paint",
+        "Layup",
+        0,
+        0,
+        "findlay-wendtman"
+      ],
+      [
+        "findlay-wendtman",
+        84.8,
+        26.1,
+        0,
+        2,
+        "paint",
+        "Layup",
+        1,
+        0,
+        ""
+      ],
+      [
+        "rhys-ogle",
+        64,
+        26.5,
+        1,
+        2,
+        "paint",
+        "Layup",
+        0,
+        0,
+        "findlay-wendtman"
+      ],
+      [
+        "josh-todd",
+        61.5,
+        27.3,
+        0,
+        2,
+        "paint",
+        "Floater",
+        0,
+        0,
+        ""
+      ],
+      [
+        "kyle-denzin",
+        5.4,
+        24,
+        1,
+        3,
+        "c3",
+        "Catch & shoot",
+        0,
+        0,
+        "josh-todd"
+      ],
+      [
+        "callan-beamish",
+        52.8,
+        58.1,
+        0,
+        2,
+        "mid",
+        "Jumper",
+        0,
+        0,
+        ""
+      ],
+      [
+        "jarren-owen",
+        143.8,
+        12,
+        1,
+        3,
+        "c3",
+        "Catch & shoot",
+        0,
+        1,
+        "kyle-denzin"
+      ],
+      [
+        "rhys-ogle",
+        143.4,
+        12.4,
+        0,
+        3,
+        "c3",
+        "Catch & shoot",
+        0,
+        0,
+        ""
+      ],
+      [
+        "josh-todd",
+        15,
+        58.1,
+        0,
+        3,
+        "w3",
+        "Catch & shoot",
+        0,
+        0,
+        ""
+      ],
+      [
+        "jarren-owen",
+        61.9,
+        26.1,
+        1,
+        2,
+        "paint",
+        "Layup",
+        1,
+        0,
+        ""
+      ],
+      [
+        "kyle-denzin",
+        10,
+        53.5,
+        0,
+        3,
+        "w3",
+        "Catch & shoot",
+        1,
+        0,
+        ""
+      ],
+      [
+        "jarren-owen",
+        118.8,
+        76.8,
+        0,
+        3,
+        "w3",
+        "Catch & shoot",
+        0,
+        0,
+        ""
+      ],
+      [
+        "kyle-denzin",
+        10,
+        49.4,
+        0,
+        3,
+        "w3",
+        "Catch & shoot",
+        0,
+        0,
+        ""
+      ],
+      [
+        "josh-todd",
+        81.9,
+        26.1,
+        1,
+        2,
+        "paint",
+        "Layup",
+        1,
+        0,
+        "findlay-wendtman"
+      ],
+      [
+        "findlay-wendtman",
+        61.5,
+        30.7,
+        1,
+        2,
+        "paint",
+        "Floater",
+        1,
+        0,
+        "callan-beamish"
+      ],
+      [
+        "callan-beamish",
+        100.1,
+        34.8,
+        0,
+        2,
+        "mid",
+        "Floater",
+        0,
+        0,
+        ""
+      ],
+      [
+        "jarren-owen",
+        142.1,
+        46.9,
+        0,
+        3,
+        "w3",
+        "Catch & shoot",
+        0,
+        0,
+        ""
+      ],
+      [
+        "findlay-wendtman",
+        86,
+        25.3,
+        1,
+        2,
+        "paint",
+        "Layup",
+        1,
+        0,
+        "jarren-owen"
+      ],
+      [
+        "rhys-ogle",
+        81,
+        29,
+        1,
+        2,
+        "paint",
+        "Layup",
+        0,
+        0,
+        "jarren-owen"
+      ],
+      [
+        "rhys-ogle",
+        144.6,
+        14.9,
+        1,
+        3,
+        "c3",
+        "Catch & shoot",
+        0,
+        0,
+        "josh-todd"
+      ],
+      [
+        "rhys-ogle",
+        81.4,
+        19.9,
+        1,
+        2,
+        "paint",
+        "Layup",
+        1,
+        0,
+        "callan-beamish"
+      ],
+      [
+        "rhys-ogle",
+        65.2,
+        17.8,
+        0,
+        2,
+        "paint",
+        "Layup",
+        0,
+        0,
+        ""
+      ],
+      [
+        "callan-beamish",
+        100.1,
+        20.7,
+        0,
+        2,
+        "mid",
+        "Floater",
+        0,
+        0,
+        ""
+      ],
+      [
+        "callan-beamish",
+        5.4,
+        15.3,
+        1,
+        3,
+        "c3",
+        "Catch & shoot",
+        0,
+        0,
+        "jarren-owen"
+      ],
+      [
+        "rhys-ogle",
+        79.4,
+        22.4,
+        0,
+        2,
+        "paint",
+        "Layup",
+        0,
+        0,
+        ""
+      ],
+      [
+        "rhys-ogle",
+        78.5,
+        25.3,
+        1,
+        2,
+        "paint",
+        "Layup",
+        1,
+        0,
+        "jarren-owen"
+      ],
+      [
+        "findlay-wendtman",
+        79.4,
+        23.2,
+        0,
+        2,
+        "paint",
+        "Layup",
+        1,
+        0,
+        ""
+      ],
+      [
+        "rhys-ogle",
+        81,
+        31.1,
+        0,
+        2,
+        "paint",
+        "Layup",
+        0,
+        0,
+        ""
+      ],
+      [
+        "jarren-owen",
+        143.4,
+        11.6,
+        0,
+        3,
+        "c3",
+        "Catch & shoot",
+        0,
+        0,
+        ""
+      ],
+      [
+        "callan-beamish",
+        3.7,
+        15.7,
+        1,
+        3,
+        "c3",
+        "Catch & shoot",
+        0,
+        0,
+        "kyle-denzin"
+      ],
+      [
+        "kyle-denzin",
+        91,
+        21.5,
+        1,
+        2,
+        "paint",
+        "Layup",
+        1,
+        0,
+        "jarren-owen"
+      ],
+      [
+        "kyle-denzin",
+        138.8,
+        72.6,
+        0,
+        3,
+        "w3",
+        "Catch & shoot",
+        0,
+        0,
+        ""
+      ],
+      [
+        "rhys-ogle",
+        65.2,
+        27.8,
+        1,
+        2,
+        "paint",
+        "Jumper",
+        1,
+        0,
+        "kyle-denzin"
+      ],
+      [
+        "jarren-owen",
+        37.4,
+        77.2,
+        0,
+        3,
+        "w3",
+        "Catch & shoot",
+        0,
+        0,
+        ""
+      ],
+      [
+        "josh-todd",
+        71.1,
+        30.3,
+        0,
+        2,
+        "paint",
+        "Layup",
+        0,
+        0,
+        ""
+      ],
+      [
+        "rhys-ogle",
+        122.2,
+        76.4,
+        0,
+        3,
+        "w3",
+        "Catch & shoot",
+        0,
+        0,
+        ""
+      ],
+      [
+        "jarren-owen",
+        61.5,
+        26.9,
+        0,
+        2,
+        "paint",
+        "Layup",
+        0,
+        0,
+        ""
+      ],
+      [
+        "findlay-wendtman",
+        3.7,
+        22.4,
+        0,
+        3,
+        "c3",
+        "Catch & shoot",
+        0,
+        0,
+        ""
+      ],
+      [
+        "rhys-ogle",
+        91,
+        19.5,
+        0,
+        2,
+        "paint",
+        "Layup",
+        0,
+        0,
+        ""
+      ],
+      [
+        "findlay-wendtman",
+        67.3,
+        37.7,
+        1,
+        2,
+        "paint",
+        "Floater",
+        0,
+        1,
+        "rhys-ogle"
+      ]
+    ],
+    "assists": {
+      "josh-todd": {
+        "kyle-denzin": 2,
+        "findlay-wendtman": 1,
+        "rhys-ogle": 1
+      },
+      "kyle-denzin": {
+        "rhys-ogle": 2,
+        "jarren-owen": 1,
+        "callan-beamish": 1
+      },
+      "findlay-wendtman": {
+        "jarren-owen": 1,
+        "josh-todd": 2,
+        "kyle-denzin": 1,
+        "rhys-ogle": 2
+      },
+      "jarren-owen": {
+        "josh-todd": 2,
+        "rhys-ogle": 5,
+        "findlay-wendtman": 2,
+        "callan-beamish": 1,
+        "kyle-denzin": 1
+      },
+      "callan-beamish": {
+        "findlay-wendtman": 1,
+        "rhys-ogle": 1
+      },
+      "rhys-ogle": {
+        "findlay-wendtman": 1
+      }
+    },
+    "extras": {
+      "paint": 40,
+      "sc": 5,
+      "fb": 22,
+      "pot": 11,
+      "astFg": 28,
+      "fgm": 29,
+      "bench": 7,
+      "rest": 0
+    },
+    "lineups": [
+      [
+        [
+          "josh-todd",
+          "jarren-owen",
+          "kyle-denzin",
+          "rhys-ogle",
+          "findlay-wendtman"
+        ],
+        0,
+        29,
+        17
+      ],
+      [
+        [
+          "jarren-owen",
+          "kyle-denzin",
+          "rhys-ogle",
+          "findlay-wendtman",
+          "callan-beamish"
+        ],
+        0,
+        11,
+        10
+      ],
+      [
+        [
+          "callan-beamish",
+          "josh-todd",
+          "jarren-owen",
+          "findlay-wendtman",
+          "rhys-ogle"
+        ],
+        0,
+        13,
+        2
+      ],
+      [
+        [
+          "kyle-denzin",
+          "rhys-ogle",
+          "findlay-wendtman",
+          "callan-beamish",
+          "josh-todd"
+        ],
+        0,
+        5,
+        8
+      ],
+      [
+        [
+          "kyle-denzin",
+          "rhys-ogle",
+          "callan-beamish",
+          "josh-todd",
+          "jarren-owen"
+        ],
+        0,
+        6,
+        4
+      ],
+      [
+        [
+          "kyle-denzin",
+          "callan-beamish",
+          "josh-todd",
+          "jarren-owen",
+          "findlay-wendtman"
+        ],
+        0,
+        6,
+        4
+      ]
+    ],
+    "flow": [
+      0,
+      2,
+      4,
+      7,
+      5,
+      3,
+      5,
+      7,
+      10,
+      12,
+      15,
+      12,
+      9,
+      12,
+      9,
+      11,
+      13,
+      10,
+      12,
+      14,
+      11,
+      13,
+      10,
+      11,
+      9,
+      8,
+      7,
+      10,
+      13,
+      11,
+      13,
+      11,
+      13,
+      15,
+      13,
+      14,
+      16,
+      14,
+      16,
+      19,
+      21,
+      24,
+      23,
+      25,
+      23,
+      21,
+      24,
+      22,
+      24,
+      26,
+      25,
+      23,
+      22,
+      24,
+      25
+    ],
+    "leadChanges": 0,
+    "ties": 0,
+    "maxLead": 26,
+    "maxDeficit": 0,
+    "bestRun": {
+      "us": 12,
+      "them": 6
+    }
+  },
+  "venue": "Court 3",
+  "official": {
+    "us": 68,
+    "them": 42,
+    "note": "Newy Bball logged this as 68–42. 70–45 is the real score from the replay."
+  },
+  "manualNote": "Stats from the MyStat Tracker file, except: fouls from the EasyStats export; Josh Todd steals and blocks, Findlay Wendtman steals and all of Jarren Owen's line kept from the EasyStats export (exports/pretty-good/2026-10-27-swish-cheese.html)."
 }
