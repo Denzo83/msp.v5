@@ -181,9 +181,8 @@ def replay(data):
             if p:
                 p['pf'] += 1
         elif t == 'tech':
-            # a technical counts as a personal foul; "eject" means the player sat out the rest of the game
+            # technicals are kept separate from personal fouls; "eject" means the player sat out the rest of the game
             if p:
-                p['pf'] += 1
                 p['tech'] += 1
             S['techs'].append({'p': e.get('p'), 'q': e.get('q'), 'c': e.get('c'), 'eject': bool(e.get('eject')), 'score': [S['us'], S['them']]})
             if e.get('eject') and e.get('p'):
@@ -255,6 +254,7 @@ def tracked_block(data, S, idmap):
         # [player, x, y, made, pts, zone group, shot type, fast break, 2nd chance, assister, period]
         'shots': [[m(s[0])] + s[1:9] + [m(s[9]) if s[9] and s[9] != 'tm' else s[9], s[10]] for s in S['shots']],
         'techs': [dict(t, p=m(t['p'])) for t in S['techs']],
+        'tech': {m(pid): S['P'][pid]['tech'] for pid in S['P'] if S['P'][pid]['tech']},
         'assists': {m(a): {('rest' if b == 'rest' else m(b)): n for b, n in v.items()} for a, v in S['assists'].items()},
         'extras': dict(S['x']),
         'lineups': [[[m(p) for p in L['ids']], L['sec'], L['pf'], L['pa']] for L in lineups if L['ids'] and (L['sec'] or L['pf'] or L['pa'])],

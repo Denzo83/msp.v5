@@ -75,7 +75,7 @@
       "fta": 2,
       "oreb": 1,
       "dreb": 3,
-      "pf": 3,
+      "pf": 2,
       "stl": 2,
       "to": 3,
       "blk": 2,
@@ -1098,10 +1098,12 @@
         "score": [
           55,
           60
-        ],
-        "note": "Duncles missed the free throw"
+        ]
       }
     ],
+    "tech": {
+      "joey-summers": 1
+    },
     "assists": {
       "joey-summers": {
         "tom-johnson": 1,

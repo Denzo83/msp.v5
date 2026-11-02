@@ -1254,9 +1254,6 @@
       const qpick = qs.length > 1 ? '<div class="scroller">' + chips([{ label: 'Full game', on: !sq, attr: tog({ sq: null }) }].concat(qs.map((q) => ({ label: ql(q), on: sq === q, attr: tog({ sq: q }) })))) + '</div>' : '';
       h += '<div class="card"><h2 style="font-size:18px">Shot Chart' + (sq ? ' · ' + ql(sq) : '') + '</h2>' + shotPanel(all.filter((s) => (sp === 'all' || s[0] === sp) && (!sq || s[10] === sq)), { aria: 'Shot chart', picker: picker + qpick }) + '</div>';
     }
-    if ((X.techs || []).length) {
-      h += '<div class="card"><h2 style="font-size:18px">Technical Fouls</h2>' + X.techs.map((t) => '<div class="note" style="margin-top:6px"><b style="color:var(--text)">' + esc(nameOf(t.p)) + '</b> · ' + (X.periods === 2 ? 'H' : 'Q') + t.q + (t.c != null ? ' ' + Math.floor(t.c / 60) + ':' + String(t.c % 60).padStart(2, '0') : '') + ' · at ' + t.score[0] + '–' + t.score[1] + (t.eject ? ' · sat out the rest of the game' : '') + (t.note ? ' · ' + esc(t.note) : '') + '</div>').join('') + '</div>';
-    }
     const passers = Object.entries(X.assists || {}).map(([a, m]) => {
       const to = Object.entries(m).sort((p, q) => q[1] - p[1]);
       return { a, n: to.reduce((t, y) => t + y[1], 0), to };
@@ -1412,12 +1409,13 @@
     h += '<div class="card" style="gap:6px"><h2 style="font-size:18px;margin-bottom:6px">Game Leaders</h2>' + lead('pts', 'PTS') + lead('reb', 'REB') + lead('ast', 'AST') + '</div>';
     const A = 'minmax(44px, 1fr)', W = 'minmax(60px, 1.3fr)';
     const XT = !!g.X, XM = XT && !!g.X.clock;
-    const cols = '200px ' + (XM ? A + ' ' : '') + [A, A, A, A, A, A, W, A, W, A, W, A, A, A, A].join(' ') + (XT ? ' ' + A : '');
+    const TF = XT && g.X.tech && Object.keys(g.X.tech).length ? g.X.tech : null;
+    const cols = '200px ' + (XM ? A + ' ' : '') + [A, A, A, A, A, A, W, A, W, A, W, A, A, A, A].join(' ') + (TF ? ' ' + A : '') + (XT ? ' ' + A : '');
     const pc = (m, a) => (a ? Math.round((m / a) * 100) + '%' : '–');
-    const cells = (x, tot) => (XM ? '<span>' + (tot || x.min == null ? '' : Math.round(x.min)) + '</span>' : '') + '<b class="pts">' + x.pts + '</b>' + [x.reb, x.ast, x.stl, x.blk, x.to, x.fgm + '-' + x.fga, pc(x.fgm, x.fga), x.tpm + '-' + x.tpa, pc(x.tpm, x.tpa), x.ftm + '-' + x.fta, pc(x.ftm, x.fta), x.oreb, x.dreb, x.pf].map((v) => '<span>' + v + '</span>').join('') +
+    const cells = (x, tot) => (XM ? '<span>' + (tot || x.min == null ? '' : Math.round(x.min)) + '</span>' : '') + '<b class="pts">' + x.pts + '</b>' + [x.reb, x.ast, x.stl, x.blk, x.to, x.fgm + '-' + x.fga, pc(x.fgm, x.fga), x.tpm + '-' + x.tpa, pc(x.tpm, x.tpa), x.ftm + '-' + x.fta, pc(x.ftm, x.fta), x.oreb, x.dreb, x.pf].concat(TF ? [tot ? Object.values(TF).reduce((a, b) => a + b, 0) : (TF[x.p] || 0)] : []).map((v) => '<span>' + v + '</span>').join('') +
       (XT ? (tot || x.pm == null ? '<span></span>' : '<span class="pm ' + (x.pm > 0 ? 'up' : x.pm < 0 ? 'dn' : '') + '">' + pmTxt(x.pm) + '</span>') : '');
     h += '<div class="card flush box" style="gap:10px"><div class="px"><h2 style="font-size:18px">Box Score</h2><div class="note small">Swipe sideways for every column · tap a player for their page</div></div><div class="xscroll"><div>' +
-      '<div class="trow th" style="grid-template-columns:' + cols + '"><span class="stick">PLAYER</span>' + (XM ? '<span>MIN</span>' : '') + ['PTS', 'REB', 'AST', 'STL', 'BLK', 'TO', 'FG', 'FG%', '3PT', '3P%', 'FT', 'FT%', 'OREB', 'DREB', 'PF'].concat(XT ? ['+/-'] : []).map((c) => '<span>' + c + '</span>').join('') + '</div>' +
+      '<div class="trow th" style="grid-template-columns:' + cols + '"><span class="stick">PLAYER</span>' + (XM ? '<span>MIN</span>' : '') + ['PTS', 'REB', 'AST', 'STL', 'BLK', 'TO', 'FG', 'FG%', '3PT', '3P%', 'FT', 'FT%', 'OREB', 'DREB', 'PF'].concat(TF ? ['TF'] : [], XT ? ['+/-'] : []).map((c) => '<span>' + c + '</span>').join('') + '</div>' +
       g.lines.slice().sort((a, b) => b.pts - a.pts).map((l) => '<a class="trow" style="grid-template-columns:' + cols + '" href="' + href(['player', l.p], { team: g.t }) + '"><span class="stick">' + avatar(l.p, 'sq44', g.t) +
         '<span><span class="t1" style="font-size:14px;white-space:normal;line-height:1.2">' + esc(D.players[l.p].name) + '</span><span class="t2" style="font-size:12px">#' + esc(l.n) + ' ' + ddTag(l) + '</span></span></span>' + cells(l) + '</a>').join('') +
       '<div class="trow strong total" style="grid-template-columns:' + cols + '"><span class="stick">' + (T.partialStats ? 'TRACKED TOTALS' : 'TEAM TOTALS') + '</span>' + cells(S, true) + '</div>' +

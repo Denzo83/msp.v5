@@ -183,7 +183,7 @@ function replay(g, upto) {
       case 'foul': if (p) p.pf++; S.fouls[e.q] = (S.fouls[e.q] || 0) + 1; break;
       case 'teamfoul': S.fouls[e.q] = (S.fouls[e.q] || 0) + 1; break;
       case 'tech':
-        if (p) { p.pf++; p.tech++; }
+        if (p) p.tech++;
         S.fouls[e.q] = (S.fouls[e.q] || 0) + 1;
         if (e.eject && e.p) { if (S.out.indexOf(e.p) < 0) S.out.push(e.p); if (S.court.indexOf(e.p) >= 0) { S.court = S.court.filter((id) => id !== e.p); S.lineupPm = 0; } }
         break;
@@ -546,12 +546,15 @@ function vBox() {
   ids.sort((a, b) => { const sa = S.starters.indexOf(a), sb = S.starters.indexOf(b); return (sa < 0 ? 99 : sa) - (sb < 0 ? 99 : sb) || SP[b].pts - SP[a].pts; });
   const T = blank();
   const cols = g.clockOn ? ['MIN'] : [];
-  const head = ['Player'].concat(cols, ['PTS', 'FG', 'FG%', '3P', '3P%', 'FT', 'FT%', 'OREB', 'DREB', 'REB', 'AST', 'STL', 'BLK', 'TO', 'PF', '+/-']);
+  const anyTech = ids.some((id) => SP[id].tech > 0);
+  const head = ['Player'].concat(cols, ['PTS', 'FG', 'FG%', '3P', '3P%', 'FT', 'FT%', 'OREB', 'DREB', 'REB', 'AST', 'STL', 'BLK', 'TO', 'PF'], anyTech ? ['TF'] : [], ['+/-']);
   const line = (name, p, tot) => {
     const c = [esc(name)];
     if (g.clockOn) c.push(tot ? '' : String(Math.round(p.sec / 60)));
     c.push(String(p.pts), p.fgm + '-' + p.fga, pct(p.fgm, p.fga), p.tpm + '-' + p.tpa, pct(p.tpm, p.tpa), p.ftm + '-' + p.fta, pct(p.ftm, p.fta),
-      String(p.oreb), String(p.dreb), String(p.oreb + p.dreb), String(p.ast), String(p.stl), String(p.blk), String(p.to), String(p.pf), tot ? '' : sgn(p.pm));
+      String(p.oreb), String(p.dreb), String(p.oreb + p.dreb), String(p.ast), String(p.stl), String(p.blk), String(p.to), String(p.pf));
+    if (anyTech) c.push(String(p.tech));
+    c.push(tot ? '' : sgn(p.pm));
     return '<tr' + (tot ? ' class="tot"' : '') + '>' + c.map((v, i) => '<td' + (i === (g.clockOn ? 2 : 1) ? ' class="pts"' : '') + '>' + v + '</td>').join('') + '</tr>';
   };
   const rows = ids.map((id) => { const p = SP[id]; Object.keys(T).forEach((k) => { T[k] += p[k]; }); return line(shortN(g, id), p, false); }).join('');
@@ -629,7 +632,7 @@ function vSheet() {
       '<button class="btn ghost full" data-act="closeSheet">Cancel</button>';
   } else if (ui.sheet === 'tech') {
     const n = ui.sel ? pname(g, ui.sel) : '';
-    inner = '<span class="big" style="font-size:24px">Technical foul</span><span class="muted">' + esc(n) + '. It counts as a personal and team foul. Log the opponent’s free throws with +1 FT.</span>' +
+    inner = '<span class="big" style="font-size:24px">Technical foul</span><span class="muted">' + esc(n) + '. Kept separate from personal fouls (it still adds a team foul). Log the opponent’s free throws with +1 FT.</span>' +
       '<button class="btn full" data-act="tech" data-arg="">Technical foul</button>' +
       '<button class="btn danger full" data-act="tech" data-arg="eject">Technical, off for the rest of the game</button>' +
       '<button class="btn ghost full" data-act="closeSheet">Cancel</button>';
