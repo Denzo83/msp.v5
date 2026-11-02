@@ -716,7 +716,38 @@
     h += '<div class="card list"><div class="head"><div><h2>Splits</h2><div class="sub">Per game</div></div></div><div class="trow th" style="grid-template-columns:minmax(0,1fr) 30px 40px 36px 36px 44px 44px"><span style="text-align:left">SPLIT</span><span>GP</span><span>PTS</span><span>REB</span><span>AST</span><span>FG%</span><span>3P%</span></div>' +
       sr('Wins', list.filter((l) => l.g.win)) + sr('Losses', list.filter((l) => l.g.res === 'L')) + (list.some((l) => l.g.draw) ? sr('Draws', list.filter((l) => l.g.draw)) : '') +
       sr('Regular season', list.filter((l) => !l.g.po)) + sr('Finals', list.filter((l) => l.g.po)) + '</div>';
+    h += quarterCard(pid, list);
     return h;
+  }
+
+  // per-game averages for each quarter, from tracker games (EasyStats files have no quarter split)
+  function quarterCard(pid, list) {
+    const ql = list.filter((l) => l.g.X && l.g.X.byQ && l.g.X.byQ.p[pid]);
+    if (!ql.length) return '';
+    const sums = [], ot = { n: 0 };
+    ql.forEach((l) => {
+      const B = l.g.X.byQ, rows = B.p[pid];
+      rows.forEach((r, i) => {
+        const o = {}; B.keys.forEach((k, j) => { o[k] = r[j]; });
+        const t = i < 4 ? (sums[i] = sums[i] || { n: 0 }) : ot;
+        if (i < 4) t.n++;
+        B.keys.forEach((k) => { t[k] = (t[k] || 0) + o[k]; });
+      });
+      if (rows.length > 4) ot.n++;
+    });
+    const half = ql.every((l) => l.g.X.periods === 2);
+    const label = (i) => (half ? 'H' : 'Q') + (i + 1);
+    const pc = (m, a) => (a ? Math.round(m / a * 100) + '%' : '–');
+    const pg = (v, n) => (n ? (Math.round(v / n * 10) / 10).toFixed(1) : '–');
+    const cols = 'minmax(0,1fr) 44px 44px 44px 50px 50px 50px';
+    const row = (name, t) => '<div class="trow" style="grid-template-columns:' + cols + ';min-height:48px;font-size:14px"><span style="text-align:left;font-weight:600">' + name + '</span>' +
+      '<span>' + pg(t.pts, t.n) + '</span><span>' + pg(t.oreb + t.dreb, t.n) + '</span><span>' + pg(t.ast, t.n) + '</span><span>' + pc(t.fgm, t.fga) + '</span><span>' + pc(t.tpm, t.tpa) + '</span>' +
+      '<span class="pm ' + (t.pm > 0 ? 'up' : t.pm < 0 ? 'dn' : '') + '">' + (t.n ? pmTxt(Math.round(t.pm / t.n * 10) / 10) : '–') + '</span></div>';
+    const best = sums.map((t, i) => ({ i, v: t && t.n ? t.pts / t.n : -1 })).sort((a, b) => b.v - a.v)[0];
+    return '<div class="card list"><div class="head"><div><h2>By Quarter</h2><div class="sub">Per game · ' + ql.length + ' tracker game' + (ql.length > 1 ? 's' : '') + (best && best.v > 0 ? ' · best scoring ' + (half ? 'half' : 'quarter') + ': ' + label(best.i) : '') + '</div></div></div>' +
+      '<div class="trow th" style="grid-template-columns:' + cols + '"><span style="text-align:left">' + (half ? 'HALF' : 'QTR') + '</span><span>PTS</span><span>REB</span><span>AST</span><span>FG%</span><span>3P%</span><span>+/-</span></div>' +
+      sums.map((t, i) => (t ? row(label(i), t) : '')).join('') + (ot.n ? row('OT', ot) : '') +
+      '<div class="note small px">Only games entered with MyStat Tracker have quarter stats.</div></div>';
   }
 
   function playerLog(list) {
@@ -1306,7 +1337,7 @@
     let pm = 0, mins = 0, withMin = 0, dunks = 0, astM = 0, ast3 = 0, fgm = 0, tpm = 0, on = 0, off = 0, onOff = 0;
     tl.forEach((l) => {
       const X = l.g.X;
-      (X.shots || []).forEach((s) => { if (s[0] === pid) shots.push(s.slice(0, 10).concat([l.g])); });
+      (X.shots || []).forEach((s) => { if (s[0] === pid) shots.push(s.slice(0, 10).concat([l.g, s[10] || 0])); });
       pm += l.pm || 0; if (l.min != null) { mins += l.min; withMin++; }
       dunks += (X.dunks || {})[pid] || 0;
       const as = (X.assisted || {})[pid]; if (as) { astM += as[0]; ast3 += as[1]; }
@@ -1347,9 +1378,11 @@
     if (!T.n) return '<div class="empty">No games in this filter were entered with MyStat Tracker yet. Shot charts, hot zones and assist breakdowns come from tracker games.</div>';
     const games = T.tl.map((l) => l.g).slice().reverse();
     const sg = games.some((g) => g.id === qv('sg')) ? qv('sg') : 'all';
-    const shots = T.shots.filter((s) => sg === 'all' || s[10].id === sg);
+    const qn = Math.max(0, ...T.shots.map((s) => s[11] || 0)), sq = Number(qv('sq')) >= 1 && Number(qv('sq')) <= qn ? Number(qv('sq')) : 0;
+    const shots = T.shots.filter((s) => (sg === 'all' || s[10].id === sg) && (!sq || s[11] === sq));
     const picker = '<label class="ctl">Games<select data-param="sg"><option value="all"' + (sg === 'all' ? ' selected' : '') + '>All tracker games (' + T.n + ')</option>' +
-      games.map((g) => '<option value="' + esc(g.id) + '"' + (g.id === sg ? ' selected' : '') + '>' + esc(fmtD(g.date) + ' ' + vsName(g) + ' · ' + D.teams[g.t].short) + '</option>').join('') + '</select></label>';
+      games.map((g) => '<option value="' + esc(g.id) + '"' + (g.id === sg ? ' selected' : '') + '>' + esc(fmtD(g.date) + ' ' + vsName(g) + ' · ' + D.teams[g.t].short) + '</option>').join('') + '</select></label>' +
+      (qn > 1 ? '<label class="ctl">Quarter<select data-param="sq"><option value=""' + (!sq ? ' selected' : '') + '>Every quarter</option>' + Array.from({ length: qn }, (_, i) => '<option value="' + (i + 1) + '"' + (sq === i + 1 ? ' selected' : '') + '>' + (i < 4 ? 'Q' + (i + 1) : 'OT') + '</option>').join('') + '</select></label>' : '');
     let h = '<div class="card"><h2>Shot Chart</h2>' + shotPanel(shots, { aria: 'Shot chart for ' + nameOf(pid), picker }) +
       '<div class="note small">Only shots given a spot on the court are charted.</div></div>';
     // breakdown wheels
@@ -1409,16 +1442,26 @@
     h += '<div class="card" style="gap:6px"><h2 style="font-size:18px;margin-bottom:6px">Game Leaders</h2>' + lead('pts', 'PTS') + lead('reb', 'REB') + lead('ast', 'AST') + '</div>';
     const A = 'minmax(44px, 1fr)', W = 'minmax(60px, 1.3fr)';
     const XT = !!g.X, XM = XT && !!g.X.clock;
+    const BQ = XT && g.X.byQ ? g.X.byQ : null, nq = BQ ? Math.max(0, ...Object.values(BQ.p).map((r) => r.length)) : 0;
+    const bq = BQ && Number(qv('sq')) >= 1 && Number(qv('sq')) <= nq ? Number(qv('sq')) : 0;
+    const qlab = (q) => (g.X && g.X.periods === 2 ? 'H' : 'Q') + q;
+    let BL = g.lines, BS = S;
+    if (bq) {
+      BL = g.lines.map((l) => { const r = BQ.p[l.p] && BQ.p[l.p][bq - 1]; if (!r) return null; const o = { p: l.p, n: l.n }; BQ.keys.forEach((k, i) => { o[k] = r[i]; }); o.reb = o.oreb + o.dreb; o.min = g.X.clock ? o.sec / 60 : null; return o; })
+        .filter((o) => o && (o.sec || o.pm || o.fga || o.fta || o.reb || o.ast || o.stl || o.blk || o.to || o.pf || o.tech));
+      BS = {}; ['pts', 'reb', 'ast', 'stl', 'blk', 'to', 'fgm', 'fga', 'tpm', 'tpa', 'ftm', 'fta', 'oreb', 'dreb', 'pf', 'tech'].forEach((k) => { BS[k] = BL.reduce((a, o) => a + (o[k] || 0), 0); });
+    }
+    const qchips = nq > 1 ? '<div class="scroller" style="margin-top:8px">' + chips([{ label: 'Full game', on: !bq, attr: tog({ sq: null }) }].concat(Array.from({ length: nq }, (_, i) => ({ label: qlab(i + 1), on: bq === i + 1, attr: tog({ sq: i + 1 }) })))) + '</div>' : '';
     const TF = XT && g.X.tech && Object.keys(g.X.tech).length ? g.X.tech : null;
     const cols = '200px ' + (XM ? A + ' ' : '') + [A, A, A, A, A, A, W, A, W, A, W, A, A, A, A].join(' ') + (TF ? ' ' + A : '') + (XT ? ' ' + A : '');
     const pc = (m, a) => (a ? Math.round((m / a) * 100) + '%' : '–');
-    const cells = (x, tot) => (XM ? '<span>' + (tot || x.min == null ? '' : Math.round(x.min)) + '</span>' : '') + '<b class="pts">' + x.pts + '</b>' + [x.reb, x.ast, x.stl, x.blk, x.to, x.fgm + '-' + x.fga, pc(x.fgm, x.fga), x.tpm + '-' + x.tpa, pc(x.tpm, x.tpa), x.ftm + '-' + x.fta, pc(x.ftm, x.fta), x.oreb, x.dreb, x.pf].concat(TF ? [tot ? Object.values(TF).reduce((a, b) => a + b, 0) : (TF[x.p] || 0)] : []).map((v) => '<span>' + v + '</span>').join('') +
+    const cells = (x, tot) => (XM ? '<span>' + (tot || x.min == null ? '' : Math.round(x.min)) + '</span>' : '') + '<b class="pts">' + x.pts + '</b>' + [x.reb, x.ast, x.stl, x.blk, x.to, x.fgm + '-' + x.fga, pc(x.fgm, x.fga), x.tpm + '-' + x.tpa, pc(x.tpm, x.tpa), x.ftm + '-' + x.fta, pc(x.ftm, x.fta), x.oreb, x.dreb, x.pf].concat(TF ? [bq ? x.tech || 0 : tot ? Object.values(TF).reduce((a, b) => a + b, 0) : (TF[x.p] || 0)] : []).map((v) => '<span>' + v + '</span>').join('') +
       (XT ? (tot || x.pm == null ? '<span></span>' : '<span class="pm ' + (x.pm > 0 ? 'up' : x.pm < 0 ? 'dn' : '') + '">' + pmTxt(x.pm) + '</span>') : '');
-    h += '<div class="card flush box" style="gap:10px"><div class="px"><h2 style="font-size:18px">Box Score</h2><div class="note small">Swipe sideways for every column · tap a player for their page</div></div><div class="xscroll"><div>' +
+    h += '<div class="card flush box" style="gap:10px"><div class="px"><h2 style="font-size:18px">Box Score' + (bq ? ' · ' + qlab(bq) : '') + '</h2><div class="note small">Swipe sideways for every column · tap a player for their page</div>' + qchips + '</div><div class="xscroll"><div>' +
       '<div class="trow th" style="grid-template-columns:' + cols + '"><span class="stick">PLAYER</span>' + (XM ? '<span>MIN</span>' : '') + ['PTS', 'REB', 'AST', 'STL', 'BLK', 'TO', 'FG', 'FG%', '3PT', '3P%', 'FT', 'FT%', 'OREB', 'DREB', 'PF'].concat(TF ? ['TF'] : [], XT ? ['+/-'] : []).map((c) => '<span>' + c + '</span>').join('') + '</div>' +
-      g.lines.slice().sort((a, b) => b.pts - a.pts).map((l) => '<a class="trow" style="grid-template-columns:' + cols + '" href="' + href(['player', l.p], { team: g.t }) + '"><span class="stick">' + avatar(l.p, 'sq44', g.t) +
-        '<span><span class="t1" style="font-size:14px;white-space:normal;line-height:1.2">' + esc(D.players[l.p].name) + '</span><span class="t2" style="font-size:12px">#' + esc(l.n) + ' ' + ddTag(l) + '</span></span></span>' + cells(l) + '</a>').join('') +
-      '<div class="trow strong total" style="grid-template-columns:' + cols + '"><span class="stick">' + (T.partialStats ? 'TRACKED TOTALS' : 'TEAM TOTALS') + '</span>' + cells(S, true) + '</div>' +
+      BL.slice().sort((a, b) => b.pts - a.pts).map((l) => '<a class="trow" style="grid-template-columns:' + cols + '" href="' + href(['player', l.p], { team: g.t }) + '"><span class="stick">' + avatar(l.p, 'sq44', g.t) +
+        '<span><span class="t1" style="font-size:14px;white-space:normal;line-height:1.2">' + esc(D.players[l.p].name) + '</span><span class="t2" style="font-size:12px">#' + esc(l.n) + ' ' + (bq ? '' : ddTag(l)) + '</span></span></span>' + cells(l) + '</a>').join('') +
+      '<div class="trow strong total" style="grid-template-columns:' + cols + '"><span class="stick">' + (T.partialStats ? 'TRACKED TOTALS' : 'TEAM TOTALS') + '</span>' + cells(BS, true) + '</div>' +
       '</div></div></div>';
     h += '<div class="card"><h2 style="font-size:18px">Team Shooting</h2>' + shotBar('Field goals', S.fgm, S.fga, S.fgm + '/' + S.fga) + shotBar('3 pointers', S.tpm, S.tpa, S.tpm + '/' + S.tpa) + shotBar('Free throws', S.ftm, S.fta, S.ftm + '/' + S.fta) +
       '<div class="tiles">' + tile(S.reb, 'Reb') + tile(S.oreb + ' / ' + S.dreb, 'Off / Def') + tile(S.ast, 'Ast') + tile(S.stl, 'Stl') + tile(S.blk, 'Blk') + tile(S.to, 'TO') + '</div>' +

@@ -9,6 +9,9 @@ import json
 import math
 from pathlib import Path
 
+# per-player, per-quarter numbers saved for the site's quarter views
+BYQ = ['pts', 'fgm', 'fga', 'tpm', 'tpa', 'ftm', 'fta', 'oreb', 'dreb', 'ast', 'stl', 'blk', 'to', 'pf', 'tech', 'pm', 'sec']
+
 STATS = ['fgm', 'fga', 'tpm', 'tpa', 'ftm', 'fta', 'oreb', 'dreb', 'pf', 'stl', 'to', 'blk', 'ast', 'pts']
 
 
@@ -96,6 +99,7 @@ def replay(data):
         S['assists'].setdefault(passer, {})
         S['assists'][passer][scorer] = S['assists'][passer].get(scorer, 0) + 1
 
+    snaps = []
     for e in data['events']:
         advance(e.get('q'), e.get('c'))
         t = e['t']
@@ -204,7 +208,18 @@ def replay(data):
                 S['sc'], S['pot'] = None, False
         elif t == 'period':
             advance(e['q'], 0)
+            snaps.append({pid: dict(v) for pid, v in P.items()})
             S['tq'], S['tc'] = e['next'], period_len
+    snaps.append({pid: dict(v) for pid, v in P.items()})
+    # stats for each quarter = snapshot at the end of it minus the one before
+    S['byq'] = {}
+    for pid in P:
+        rows, prev = [], None
+        for snap in snaps:
+            cur = snap.get(pid) or _blank()
+            rows.append([round(cur[k] - (prev[k] if prev else 0)) for k in BYQ])
+            prev = cur
+        S['byq'][pid] = rows
     S['P'] = P
     return S
 
@@ -254,6 +269,8 @@ def tracked_block(data, S, idmap):
         # [player, x, y, made, pts, zone group, shot type, fast break, 2nd chance, assister, period]
         'shots': [[m(s[0])] + s[1:9] + [m(s[9]) if s[9] and s[9] != 'tm' else s[9], s[10]] for s in S['shots']],
         'techs': [dict(t, p=m(t['p'])) for t in S['techs']],
+        # per player: one row per quarter, columns as in BYQ
+        'byQ': {'keys': BYQ, 'p': {m(pid): rows for pid, rows in S['byq'].items() if m(pid) in players and any(any(r) for r in rows)}},
         'tech': {m(pid): S['P'][pid]['tech'] for pid in S['P'] if S['P'][pid]['tech']},
         'assists': {m(a): {('rest' if b == 'rest' else m(b)): n for b, n in v.items()} for a, v in S['assists'].items()},
         'extras': dict(S['x']),

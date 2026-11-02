@@ -103,7 +103,8 @@
         "Catch & shoot",
         0,
         0,
-        ""
+        "",
+        1
       ],
       [
         "findlay-wendtman",
@@ -115,7 +116,8 @@
         "Off the dribble",
         1,
         0,
-        ""
+        "",
+        1
       ],
       [
         "findlay-wendtman",
@@ -127,7 +129,8 @@
         "Layup",
         1,
         0,
-        "tm"
+        "tm",
+        1
       ],
       [
         "findlay-wendtman",
@@ -139,7 +142,8 @@
         "Catch & shoot",
         0,
         0,
-        "tm"
+        "tm",
+        1
       ],
       [
         "findlay-wendtman",
@@ -151,7 +155,8 @@
         "Catch & shoot",
         0,
         0,
-        ""
+        "",
+        1
       ],
       [
         "findlay-wendtman",
@@ -163,7 +168,8 @@
         "Catch & shoot",
         0,
         0,
-        "tm"
+        "tm",
+        2
       ],
       [
         "findlay-wendtman",
@@ -175,7 +181,8 @@
         "Layup",
         1,
         0,
-        ""
+        "",
+        3
       ],
       [
         "findlay-wendtman",
@@ -187,7 +194,8 @@
         "Catch & shoot",
         1,
         0,
-        ""
+        "",
+        3
       ],
       [
         "findlay-wendtman",
@@ -199,7 +207,8 @@
         "Jumper",
         0,
         0,
-        ""
+        "",
+        4
       ],
       [
         "findlay-wendtman",
@@ -211,7 +220,8 @@
         "Catch & shoot",
         0,
         0,
-        ""
+        "",
+        4
       ],
       [
         "findlay-wendtman",
@@ -223,7 +233,8 @@
         "Catch & shoot",
         0,
         0,
-        "tm"
+        "tm",
+        4
       ]
     ],
     "assists": {
@@ -308,7 +319,110 @@
     "bestRun": {
       "us": 9,
       "them": 12
-    }
+    },
+    "byQ": {
+      "keys": [
+        "pts",
+        "fgm",
+        "fga",
+        "tpm",
+        "tpa",
+        "ftm",
+        "fta",
+        "oreb",
+        "dreb",
+        "ast",
+        "stl",
+        "blk",
+        "to",
+        "pf",
+        "tech",
+        "pm",
+        "sec"
+      ],
+      "p": {
+        "findlay-wendtman": [
+          [
+            5,
+            2,
+            5,
+            1,
+            4,
+            0,
+            0,
+            0,
+            0,
+            0,
+            3,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3,
+            1,
+            1,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            8,
+            0
+          ],
+          [
+            0,
+            0,
+            2,
+            0,
+            1,
+            0,
+            0,
+            0,
+            2,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            -12,
+            0
+          ],
+          [
+            3,
+            1,
+            3,
+            1,
+            2,
+            0,
+            0,
+            1,
+            0,
+            1,
+            2,
+            0,
+            0,
+            0,
+            0,
+            4,
+            0
+          ]
+        ]
+      }
+    },
+    "tech": {},
+    "techs": []
   },
   "venue": "Court 1",
   "official": {
