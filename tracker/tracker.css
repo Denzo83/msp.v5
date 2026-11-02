@@ -162,7 +162,7 @@ label.h2 { display: block; }
 .stile span { font-size: 13px; font-weight: 600; }
 .stile i { font-style: normal; font-size: 11px; color: var(--sub); }
 .tblwrap { overflow-x: auto; border-radius: 12px; background: var(--card); }
-table.box { border-collapse: collapse; min-width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
+table.box { display: table; width: auto; height: auto; border: 0; border-radius: 0; border-collapse: collapse; min-width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
 table.box th, table.box td { padding: 0 8px; height: 40px; border-bottom: 1px solid var(--line); white-space: nowrap; text-align: right; }
 table.box th { height: 36px; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; color: var(--sub); }
 table.box th:first-child, table.box td:first-child { text-align: left; position: sticky; left: 0; background: var(--card); font-weight: 600; }
@@ -204,3 +204,5 @@ table.box td.pts { font-weight: 700; }
   .last { padding: 6px 10px; }
   .last .t span:last-child { -webkit-line-clamp: 1; }
 }
+
+.techb { min-height: 40px; font-size: 14px; color: var(--sub); }

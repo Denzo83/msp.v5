@@ -102,13 +102,13 @@ function remaining(g) { const c = g.clock; return c.running ? Math.max(0, c.rem 
 function setClock(g, rem, running) { g.clock.rem = rem; g.clock.running = running; g.clock.at = Date.now(); }
 
 /* ---------- replay: works out every stat from the events ---------- */
-function blank() { return { fgm: 0, fga: 0, tpm: 0, tpa: 0, ftm: 0, fta: 0, oreb: 0, dreb: 0, pf: 0, stl: 0, to: 0, blk: 0, ast: 0, pts: 0, pm: 0, stint: 0, sec: 0, dunk: 0 }; }
+function blank() { return { fgm: 0, fga: 0, tpm: 0, tpa: 0, ftm: 0, fta: 0, oreb: 0, dreb: 0, pf: 0, stl: 0, to: 0, blk: 0, ast: 0, pts: 0, pm: 0, stint: 0, sec: 0, dunk: 0, tech: 0 }; }
 function replay(g, upto) {
   const P = {};
   g.roster.forEach((r) => { P[r.id] = blank(); });
   const S = { us: 0, them: 0, P, court: [], starters: [], q: 1, tq: 1, tc: g.len * 60, sc: null, pot: false, fouls: {}, qs: {},
     lineups: {}, lineupPm: 0, flow: [0], ties: 0, changes: 0, leader: 0, maxLead: 0, maxDef: 0, runT: null, runP: 0, bestRun: { us: 0, them: 0 },
-    x: { paint: 0, sc: 0, fb: 0, pot: 0, astFg: 0, fgm: 0, bench: 0, rest: 0 }, shots: [], after: [] };
+    x: { paint: 0, sc: 0, fb: 0, pot: 0, astFg: 0, fgm: 0, bench: 0, rest: 0 }, shots: [], after: [], out: [] };
   const lkey = () => S.court.slice().sort().join('|');
   const lineup = () => { const k = lkey(); if (!S.lineups[k]) S.lineups[k] = { ids: S.court.slice(), sec: 0, pf: 0, pa: 0 }; return S.lineups[k]; };
   const advance = (q, c) => {
@@ -162,7 +162,7 @@ function replay(g, upto) {
           score(e.pts, true, e.q);
           S.sc = null; S.pot = false;
         }
-        if (e.x != null) S.shots.push({ p: e.p, x: e.x, y: e.y, made: e.made, pts: e.pts, g: e.zg });
+        if (e.x != null) S.shots.push({ p: e.p, x: e.x, y: e.y, made: e.made, pts: e.pts, g: e.zg, q: e.q });
         break;
       case 'ft':
         if (!p) break;
@@ -182,6 +182,11 @@ function replay(g, upto) {
       case 'to': if (p) p.to++; S.sc = null; S.pot = false; break;
       case 'foul': if (p) p.pf++; S.fouls[e.q] = (S.fouls[e.q] || 0) + 1; break;
       case 'teamfoul': S.fouls[e.q] = (S.fouls[e.q] || 0) + 1; break;
+      case 'tech':
+        if (p) { p.pf++; p.tech++; }
+        S.fouls[e.q] = (S.fouls[e.q] || 0) + 1;
+        if (e.eject && e.p) { if (S.out.indexOf(e.p) < 0) S.out.push(e.p); if (S.court.indexOf(e.p) >= 0) { S.court = S.court.filter((id) => id !== e.p); S.lineupPm = 0; } }
+        break;
       case 'opp': score(e.pts, false, e.q); S.sc = null; S.pot = false; break;
       case 'oppto': S.pot = true; S.sc = null; break;
       case 'rest': if (e.ast && P[e.ast]) P[e.ast].ast++; score(e.pts, true, e.q); S.x.rest += e.pts; if (e.pts > 1) { S.sc = null; S.pot = false; } break;
@@ -222,6 +227,7 @@ function describe(g, e) {
     case 'to': return n + ' turnover';
     case 'foul': return n + ' foul';
     case 'teamfoul': return 'Team foul (untracked player)';
+    case 'tech': return n + ' technical foul' + (e.eject ? ' · off for the rest of the game' : '');
     case 'opp': return 'Opponent ' + (e.pts === 1 ? 'free throw' : e.pts + 'PT make');
     case 'oppto': return 'Opponent turnover';
     case 'rest': return 'Rest of team ' + (e.pts === 1 ? 'free throw' : e.pts + 'PT make') + (e.ast ? ' · ast ' + shortN(g, e.ast) : '');
@@ -396,7 +402,8 @@ function vTrack() {
     '<div class="pad" style="padding-top:12px"><div class="between"><span style="font-size:16px;font-weight:700">' + (sel ? esc(pname(g, sel)) : 'Pick a player') + '</span>' +
     (sp ? '<span class="small muted">' + sp.pts + ' pts · ' + (sp.oreb + sp.dreb) + ' reb · ' + sp.ast + ' ast · ' + sgn(sp.pm) + '</span>' : '') + '</div>' +
     '<div class="g3">' + shotBtn(2, true, '2PT') + shotBtn(3, true, '3PT') + shotBtn(1, true, 'FT') + shotBtn(2, false, '2PT') + shotBtn(3, false, '3PT') + shotBtn(1, false, 'FT') + '</div>' +
-    '<div class="g3">' + statBtn('oreb', 'Offensive rebound') + statBtn('dreb', 'Defensive rebound') + statBtn('stl', 'Steal') + statBtn('blk', 'Block') + statBtn('to', 'Turnover') + statBtn('foul', 'Foul') + '</div></div>' +
+    '<div class="g3">' + statBtn('oreb', 'Offensive rebound') + statBtn('dreb', 'Defensive rebound') + statBtn('stl', 'Steal') + statBtn('blk', 'Block') + statBtn('to', 'Turnover') + statBtn('foul', 'Foul') + '</div>' +
+    '<button class="btn ghost full techb" data-act="sheet" data-arg="tech"' + dis + '>Technical foul…</button></div>' +
     '<div class="pad" style="padding-top:12px">' + restRow +
     '<div class="sec" style="gap:6px"><h2 class="h2">' + esc(g.opp) + '</h2><div class="g4">' +
     '<button class="oppb" data-act="opp" data-arg="2" aria-label="Opponent made a 2">+2</button><button class="oppb" data-act="opp" data-arg="3" aria-label="Opponent made a 3">+3</button>' +
@@ -474,7 +481,7 @@ function vAssist() {
 
 function vSubs() {
   const g = cur(), S = replay(g);
-  const bench = g.roster.map((r) => r.id).filter((id) => S.court.indexOf(id) < 0);
+  const bench = g.roster.map((r) => r.id).filter((id) => S.court.indexOf(id) < 0 && S.out.indexOf(id) < 0);
   const row = (id, isCourt) => {
     const p = S.P[id], on = (isCourt ? ui.off : ui.on).indexOf(id) >= 0;
     const sub = isCourt ? 'Stint ' + sgn(p.stint) + ' · Game ' + sgn(p.pm) + ' · ' + p.pts + ' pts' : 'Game ' + sgn(p.pm) + ' · ' + p.pts + ' pts · ' + p.pf + ' fouls';
@@ -494,6 +501,7 @@ function vSubs() {
     '<div class="between" style="margin-top:4px"><h2 class="h2">On court</h2><span class="small" style="font-weight:700;color:' + (lu > 0 ? '#5B9BFF' : (lu < 0 ? '#FBBF24' : '#A3ABBA')) + '">This lineup ' + sgn(lu) + '</span></div>' +
     (S.court.length ? S.court.map((id) => row(id, true)).join('') : '<div class="empty">Nobody on the court</div>') +
     '<h2 class="h2" style="margin-top:8px">Bench</h2>' + (bench.length ? bench.map((id) => row(id, false)).join('') : '<div class="empty">Nobody on the bench</div>') +
+    (S.out.length ? '<p class="muted small" style="margin:0">Out for the game: ' + esc(S.out.map((id) => pname(g, id)).join(', ')) + '</p>' : '') +
     '<button class="btn dash full" data-act="addLatePlayer">' + I.plus + 'Add a player who arrived late</button>' +
     '<div style="margin-top:auto;padding-top:8px"><button class="btn full' + (ok ? '' : ' off') + '" style="min-height:56px;font-size:17px" data-act="confirmSubs"' + (ok ? '' : ' disabled') + '>' + label + '</button></div></div></div>';
 }
@@ -507,7 +515,7 @@ function vLog() {
   const qs = Object.keys(byQ).map(Number).sort((a, b) => b - a);
   const groups = qs.map((q) => '<h3 class="qh">' + (g.periods === 2 ? 'Half ' : 'Quarter ') + q + '</h3>' + byQ[q].reverse().map(({ e, i }) => {
     const k = kindOf(e);
-    return '<div class="ev"><span class="tm">' + (e.c != null ? fmtClock(e.c) : '') + '</span><span class="dot' + (k ? ' ' + k : '') + '"></span><span class="tx">' + esc(describe(g, e)) + '</span>' +
+    return '<div class="ev" data-act="evMenu" data-arg="' + e.n + '"><span class="tm">' + (e.c != null ? fmtClock(e.c) : '') + '</span><span class="dot' + (k ? ' ' + k : '') + '"></span><span class="tx">' + esc(describe(g, e)) + '</span>' +
       (scoring(e) ? '<span class="sc' + (k === 'o' ? ' o' : '') + '">' + S.after[i] + '</span>' : '') +
       (e.t !== 'start' ? '<button class="del" aria-label="Delete this entry" data-act="delEvent" data-arg="' + e.n + '">' + I.trash + '</button>' : '') + '</div>';
   }).join('')).join('');
@@ -525,14 +533,17 @@ function vLog() {
     '<div class="g4" style="gap:6px">' + [[S.changes, 'Lead changes'], [S.ties, 'Ties'], [sgn(S.maxLead), 'Largest lead'], [S.bestRun.us + '–0', 'Best run']].map((x) =>
       '<div style="background:var(--card2);border-radius:10px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:2px"><b style="font-family:var(--disp);font-size:22px;line-height:1">' + x[0] + '</b><span style="font-size:11px;color:var(--sub);text-align:center">' + x[1] + '</span></div>').join('') + '</div></div>' +
     '<div class="scroller">' + pills + '</div>' + (groups || '<div class="empty">Nothing here yet</div>') +
-    '<p class="muted small">To fix a mistake, delete the entry and enter it again. Everything after it updates.</p></div></div>' + navBar('log') + '</div>';
+    '<p class="muted small">To fix a mistake, delete the entry and enter it again. Everything after it updates. Tap an entry to end a quarter right after it.</p></div></div>' + navBar('log') + '</div>';
 }
 
 /* ---------- box score ---------- */
 function vBox() {
-  const g = cur(), S = replay(g);
-  const ids = g.roster.map((r) => r.id).filter((id) => { const p = S.P[id]; return S.starters.indexOf(id) >= 0 || p.sec > 0 || p.fga || p.fta || p.oreb || p.dreb || p.ast || p.stl || p.blk || p.to || p.pf || wasOn(g, id); });
-  ids.sort((a, b) => { const sa = S.starters.indexOf(a), sb = S.starters.indexOf(b); return (sa < 0 ? 99 : sa) - (sb < 0 ? 99 : sb) || S.P[b].pts - S.P[a].pts; });
+  const g = cur(), S = replay(g), QK = qKeys(g);
+  if (ui.qf == null || (ui.qf !== 'all' && QK.indexOf(ui.qf) < 0)) ui.qf = 'all';
+  const Q = ui.qf === 'all' ? null : quarterStats(g, ui.qf), SP = Q ? Q.P : S.P, SX = Q ? Q.x : S.x;
+  const busy = (p) => p.sec > 0 || p.fga || p.fta || p.oreb || p.dreb || p.ast || p.stl || p.blk || p.to || p.pf || p.pm;
+  const ids = g.roster.map((r) => r.id).filter((id) => { const p = SP[id]; if (!p) return false; return Q ? busy(p) : (S.starters.indexOf(id) >= 0 || busy(p) || wasOn(g, id)); });
+  ids.sort((a, b) => { const sa = S.starters.indexOf(a), sb = S.starters.indexOf(b); return (sa < 0 ? 99 : sa) - (sb < 0 ? 99 : sb) || SP[b].pts - SP[a].pts; });
   const T = blank();
   const cols = g.clockOn ? ['MIN'] : [];
   const head = ['Player'].concat(cols, ['PTS', 'FG', 'FG%', '3P', '3P%', 'FT', 'FT%', 'OREB', 'DREB', 'REB', 'AST', 'STL', 'BLK', 'TO', 'PF', '+/-']);
@@ -543,19 +554,26 @@ function vBox() {
       String(p.oreb), String(p.dreb), String(p.oreb + p.dreb), String(p.ast), String(p.stl), String(p.blk), String(p.to), String(p.pf), tot ? '' : sgn(p.pm));
     return '<tr' + (tot ? ' class="tot"' : '') + '>' + c.map((v, i) => '<td' + (i === (g.clockOn ? 2 : 1) ? ' class="pts"' : '') + '>' + v + '</td>').join('') + '</tr>';
   };
-  const rows = ids.map((id) => { const p = S.P[id]; Object.keys(T).forEach((k) => { T[k] += p[k]; }); return line(shortN(g, id), p, false); }).join('');
+  const rows = ids.map((id) => { const p = SP[id]; Object.keys(T).forEach((k) => { T[k] += p[k]; }); return line(shortN(g, id), p, false); }).join('');
   const qkeys = Object.keys(S.qs).map(Number).sort((a, b) => a - b);
-  const quarters = qkeys.map((q) => '<div style="background:var(--card2);border-radius:10px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:2px"><span class="small muted">' + periodLabel(g, q) + '</span><b style="font-family:var(--disp);font-size:19px">' + S.qs[q].us + '–' + S.qs[q].them + '</b></div>').join('');
+  const quarters = qkeys.map((q) => '<button data-act="qf" data-arg="' + q + '" style="border:' + (ui.qf === q ? '1.5px solid #5B9BFF' : '1.5px solid transparent') + ';color:inherit;font:inherit;background:var(--card2);border-radius:10px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:2px"><span class="small muted">' + periodLabel(g, q) + '</span><b style="font-family:var(--disp);font-size:19px">' + S.qs[q].us + '–' + S.qs[q].them + '</b></button>').join('');
   const fgm = T.fgm + 0;
   const extras = [
-    [S.x.paint, 'Points in the paint', ''], [S.x.sc, 'Second-chance points', T.oreb + ' offensive rebounds'],
-    [S.x.fb, 'Fast-break points', ''], [S.x.pot, 'Points off turnovers', ''],
-    [fgm ? Math.round(S.x.astFg / fgm * 100) + '%' : '–', 'Assisted makes', S.x.astFg + ' of ' + fgm + ' tracked makes'],
-    [g.trackAll ? S.x.bench : S.x.rest, g.trackAll ? 'Bench points' : 'Rest of team points', g.trackAll ? 'Players who did not start' : 'Untracked players'],
-    [sgn(S.maxLead), 'Largest lead', S.maxDef ? 'Biggest deficit −' + S.maxDef : ''], [S.changes, 'Lead changes', S.ties + ' ties']
-  ].map((x) => '<div class="stile"><b>' + x[0] + '</b><span>' + x[1] + '</span><i>' + esc(x[2]) + '</i></div>').join('');
+    [SX.paint, 'Points in the paint', ''], [SX.sc, 'Second-chance points', T.oreb + ' offensive rebounds'],
+    [SX.fb, 'Fast-break points', ''], [SX.pot, 'Points off turnovers', ''],
+    [fgm ? Math.round(SX.astFg / fgm * 100) + '%' : '–', 'Assisted makes', SX.astFg + ' of ' + fgm + ' tracked makes'],
+    [g.trackAll ? SX.bench : SX.rest, g.trackAll ? 'Bench points' : 'Rest of team points', g.trackAll ? 'Players who did not start' : 'Untracked players']
+  ].concat(Q ? [] : [[sgn(S.maxLead), 'Largest lead', S.maxDef ? 'Biggest deficit −' + S.maxDef : ''], [S.changes, 'Lead changes', S.ties + ' ties']]).map((x) => '<div class="stile"><b>' + x[0] + '</b><span>' + x[1] + '</span><i>' + esc(x[2]) + '</i></div>').join('');
   // shot chart
-  const shots = S.shots.filter((s) => ui.who === 'all' || s.p === ui.who);
+  const shots = (Q ? Q.shots : S.shots).filter((s) => ui.who === 'all' || s.p === ui.who);
+  const qLabel = Q ? periodLabel(g, ui.qf) : 'Full game';
+  const qpills = '<div class="scroller">' + [['all', 'Full game']].concat(QK.map((q) => [q, periodLabel(g, q)])).map((f) => '<button class="pill' + (ui.qf === f[0] ? ' on' : '') + '" data-act="qf" data-arg="' + f[0] + '">' + f[1] + '</button>').join('') + '</div>';
+  // team shooting by quarter (full-game view only)
+  const byQ = Q || QK.length < 2 ? '' : '<div class="sec"><div class="between"><h2 class="h2">By quarter</h2><span class="small muted">Tap a row for that ' + (g.periods === 2 ? 'half' : 'quarter') + '</span></div><div class="tblwrap"><table class="box"><thead><tr>' +
+    ['', 'Score', 'FG', 'FG%', '3P', '3P%', 'FT', 'REB', 'AST', 'TO'].map((h) => '<th scope="col">' + h + '</th>').join('') + '</tr></thead><tbody>' +
+    QK.map((q) => { const qs = quarterStats(g, q), t = blank(); Object.values(qs.P).forEach((p) => { Object.keys(t).forEach((k) => { t[k] += p[k] || 0; }); });
+      return '<tr data-act="qf" data-arg="' + q + '" style="cursor:pointer"><td>' + periodLabel(g, q) + '</td><td class="pts">' + qs.score.us + '–' + qs.score.them + '</td><td>' + t.fgm + '-' + t.fga + '</td><td>' + pct(t.fgm, t.fga) + '</td><td>' + t.tpm + '-' + t.tpa + '</td><td>' + pct(t.tpm, t.tpa) + '</td><td>' + t.ftm + '-' + t.fta + '</td><td>' + (t.oreb + t.dreb) + '</td><td>' + t.ast + '</td><td>' + t.to + '</td></tr>'; }).join('') +
+    '</tbody></table></div>' + (g.trackAll ? '' : '<span class="small muted">Tracked players only. The score includes everyone.</span>') + '</div>';
   const dots = shots.filter((s) => !s.made).map((s) => '<path d="M' + (s.x - 1.8) + ' ' + (s.y - 1.8) + 'L' + (s.x + 1.8) + ' ' + (s.y + 1.8) + 'M' + (s.x - 1.8) + ' ' + (s.y + 1.8) + 'L' + (s.x + 1.8) + ' ' + (s.y - 1.8) + '" style="fill:none;stroke:#F87171;stroke-width:1.1;stroke-linecap:round"></path>').join('') +
     shots.filter((s) => s.made).map((s) => '<circle cx="' + s.x + '" cy="' + s.y + '" r="2.1" style="fill:none;stroke:#4ADE80;stroke-width:0.9"></circle>').join('');
   const zones = ZGROUPS.map((z) => {
@@ -573,15 +591,16 @@ function vBox() {
     '<span class="small" style="font-weight:700;color:var(--sub);padding-bottom:8px">' + (done ? (S.us > S.them ? 'Win' : (S.us < S.them ? 'Loss' : 'Draw')) : 'Live') + '</span>' +
     '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;min-width:0"><span class="nm">' + esc(g.opp) + '</span><span class="pts" style="color:#FBBF24;font-size:58px">' + S.them + '</span></div></div>' +
     (quarters ? '<div class="g4" style="gap:6px">' + quarters + '</div>' : '') + '</div>' +
-    exportCard(g, done) +
-    '<div class="sec"><h2 class="h2">Team extras</h2><div class="g2">' + extras + '</div></div>' +
-    '<div class="sec"><div class="between"><h2 class="h2">Players</h2><span class="small muted">Scroll sideways for more</span></div><div class="tblwrap"><table class="box"><thead><tr>' + head.map((h) => '<th scope="col">' + h + '</th>').join('') + '</tr></thead><tbody>' + rows + line(g.trackAll ? 'Team' : 'Tracked', T, true) + '</tbody></table></div>' +
+    exportCard(g, done) + byQ +
+    '<div class="sec" style="gap:6px"><h2 class="h2">Show stats for</h2>' + qpills + '</div>' +
+    '<div class="sec"><h2 class="h2">Team extras' + (Q ? ' · ' + qLabel : '') + '</h2><div class="g2">' + extras + '</div></div>' +
+    '<div class="sec"><div class="between"><h2 class="h2">Players' + (Q ? ' · ' + qLabel : '') + '</h2><span class="small muted">Scroll sideways for more</span></div><div class="tblwrap"><table class="box"><thead><tr>' + head.map((h) => '<th scope="col">' + h + '</th>').join('') + '</tr></thead><tbody>' + rows + line(g.trackAll ? 'Team' : 'Tracked', T, true) + '</tbody></table></div>' +
     (g.trackAll ? '' : '<span class="small muted">Only tracked players are shown. The score includes everyone.</span>') + '</div>' +
-    '<div class="sec"><div class="between"><h2 class="h2">Shot chart</h2><span class="small muted">' + shots.filter((s) => s.made).length + ' of ' + shots.length + ' with a spot</span></div><div class="scroller">' + pickers + '</div>' +
+    '<div class="sec"><div class="between"><h2 class="h2">Shot chart' + (Q ? ' · ' + qLabel : '') + '</h2><span class="small muted">' + shots.filter((s) => s.made).length + ' of ' + shots.length + ' with a spot</span></div><div class="scroller">' + pickers + '</div>' +
     '<svg viewBox="0 0 150 100" style="width:100%;display:block;background:var(--card);border-radius:14px" role="img" aria-label="Shot chart"><g class="lines">' + COURT_LINES + '</g>' + dots + '</svg>' +
     '<div class="row small muted" style="gap:16px"><span class="row" style="gap:6px"><span style="width:10px;height:10px;border-radius:5px;border:2px solid #4ADE80;box-sizing:border-box;display:inline-block"></span>Made</span><span class="row" style="gap:6px"><b style="color:#F87171;font-size:14px">×</b>Missed</span></div>' +
     '<div class="card" style="padding:4px 12px">' + zones + '</div></div>' +
-    (lus ? '<div class="sec"><h2 class="h2">Lineups</h2>' + lus + '</div>' : '') +
+    (lus && !Q ? '<div class="sec"><h2 class="h2">Lineups</h2>' + lus + '</div>' : '') +
     (done ? '' : '<button class="btn ghost full" data-act="finish">Finish game</button>') +
     '</div></div>' + (done ? '' : navBar('box')) + '</div>';
 }
@@ -607,6 +626,26 @@ function vSheet() {
       (g.clockOn ? '<button class="btn ghost full" data-act="sheet" data-arg="clock">Set the clock</button>' : '') +
       '<button class="btn ghost full" data-act="finish">Finish game</button>' +
       '<button class="btn ghost full" data-act="home">All games (this one stays saved)</button>' +
+      '<button class="btn ghost full" data-act="closeSheet">Cancel</button>';
+  } else if (ui.sheet === 'tech') {
+    const n = ui.sel ? pname(g, ui.sel) : '';
+    inner = '<span class="big" style="font-size:24px">Technical foul</span><span class="muted">' + esc(n) + '. It counts as a personal and team foul. Log the opponent’s free throws with +1 FT.</span>' +
+      '<button class="btn full" data-act="tech" data-arg="">Technical foul</button>' +
+      '<button class="btn danger full" data-act="tech" data-arg="eject">Technical, off for the rest of the game</button>' +
+      '<button class="btn ghost full" data-act="closeSheet">Cancel</button>';
+  } else if (ui.sheet === 'ev') {
+    const i = g.events.findIndex((e) => String(e.n) === String(ui.evn)), e = g.events[i];
+    if (!e) { ui.sheet = null; return ''; }
+    const opts = [];
+    if (e.t !== 'period') {
+      const nextIsBreak = g.events[i + 1] && g.events[i + 1].t === 'period';
+      if (!nextIsBreak) opts.push(e.q);
+      if (e.q > 1) opts.push(e.q - 1);
+    }
+    inner = '<span class="kick">' + periodLabel(g, e.q) + (e.c != null ? ' · ' + fmtClock(e.c) : '') + '</span><span style="font-size:16px;font-weight:600">' + esc(describe(g, e)) + '</span>' +
+      opts.map((k) => '<button class="btn full" data-act="moveBreak" data-arg="' + k + '">End ' + periodLabel(g, k) + ' after this entry</button>').join('') +
+      (opts.length ? '<span class="muted small">Every entry after it moves into ' + periodLabel(g, opts[0] + 1) + (opts.length > 1 ? ' (or ' + periodLabel(g, opts[1] + 1) + ')' : '') + ' until the next quarter break.</span>' : '') +
+      (e.t !== 'start' ? '<button class="btn danger full" data-act="delEvent" data-arg="' + e.n + '">Delete this entry</button>' : '') +
       '<button class="btn ghost full" data-act="closeSheet">Cancel</button>';
   } else if (ui.sheet === 'clock') {
     const r = Math.round(remaining(g));
@@ -677,6 +716,33 @@ function saveShot(ast) {
   if (and1) toast('And-1: now tap FT Made or Missed for ' + shortN(cur(), pd.p)); else render();
 }
 
+/* End quarter k right after entry n: moves that quarter's break (or adds it if it was missed), then renumbers every entry. */
+function moveBreak(g, n, k) {
+  let i = g.events.findIndex((e) => String(e.n) === String(n));
+  if (i < 0) return;
+  const j = g.events.findIndex((e) => e.t === 'period' && e.q === k);
+  const after = g.events[i];
+  if (j >= 0) { g.events.splice(j, 1); if (j < i) i--; }
+  g.events.splice(i + 1, 0, { t: 'period', q: k, next: k + 1, c: g.clockOn ? 0 : null, n: (g.seq = (g.seq || 0) + 1) });
+  let q = 1;
+  g.events.forEach((e) => { e.q = q; if (e.t === 'period') { e.next = q + 1; q++; } });
+  if (g.status === 'live' && g.clock.q !== q) { g.clock.q = q; }
+  persist();
+  toast(periodLabel(g, k) + ' now ends after: ' + describe(g, after));
+}
+
+/* Stats for one quarter: the game up to the end of it, minus the game up to its start. */
+function quarterStats(g, q) {
+  const startI = q === 1 ? 0 : g.events.findIndex((e) => e.t === 'period' && e.q === q - 1) + 1;
+  const endJ = g.events.findIndex((e) => e.t === 'period' && e.q === q);
+  const A = startI > 0 ? replay(g, startI) : null, B = endJ >= 0 ? replay(g, endJ + 1) : replay(g);
+  const P = {};
+  Object.keys(B.P).forEach((id) => { const b = B.P[id], a = A && A.P[id]; P[id] = {}; Object.keys(b).forEach((key) => { P[id][key] = b[key] - (a ? a[key] || 0 : 0); }); });
+  const x = {}; Object.keys(B.x).forEach((key) => { x[key] = B.x[key] - (A ? A.x[key] : 0); });
+  return { P, x, shots: B.shots.filter((s) => s.q === q), score: B.qs[q] || { us: 0, them: 0 } };
+}
+function qKeys(g) { const n = Math.max(g.clock.q, ...g.events.map((e) => e.q || 1)); const out = []; for (let q = 1; q <= n; q++) out.push(q); return out; }
+
 const ACT = {
   home: () => { ui.sheet = null; ui.gid = null; go('home'); },
   sync: () => refreshBundle(true),
@@ -740,6 +806,15 @@ const ACT = {
   saveRest: (ast) => { const e = { t: 'rest', pts: ui.pend.pts }; if (ast) e.ast = ast; add(e); ui.pend = null; go('track'); },
   cancelRest: () => { ui.pend = null; go('track'); },
   teamfoul: () => { add({ t: 'teamfoul' }); render(); },
+  tech: (arg) => {
+    const g = cur(), id = ui.sel; if (!id) return;
+    const e = { t: 'tech', p: id }; if (arg === 'eject') e.eject = true;
+    add(e); ui.sheet = null;
+    if (e.eject) { ui.sel = null; toast(shortN(g, id) + ' is off for the rest of the game.' + (g.trackAll ? ' Tap Subs to bring someone on.' : '')); } else render();
+  },
+  evMenu: (n) => { ui.evn = n; ui.sheet = 'ev'; render(); },
+  moveBreak: (k) => { moveBreak(cur(), ui.evn, Number(k)); ui.sheet = null; },
+  qf: (q) => { ui.qf = q === 'all' ? 'all' : Number(q); render(); },
   undo: () => undo(),
   clockToggle: () => { const g = cur(); setClock(g, remaining(g), !g.clock.running); persist(); render(); },
   court: (a, el, ev) => {
@@ -789,7 +864,7 @@ const ACT = {
     if (!window.confirm('Delete this entry?\n\n' + describe(g, g.events[i]))) return;
     const e = g.events.splice(i, 1)[0];
     if (e.t === 'period' && i === g.events.length) { g.clock.q = e.q; setClock(g, 0, false); }
-    persist(); toast('Deleted: ' + describe(g, e));
+    ui.sheet = null; persist(); toast('Deleted: ' + describe(g, e));
   },
   who: (id) => { ui.who = id; render(); },
   sheet: (k) => { ui.sheet = k; render(); },

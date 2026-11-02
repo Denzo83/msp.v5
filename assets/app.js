@@ -1248,7 +1248,14 @@
       const shooters = Array.from(new Set(all.map((s) => s[0])));
       const sp = shooters.indexOf(qv('sp')) >= 0 ? qv('sp') : 'all';
       const picker = shooters.length > 1 ? '<div class="scroller">' + chips([{ label: 'Everyone', on: sp === 'all', attr: tog({ sp: null }) }].concat(shooters.map((pid) => ({ label: shortOf(pid), on: sp === pid, attr: tog({ sp: pid }) })))) + '</div>' : '';
-      h += '<div class="card"><h2 style="font-size:18px">Shot Chart</h2>' + shotPanel(all.filter((s) => sp === 'all' || s[0] === sp), { aria: 'Shot chart', picker }) + '</div>';
+      const qs = Array.from(new Set(all.map((s) => s[10]).filter(Boolean))).sort((a, b) => a - b);
+      const sq = qs.indexOf(Number(qv('sq'))) >= 0 ? Number(qv('sq')) : 0;
+      const ql = (q) => (X.periods === 2 ? 'H' : 'Q') + q;
+      const qpick = qs.length > 1 ? '<div class="scroller">' + chips([{ label: 'Full game', on: !sq, attr: tog({ sq: null }) }].concat(qs.map((q) => ({ label: ql(q), on: sq === q, attr: tog({ sq: q }) })))) + '</div>' : '';
+      h += '<div class="card"><h2 style="font-size:18px">Shot Chart' + (sq ? ' · ' + ql(sq) : '') + '</h2>' + shotPanel(all.filter((s) => (sp === 'all' || s[0] === sp) && (!sq || s[10] === sq)), { aria: 'Shot chart', picker: picker + qpick }) + '</div>';
+    }
+    if ((X.techs || []).length) {
+      h += '<div class="card"><h2 style="font-size:18px">Technical Fouls</h2>' + X.techs.map((t) => '<div class="note" style="margin-top:6px"><b style="color:var(--text)">' + esc(nameOf(t.p)) + '</b> · ' + (X.periods === 2 ? 'H' : 'Q') + t.q + (t.c != null ? ' ' + Math.floor(t.c / 60) + ':' + String(t.c % 60).padStart(2, '0') : '') + ' · at ' + t.score[0] + '–' + t.score[1] + (t.eject ? ' · sat out the rest of the game' : '') + (t.note ? ' · ' + esc(t.note) : '') + '</div>').join('') + '</div>';
     }
     const passers = Object.entries(X.assists || {}).map(([a, m]) => {
       const to = Object.entries(m).sort((p, q) => q[1] - p[1]);
@@ -1302,7 +1309,7 @@
     let pm = 0, mins = 0, withMin = 0, dunks = 0, astM = 0, ast3 = 0, fgm = 0, tpm = 0, on = 0, off = 0, onOff = 0;
     tl.forEach((l) => {
       const X = l.g.X;
-      (X.shots || []).forEach((s) => { if (s[0] === pid) shots.push(s.concat([l.g])); });
+      (X.shots || []).forEach((s) => { if (s[0] === pid) shots.push(s.slice(0, 10).concat([l.g])); });
       pm += l.pm || 0; if (l.min != null) { mins += l.min; withMin++; }
       dunks += (X.dunks || {})[pid] || 0;
       const as = (X.assisted || {})[pid]; if (as) { astM += as[0]; ast3 += as[1]; }

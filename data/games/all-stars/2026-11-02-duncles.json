@@ -1,0 +1,1231 @@
+{
+  "id": "2026-11-02-duncles",
+  "team": "all-stars",
+  "date": "2026-11-02",
+  "season": "2026-spring",
+  "opponent": "Duncles",
+  "home": true,
+  "us": 61,
+  "them": 63,
+  "playoff": false,
+  "source": "tracker",
+  "lines": [
+    {
+      "p": "levi-denzin",
+      "n": "17",
+      "fgm": 11,
+      "fga": 25,
+      "tpm": 5,
+      "tpa": 12,
+      "ftm": 2,
+      "fta": 2,
+      "oreb": 0,
+      "dreb": 1,
+      "pf": 0,
+      "stl": 0,
+      "to": 5,
+      "blk": 0,
+      "ast": 2,
+      "pts": 29
+    },
+    {
+      "p": "tunde-ajayi",
+      "n": "15",
+      "fgm": 6,
+      "fga": 17,
+      "tpm": 2,
+      "tpa": 7,
+      "ftm": 0,
+      "fta": 2,
+      "oreb": 7,
+      "dreb": 7,
+      "pf": 4,
+      "stl": 9,
+      "to": 2,
+      "blk": 0,
+      "ast": 5,
+      "pts": 14
+    },
+    {
+      "p": "tom-johnson",
+      "n": "95",
+      "fgm": 4,
+      "fga": 13,
+      "tpm": 2,
+      "tpa": 8,
+      "ftm": 0,
+      "fta": 2,
+      "oreb": 1,
+      "dreb": 8,
+      "pf": 1,
+      "stl": 2,
+      "to": 4,
+      "blk": 0,
+      "ast": 5,
+      "pts": 10
+    },
+    {
+      "p": "joey-summers",
+      "n": "5",
+      "fgm": 2,
+      "fga": 4,
+      "tpm": 1,
+      "tpa": 2,
+      "ftm": 0,
+      "fta": 2,
+      "oreb": 1,
+      "dreb": 3,
+      "pf": 3,
+      "stl": 2,
+      "to": 3,
+      "blk": 2,
+      "ast": 3,
+      "pts": 5
+    },
+    {
+      "p": "oscar-diamante",
+      "n": "43",
+      "fgm": 1,
+      "fga": 4,
+      "tpm": 0,
+      "tpa": 0,
+      "ftm": 1,
+      "fta": 2,
+      "oreb": 3,
+      "dreb": 6,
+      "pf": 0,
+      "stl": 1,
+      "to": 3,
+      "blk": 1,
+      "ast": 2,
+      "pts": 3
+    }
+  ],
+  "dnp": [],
+  "tracked": {
+    "app": "mystat-tracker",
+    "trackAll": true,
+    "periods": 4,
+    "periodMinutes": 10,
+    "clock": false,
+    "byPeriod": [
+      [
+        19,
+        15
+      ],
+      [
+        16,
+        22
+      ],
+      [
+        13,
+        12
+      ],
+      [
+        13,
+        14
+      ]
+    ],
+    "starters": [
+      "levi-denzin",
+      "tunde-ajayi",
+      "tom-johnson",
+      "joey-summers",
+      "oscar-diamante"
+    ],
+    "pm": {
+      "levi-denzin": -2,
+      "tunde-ajayi": -2,
+      "tom-johnson": -2,
+      "oscar-diamante": -2,
+      "joey-summers": -5
+    },
+    "min": null,
+    "dunks": {
+      "oscar-diamante": 1
+    },
+    "assisted": {
+      "levi-denzin": [
+        11,
+        5
+      ],
+      "tunde-ajayi": [
+        1,
+        1
+      ],
+      "tom-johnson": [
+        2,
+        2
+      ],
+      "oscar-diamante": [
+        1,
+        0
+      ],
+      "joey-summers": [
+        2,
+        1
+      ]
+    },
+    "types": {
+      "tom-johnson": {
+        "Catch & shoot": [
+          2,
+          8,
+          3
+        ],
+        "Layup": [
+          2,
+          4,
+          2
+        ],
+        "Hook": [
+          0,
+          1,
+          2
+        ]
+      },
+      "levi-denzin": {
+        "Catch & shoot": [
+          5,
+          8,
+          3
+        ],
+        "Jumper": [
+          0,
+          1,
+          2
+        ],
+        "Layup": [
+          5,
+          10,
+          2
+        ],
+        "Off the dribble": [
+          0,
+          4,
+          3
+        ],
+        "Floater": [
+          1,
+          2,
+          2
+        ]
+      },
+      "tunde-ajayi": {
+        "Catch & shoot": [
+          1,
+          5,
+          3
+        ],
+        "Floater": [
+          1,
+          1,
+          2
+        ],
+        "Jumper": [
+          0,
+          1,
+          2
+        ],
+        "Layup": [
+          3,
+          7,
+          2
+        ],
+        "Tip-in": [
+          0,
+          1,
+          2
+        ],
+        "Off the dribble": [
+          1,
+          2,
+          3
+        ]
+      },
+      "joey-summers": {
+        "Catch & shoot": [
+          1,
+          2,
+          3
+        ],
+        "Layup": [
+          1,
+          2,
+          2
+        ]
+      },
+      "oscar-diamante": {
+        "Layup": [
+          0,
+          2,
+          2
+        ],
+        "Dunk": [
+          1,
+          2,
+          2
+        ]
+      }
+    },
+    "shots": [
+      [
+        "tom-johnson",
+        10.8,
+        45.6,
+        1,
+        3,
+        "w3",
+        "Catch & shoot",
+        0,
+        0,
+        "joey-summers",
+        1
+      ],
+      [
+        "levi-denzin",
+        145,
+        17,
+        1,
+        3,
+        "c3",
+        "Catch & shoot",
+        0,
+        0,
+        "tunde-ajayi",
+        1
+      ],
+      [
+        "levi-denzin",
+        54.4,
+        16.5,
+        0,
+        2,
+        "paint",
+        "Jumper",
+        1,
+        0,
+        "",
+        1
+      ],
+      [
+        "tom-johnson",
+        142.5,
+        15.7,
+        0,
+        3,
+        "c3",
+        "Catch & shoot",
+        0,
+        0,
+        "",
+        1
+      ],
+      [
+        "tom-johnson",
+        143.8,
+        14.9,
+        0,
+        3,
+        "c3",
+        "Catch & shoot",
+        0,
+        0,
+        "",
+        1
+      ],
+      [
+        "tom-johnson",
+        3.7,
+        16.5,
+        0,
+        3,
+        "c3",
+        "Catch & shoot",
+        0,
+        0,
+        "",
+        1
+      ],
+      [
+        "levi-denzin",
+        74,
+        31.1,
+        1,
+        2,
+        "paint",
+        "Layup",
+        0,
+        0,
+        "joey-summers",
+        1
+      ],
+      [
+        "tunde-ajayi",
+        143.4,
+        43.1,
+        0,
+        3,
+        "w3",
+        "Catch & shoot",
+        0,
+        0,
+        "",
+        1
+      ],
+      [
+        "joey-summers",
+        3.3,
+        13.6,
+        1,
+        3,
+        "c3",
+        "Catch & shoot",
+        0,
+        0,
+        "tom-johnson",
+        1
+      ],
+      [
+        "levi-denzin",
+        82.7,
+        25.3,
+        1,
+        2,
+        "paint",
+        "Layup",
+        1,
+        0,
+        "tom-johnson",
+        1
+      ],
+      [
+        "levi-denzin",
+        87.7,
+        21.1,
+        1,
+        2,
+        "paint",
+        "Layup",
+        0,
+        0,
+        "tunde-ajayi",
+        1
+      ],
+      [
+        "levi-denzin",
+        142.1,
+        29.4,
+        0,
+        3,
+        "c3",
+        "Off the dribble",
+        0,
+        0,
+        "",
+        1
+      ],
+      [
+        "levi-denzin",
+        65.2,
+        21.1,
+        1,
+        2,
+        "paint",
+        "Layup",
+        1,
+        0,
+        "oscar-diamante",
+        1
+      ],
+      [
+        "tom-johnson",
+        22,
+        68.9,
+        0,
+        3,
+        "w3",
+        "Catch & shoot",
+        0,
+        0,
+        "",
+        1
+      ],
+      [
+        "levi-denzin",
+        4.6,
+        17,
+        0,
+        3,
+        "c3",
+        "Catch & shoot",
+        0,
+        1,
+        "",
+        1
+      ],
+      [
+        "tunde-ajayi",
+        91.8,
+        40.2,
+        1,
+        2,
+        "paint",
+        "Floater",
+        0,
+        0,
+        "",
+        1
+      ],
+      [
+        "oscar-diamante",
+        82.7,
+        25.7,
+        0,
+        2,
+        "paint",
+        "Layup",
+        0,
+        0,
+        "",
+        2
+      ],
+      [
+        "levi-denzin",
+        54.8,
+        21.5,
+        0,
+        2,
+        "paint",
+        "Floater",
+        0,
+        0,
+        "",
+        2
+      ],
+      [
+        "tunde-ajayi",
+        72.3,
+        29.8,
+        0,
+        2,
+        "paint",
+        "Jumper",
+        0,
+        0,
+        "",
+        2
+      ],
+      [
+        "levi-denzin",
+        145.8,
+        12.8,
+        1,
+        3,
+        "c3",
+        "Catch & shoot",
+        0,
+        0,
+        "joey-summers",
+        2
+      ],
+      [
+        "oscar-diamante",
+        72.7,
+        18.2,
+        0,
+        2,
+        "paint",
+        "Dunk",
+        0,
+        0,
+        "",
+        2
+      ],
+      [
+        "oscar-diamante",
+        73.1,
+        17.4,
+        1,
+        2,
+        "paint",
+        "Dunk",
+        0,
+        0,
+        "levi-denzin",
+        2
+      ],
+      [
+        "tunde-ajayi",
+        71.5,
+        22.8,
+        0,
+        2,
+        "paint",
+        "Layup",
+        1,
+        0,
+        "",
+        2
+      ],
+      [
+        "joey-summers",
+        137.1,
+        57.3,
+        0,
+        3,
+        "w3",
+        "Catch & shoot",
+        0,
+        0,
+        "",
+        2
+      ],
+      [
+        "tom-johnson",
+        81.4,
+        18.6,
+        1,
+        2,
+        "paint",
+        "Layup",
+        0,
+        0,
+        "",
+        2
+      ],
+      [
+        "tunde-ajayi",
+        83.1,
+        19.9,
+        1,
+        2,
+        "paint",
+        "Layup",
+        1,
+        0,
+        "",
+        2
+      ],
+      [
+        "levi-denzin",
+        61.5,
+        85.9,
+        1,
+        3,
+        "t3",
+        "Catch & shoot",
+        0,
+        0,
+        "tom-johnson",
+        2
+      ],
+      [
+        "tunde-ajayi",
+        82.3,
+        21.9,
+        1,
+        2,
+        "paint",
+        "Layup",
+        1,
+        0,
+        "",
+        2
+      ],
+      [
+        "levi-denzin",
+        88.9,
+        34.8,
+        1,
+        2,
+        "paint",
+        "Floater",
+        0,
+        0,
+        "tom-johnson",
+        2
+      ],
+      [
+        "levi-denzin",
+        68.6,
+        104.6,
+        0,
+        3,
+        "t3",
+        "Off the dribble",
+        0,
+        0,
+        "",
+        3
+      ],
+      [
+        "joey-summers",
+        65.2,
+        23.2,
+        0,
+        2,
+        "paint",
+        "Layup",
+        0,
+        1,
+        "",
+        3
+      ],
+      [
+        "levi-denzin",
+        84.8,
+        22.8,
+        1,
+        2,
+        "paint",
+        "Layup",
+        1,
+        0,
+        "tunde-ajayi",
+        3
+      ],
+      [
+        "tunde-ajayi",
+        145,
+        27.8,
+        0,
+        3,
+        "c3",
+        "Catch & shoot",
+        0,
+        0,
+        "",
+        3
+      ],
+      [
+        "tunde-ajayi",
+        142.1,
+        45.2,
+        0,
+        3,
+        "w3",
+        "Catch & shoot",
+        0,
+        1,
+        "",
+        3
+      ],
+      [
+        "tom-johnson",
+        17.5,
+        54.8,
+        1,
+        3,
+        "w3",
+        "Catch & shoot",
+        0,
+        0,
+        "tunde-ajayi",
+        3
+      ],
+      [
+        "levi-denzin",
+        5,
+        12.4,
+        1,
+        3,
+        "c3",
+        "Catch & shoot",
+        0,
+        0,
+        "oscar-diamante",
+        3
+      ],
+      [
+        "tom-johnson",
+        37.8,
+        81.4,
+        0,
+        3,
+        "w3",
+        "Catch & shoot",
+        0,
+        0,
+        "",
+        3
+      ],
+      [
+        "tunde-ajayi",
+        81.9,
+        23.6,
+        1,
+        2,
+        "paint",
+        "Layup",
+        0,
+        0,
+        "",
+        3
+      ],
+      [
+        "tom-johnson",
+        70.2,
+        32.7,
+        0,
+        2,
+        "paint",
+        "Hook",
+        0,
+        0,
+        "",
+        3
+      ],
+      [
+        "tunde-ajayi",
+        85.6,
+        26.1,
+        0,
+        2,
+        "paint",
+        "Layup",
+        0,
+        0,
+        "",
+        3
+      ],
+      [
+        "levi-denzin",
+        83.1,
+        21.5,
+        0,
+        2,
+        "paint",
+        "Layup",
+        0,
+        0,
+        "",
+        4
+      ],
+      [
+        "levi-denzin",
+        143.8,
+        21.5,
+        0,
+        3,
+        "c3",
+        "Off the dribble",
+        0,
+        0,
+        "",
+        4
+      ],
+      [
+        "tunde-ajayi",
+        83.5,
+        25.3,
+        0,
+        2,
+        "paint",
+        "Layup",
+        0,
+        1,
+        "",
+        4
+      ],
+      [
+        "levi-denzin",
+        77.3,
+        29.4,
+        0,
+        2,
+        "paint",
+        "Layup",
+        0,
+        0,
+        "",
+        4
+      ],
+      [
+        "levi-denzin",
+        83.1,
+        26.9,
+        0,
+        2,
+        "paint",
+        "Layup",
+        1,
+        0,
+        "",
+        4
+      ],
+      [
+        "tunde-ajayi",
+        80.6,
+        27.3,
+        0,
+        2,
+        "paint",
+        "Layup",
+        0,
+        1,
+        "",
+        4
+      ],
+      [
+        "joey-summers",
+        66.1,
+        23.6,
+        1,
+        2,
+        "paint",
+        "Layup",
+        0,
+        1,
+        "tunde-ajayi",
+        4
+      ],
+      [
+        "tunde-ajayi",
+        144.6,
+        27.8,
+        0,
+        3,
+        "c3",
+        "Catch & shoot",
+        0,
+        0,
+        "",
+        4
+      ],
+      [
+        "tom-johnson",
+        79.4,
+        23.6,
+        0,
+        2,
+        "paint",
+        "Layup",
+        1,
+        0,
+        "",
+        4
+      ],
+      [
+        "tom-johnson",
+        15,
+        61.8,
+        0,
+        3,
+        "w3",
+        "Catch & shoot",
+        0,
+        0,
+        "",
+        4
+      ],
+      [
+        "levi-denzin",
+        93.5,
+        24,
+        0,
+        2,
+        "paint",
+        "Layup",
+        0,
+        0,
+        "",
+        4
+      ],
+      [
+        "levi-denzin",
+        80.6,
+        24.9,
+        0,
+        2,
+        "paint",
+        "Layup",
+        0,
+        0,
+        "",
+        4
+      ],
+      [
+        "levi-denzin",
+        4.6,
+        24.9,
+        1,
+        3,
+        "c3",
+        "Catch & shoot",
+        0,
+        0,
+        "tom-johnson",
+        4
+      ],
+      [
+        "tom-johnson",
+        81,
+        23.6,
+        0,
+        2,
+        "paint",
+        "Layup",
+        1,
+        0,
+        "",
+        4
+      ],
+      [
+        "tom-johnson",
+        80.6,
+        21.5,
+        1,
+        2,
+        "paint",
+        "Layup",
+        0,
+        1,
+        "",
+        4
+      ],
+      [
+        "oscar-diamante",
+        84.3,
+        21.9,
+        0,
+        2,
+        "paint",
+        "Layup",
+        0,
+        0,
+        "",
+        4
+      ],
+      [
+        "tunde-ajayi",
+        72.3,
+        28.6,
+        0,
+        2,
+        "paint",
+        "Tip-in",
+        0,
+        1,
+        "",
+        4
+      ],
+      [
+        "levi-denzin",
+        76,
+        90.5,
+        0,
+        3,
+        "t3",
+        "Catch & shoot",
+        0,
+        1,
+        "",
+        4
+      ],
+      [
+        "tunde-ajayi",
+        92.7,
+        86.4,
+        1,
+        3,
+        "t3",
+        "Catch & shoot",
+        0,
+        0,
+        "levi-denzin",
+        4
+      ],
+      [
+        "levi-denzin",
+        102.6,
+        86.4,
+        0,
+        3,
+        "t3",
+        "Off the dribble",
+        0,
+        0,
+        "",
+        4
+      ],
+      [
+        "levi-denzin",
+        77.3,
+        88.4,
+        0,
+        3,
+        "t3",
+        "Catch & shoot",
+        0,
+        1,
+        "",
+        4
+      ],
+      [
+        "tunde-ajayi",
+        4.6,
+        24,
+        1,
+        3,
+        "c3",
+        "Off the dribble",
+        0,
+        0,
+        "",
+        4
+      ],
+      [
+        "tunde-ajayi",
+        132.5,
+        59.3,
+        0,
+        3,
+        "w3",
+        "Off the dribble",
+        0,
+        0,
+        "",
+        4
+      ]
+    ],
+    "techs": [
+      {
+        "p": "joey-summers",
+        "q": 4,
+        "c": null,
+        "eject": true,
+        "score": [
+          55,
+          60
+        ],
+        "note": "Duncles missed the free throw"
+      }
+    ],
+    "assists": {
+      "joey-summers": {
+        "tom-johnson": 1,
+        "levi-denzin": 2
+      },
+      "tunde-ajayi": {
+        "levi-denzin": 3,
+        "tom-johnson": 1,
+        "joey-summers": 1
+      },
+      "tom-johnson": {
+        "joey-summers": 1,
+        "levi-denzin": 4
+      },
+      "oscar-diamante": {
+        "levi-denzin": 2
+      },
+      "levi-denzin": {
+        "oscar-diamante": 1,
+        "tunde-ajayi": 1
+      }
+    },
+    "extras": {
+      "paint": 28,
+      "sc": 6,
+      "fb": 10,
+      "pot": 21,
+      "astFg": 17,
+      "fgm": 24,
+      "bench": 0,
+      "rest": 0
+    },
+    "lineups": [
+      [
+        [
+          "levi-denzin",
+          "tunde-ajayi",
+          "tom-johnson",
+          "joey-summers",
+          "oscar-diamante"
+        ],
+        0,
+        55,
+        60
+      ],
+      [
+        [
+          "levi-denzin",
+          "tunde-ajayi",
+          "tom-johnson",
+          "oscar-diamante"
+        ],
+        0,
+        6,
+        3
+      ]
+    ],
+    "flow": [
+      0,
+      3,
+      6,
+      4,
+      2,
+      0,
+      2,
+      0,
+      -2,
+      1,
+      3,
+      5,
+      2,
+      4,
+      2,
+      4,
+      2,
+      0,
+      -2,
+      -4,
+      -1,
+      -3,
+      -1,
+      -4,
+      -6,
+      -4,
+      -7,
+      -5,
+      -7,
+      -4,
+      -2,
+      -4,
+      -2,
+      0,
+      -2,
+      -4,
+      -1,
+      2,
+      0,
+      -2,
+      0,
+      -2,
+      -4,
+      -3,
+      -2,
+      -1,
+      1,
+      -2,
+      -4,
+      -6,
+      -3,
+      -1,
+      -3,
+      -5,
+      -2,
+      -5,
+      -2
+    ],
+    "leadChanges": 7,
+    "ties": 6,
+    "maxLead": 6,
+    "maxDeficit": 7,
+    "bestRun": {
+      "us": 7,
+      "them": 8
+    }
+  },
+  "venue": "Court 2"
+}

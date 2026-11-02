@@ -22,7 +22,7 @@ def load(path):
 
 def _blank():
     p = {k: 0 for k in STATS}
-    p.update(pm=0, sec=0, dunk=0, astm=0, ast3m=0)
+    p.update(pm=0, sec=0, dunk=0, astm=0, ast3m=0, tech=0)
     return p
 
 
@@ -37,7 +37,7 @@ def replay(data):
         'qs': {}, 'lineups': {}, 'flow': [0], 'ties': 0, 'changes': 0, 'leader': 0, 'max_lead': 0, 'max_def': 0,
         'run_t': None, 'run_p': 0, 'best_run': {'us': 0, 'them': 0},
         'x': {'paint': 0, 'sc': 0, 'fb': 0, 'pot': 0, 'astFg': 0, 'fgm': 0, 'bench': 0, 'rest': 0},
-        'shots': [], 'assists': {}, 'types': {},
+        'shots': [], 'assists': {}, 'types': {}, 'out': [], 'techs': [],
     }
 
     def lineup():
@@ -145,7 +145,7 @@ def replay(data):
                 S['sc'], S['pot'] = None, False
             if e.get('x') is not None:
                 S['shots'].append([e['p'], e['x'], e['y'], 1 if e.get('made') else 0, e['pts'], e.get('zg', ''), e.get('st', ''),
-                                   1 if e.get('fb') else 0, 1 if e.get('sc') else 0, e.get('ast', '') if e.get('made') else ''])
+                                   1 if e.get('fb') else 0, 1 if e.get('sc') else 0, e.get('ast', '') if e.get('made') else '', e.get('q', 1)])
         elif t == 'ft' and p:
             p['fta'] += 1
             if e.get('made'):
@@ -180,6 +180,16 @@ def replay(data):
         elif t == 'foul':
             if p:
                 p['pf'] += 1
+        elif t == 'tech':
+            # a technical counts as a personal foul; "eject" means the player sat out the rest of the game
+            if p:
+                p['pf'] += 1
+                p['tech'] += 1
+            S['techs'].append({'p': e.get('p'), 'q': e.get('q'), 'c': e.get('c'), 'eject': bool(e.get('eject')), 'score': [S['us'], S['them']]})
+            if e.get('eject') and e.get('p'):
+                if e['p'] not in S['out']:
+                    S['out'].append(e['p'])
+                S['court'] = [pid for pid in S['court'] if pid != e['p']]
         elif t == 'opp':
             score(e['pts'], False, e['q'])
             S['sc'], S['pot'] = None, False
@@ -242,7 +252,9 @@ def tracked_block(data, S, idmap):
         'assisted': {m(pid): [S['P'][pid]['astm'], S['P'][pid]['ast3m']] for pid in S['P'] if S['P'][pid]['fgm']},
         # per player: {shot type: [made, attempts, points per make]}
         'types': {m(pid): v for pid, v in S['types'].items()},
-        'shots': [[m(s[0])] + s[1:9] + [m(s[9]) if s[9] and s[9] != 'tm' else s[9]] for s in S['shots']],
+        # [player, x, y, made, pts, zone group, shot type, fast break, 2nd chance, assister, period]
+        'shots': [[m(s[0])] + s[1:9] + [m(s[9]) if s[9] and s[9] != 'tm' else s[9], s[10]] for s in S['shots']],
+        'techs': [dict(t, p=m(t['p'])) for t in S['techs']],
         'assists': {m(a): {('rest' if b == 'rest' else m(b)): n for b, n in v.items()} for a, v in S['assists'].items()},
         'extras': dict(S['x']),
         'lineups': [[[m(p) for p in L['ids']], L['sec'], L['pf'], L['pa']] for L in lineups if L['ids'] and (L['sec'] or L['pf'] or L['pa'])],
