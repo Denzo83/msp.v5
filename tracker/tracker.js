@@ -260,6 +260,7 @@ function undo() {
 /* ---------- icons ---------- */
 const I = {
   back: '<svg width="20" height="20" viewBox="0 0 24 24" class="ico" style="stroke-width:2.4" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>',
+  grip: '<svg width="20" height="20" viewBox="0 0 24 24" class="ico" style="stroke-width:2.4" aria-hidden="true"><path d="M5 9h14M5 15h14"></path></svg>',
   undo: '<svg width="20" height="20" viewBox="0 0 24 24" class="ico" aria-hidden="true"><path d="M9 14L4 9l5-5"></path><path d="M4 9h10a6 6 0 0 1 0 12h-3"></path></svg>',
   play: '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" style="fill:currentColor"><path d="M8 5l11 7-11 7z"></path></svg>',
   pause: '<svg width="18" height="18" viewBox="0 0 24 24" class="ico" style="stroke-width:3" aria-hidden="true"><path d="M8 5v14M16 5v14"></path></svg>',
@@ -351,7 +352,7 @@ function vSetup() {
     '<span class="muted small">Pick a name you have played before so the spelling matches the site.</span></div>' +
     '<div class="g2"><div class="sec"><label class="h2" for="f-date">Date</label><input id="f-date" class="field" type="date" data-bind="date" value="' + esc(s.date) + '"></div>' +
     '<div class="sec"><label class="h2" for="f-season">Season</label><input id="f-season" class="field" list="seasons" data-bind="season" value="' + esc(s.season) + '" autocomplete="off"><datalist id="seasons">' + seasonOpts + '</datalist></div></div>' +
-    '<div class="sec"><h2 class="h2">Court</h2><div class="g3">' + ['Court 1', 'Court 2', 'Court 3'].map((c) => '<button class="chip' + (s.venue === c ? ' on' : '') + '" data-act="setVenue" data-arg="' + c + '">' + c + '</button>').join('') + '</div></div>' +
+    '<div class="sec"><h2 class="h2">Court</h2><div class="g2">' + [['Court A Main', 'Main court'], ['Court 1', 'Court 1'], ['Court 2', 'Court 2'], ['Court 3', 'Court 3']].map((c) => '<button class="chip' + (s.venue === c[0] ? ' on' : '') + '" data-act="setVenue" data-arg="' + c[0] + '">' + c[1] + '</button>').join('') + '</div></div>' +
     '<div class="sec"><h2 class="h2">Format</h2><div class="g2">' +
     '<button class="chip' + (s.periods === 4 ? ' on' : '') + '" data-act="setPeriods" data-arg="4">4 quarters</button><button class="chip' + (s.periods === 2 ? ' on' : '') + '" data-act="setPeriods" data-arg="2">2 halves</button></div>' +
     '<div class="row"><label for="f-len" class="muted" style="flex:1">Minutes per ' + (s.periods === 2 ? 'half' : 'quarter') + '</label><input id="f-len" class="field" style="width:96px;text-align:center" type="number" inputmode="numeric" min="1" max="40" data-bind="len" value="' + s.len + '"></div></div>' +
@@ -515,7 +516,12 @@ function vLog() {
   const qs = Object.keys(byQ).map(Number).sort((a, b) => b - a);
   const groups = qs.map((q) => '<h3 class="qh">' + (g.periods === 2 ? 'Half ' : 'Quarter ') + q + '</h3>' + byQ[q].reverse().map(({ e, i }) => {
     const k = kindOf(e);
-    return '<div class="ev" data-act="evMenu" data-arg="' + e.n + '"><span class="tm">' + (e.c != null ? fmtClock(e.c) : '') + '</span><span class="dot' + (k ? ' ' + k : '') + '"></span><span class="tx">' + esc(describe(g, e)) + '</span>' +
+    if (e.t === 'period') {
+      return '<div class="ev brk" data-n="' + e.n + '"><span class="grip" data-act="noop" data-drag="' + e.n + '" aria-label="Drag to move the end of ' + periodLabel(g, e.q) + '">' + I.grip + '</span>' +
+        '<span class="tx"><b>End of ' + periodLabel(g, e.q) + '</b><span class="small muted">' + (ui.logFilter === 'all' ? 'Drag to move it' : 'Show All to move it') + '</span></span><span class="sc">' + S.after[i] + '</span>' +
+        '<button class="del" aria-label="Delete this quarter break" data-act="delEvent" data-arg="' + e.n + '">' + I.trash + '</button></div>';
+    }
+    return '<div class="ev" data-n="' + e.n + '" data-act="evMenu" data-arg="' + e.n + '"><span class="tm">' + (e.c != null ? fmtClock(e.c) : '') + '</span><span class="dot' + (k ? ' ' + k : '') + '"></span><span class="tx">' + esc(describe(g, e)) + '</span>' +
       (scoring(e) ? '<span class="sc' + (k === 'o' ? ' o' : '') + '">' + S.after[i] + '</span>' : '') +
       (e.t !== 'start' ? '<button class="del" aria-label="Delete this entry" data-act="delEvent" data-arg="' + e.n + '">' + I.trash + '</button>' : '') + '</div>';
   }).join('')).join('');
@@ -533,7 +539,7 @@ function vLog() {
     '<div class="g4" style="gap:6px">' + [[S.changes, 'Lead changes'], [S.ties, 'Ties'], [sgn(S.maxLead), 'Largest lead'], [S.bestRun.us + '–0', 'Best run']].map((x) =>
       '<div style="background:var(--card2);border-radius:10px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:2px"><b style="font-family:var(--disp);font-size:22px;line-height:1">' + x[0] + '</b><span style="font-size:11px;color:var(--sub);text-align:center">' + x[1] + '</span></div>').join('') + '</div></div>' +
     '<div class="scroller">' + pills + '</div>' + (groups || '<div class="empty">Nothing here yet</div>') +
-    '<p class="muted small">To fix a mistake, delete the entry and enter it again. Everything after it updates. Tap an entry to end a quarter right after it.</p></div></div>' + navBar('log') + '</div>';
+    '<p class="muted small">To fix a mistake, delete the entry and enter it again. Everything after it updates. Drag a quarter break up or down to move it, or tap an entry to end a quarter right after it.</p></div></div>' + navBar('log') + '</div>';
 }
 
 /* ---------- box score ---------- */
@@ -734,6 +740,26 @@ function moveBreak(g, n, k) {
   toast(periodLabel(g, k) + ' now ends after: ' + describe(g, after));
 }
 
+/* Move break event bn so it sits right after event an (an = null puts it straight after the start). */
+function moveBreakTo(g, bn, an) {
+  const bi = g.events.findIndex((e) => String(e.n) === String(bn));
+  if (bi < 0) return false;
+  let ai = an == null ? 0 : g.events.findIndex((e) => String(e.n) === String(an));
+  if (ai < 0) return false;
+  // don't let a break jump over another break or the start
+  const lo = Math.min(ai + 1, bi), hi = Math.max(ai, bi);
+  for (let i = lo; i <= hi; i++) { if (i !== bi && g.events[i].t === 'period') { toast('A quarter break can’t move past another one'); return false; } }
+  if (ai === bi || ai === bi - 1) return false;
+  const b = g.events.splice(bi, 1)[0];
+  if (bi < ai) ai--;
+  g.events.splice(ai + 1, 0, b);
+  let q = 1;
+  g.events.forEach((e) => { e.q = q; if (e.t === 'period') { e.next = q + 1; q++; } });
+  persist();
+  toast('End of ' + periodLabel(g, b.q) + ' now at ' + replay(g, ai + 2).after.slice(-1)[0]);
+  return true;
+}
+
 /* Stats for one quarter: the game up to the end of it, minus the game up to its start. */
 function quarterStats(g, q) {
   const startI = q === 1 ? 0 : g.events.findIndex((e) => e.t === 'period' && e.q === q - 1) + 1;
@@ -817,6 +843,7 @@ const ACT = {
   },
   evMenu: (n) => { ui.evn = n; ui.sheet = 'ev'; render(); },
   moveBreak: (k) => { moveBreak(cur(), ui.evn, Number(k)); ui.sheet = null; },
+  noop: () => {},
   qf: (q) => { ui.qf = q === 'all' ? 'all' : Number(q); render(); },
   undo: () => undo(),
   clockToggle: () => { const g = cur(); setClock(g, remaining(g), !g.clock.running); persist(); render(); },
@@ -867,6 +894,7 @@ const ACT = {
     if (!window.confirm('Delete this entry?\n\n' + describe(g, g.events[i]))) return;
     const e = g.events.splice(i, 1)[0];
     if (e.t === 'period' && i === g.events.length) { g.clock.q = e.q; setClock(g, 0, false); }
+    else if (e.t === 'period') { let q = 1; g.events.forEach((x) => { x.q = q; if (x.t === 'period') { x.next = q + 1; q++; } }); if (g.status === 'live') g.clock.q = q; }
     ui.sheet = null; persist(); toast('Deleted: ' + describe(g, e));
   },
   who: (id) => { ui.who = id; render(); },
@@ -925,6 +953,54 @@ ROOT.addEventListener('click', (ev) => {
   const fn = ACT[b.dataset.act];
   if (fn) fn(b.dataset.arg, b, ev);
 });
+/* drag a quarter break in the play-by-play (newest entries are at the top) */
+let drag = null;
+function dragTo(x, y) {
+  drag.x = x; drag.cy = y;
+  const sc = drag.scroller;
+  drag.row.style.transform = 'translateY(' + (y - drag.y + (sc.scrollTop - drag.top)) + 'px)';
+  drag.row.style.pointerEvents = 'none';
+  const el = document.elementFromPoint(x, y), over = el && el.closest('.ev');
+  drag.row.style.pointerEvents = '';
+  if (!over || over === drag.row) return; // keep the last spot when between rows
+  const b = over.getBoundingClientRect(), above = y < b.top + b.height / 2;
+  ROOT.querySelectorAll('.drop-a, .drop-b').forEach((r) => r.classList.remove('drop-a', 'drop-b'));
+  over.classList.add(above ? 'drop-a' : 'drop-b');
+  drag.target = { n: over.dataset.n, above };
+}
+function dragScroll() {
+  if (!drag) return;
+  const sc = drag.scroller, r = sc.getBoundingClientRect();
+  const v = drag.cy < r.top + 70 ? -(r.top + 70 - drag.cy) / 6 : drag.cy > r.bottom - 70 ? (drag.cy - (r.bottom - 70)) / 6 : 0;
+  if (v) { sc.scrollTop += Math.max(-14, Math.min(14, v)); dragTo(drag.x, drag.cy); }
+  requestAnimationFrame(dragScroll);
+}
+ROOT.addEventListener('pointerdown', (ev) => {
+  const gr = ev.target.closest('[data-drag]');
+  if (!gr || ui.screen !== 'log' || ui.logFilter !== 'all') return;
+  ev.preventDefault();
+  const row = gr.closest('.ev'), sc = row.closest('[style*="overflow-y:auto"]');
+  drag = { n: gr.dataset.drag, row, y: ev.clientY, top: sc.scrollTop, x: ev.clientX, cy: ev.clientY, target: null, scroller: sc };
+  row.classList.add('dragging');
+  try { gr.setPointerCapture(ev.pointerId); } catch (e) { /* ignore */ }
+  requestAnimationFrame(dragScroll);
+});
+ROOT.addEventListener('pointermove', (ev) => { if (drag) { ev.preventDefault(); dragTo(ev.clientX, ev.clientY); } });
+function endDrag() {
+  if (!drag) return;
+  const d = drag; drag = null;
+  ROOT.querySelectorAll('.drop-a, .drop-b').forEach((x) => x.classList.remove('drop-a', 'drop-b'));
+  d.row.classList.remove('dragging'); d.row.style.transform = '';
+  if (!d.target) return;
+  const g = cur(), ti = g.events.findIndex((e) => String(e.n) === String(d.target.n));
+  if (ti < 0) return;
+  // dropped above a row (later in time) = break goes after that entry; below = after the entry before it
+  const after = d.target.above ? g.events[ti] : g.events[ti - 1];
+  if (after) moveBreakTo(g, d.n, after.n);
+  render();
+}
+ROOT.addEventListener('pointerup', endDrag);
+ROOT.addEventListener('pointercancel', endDrag);
 ROOT.addEventListener('input', (ev) => {
   const k = ev.target.dataset && ev.target.dataset.bind;
   if (k && ui.setup) ui.setup[k] = k === 'len' ? ev.target.value : ev.target.value;
