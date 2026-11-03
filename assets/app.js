@@ -48,7 +48,7 @@
       game.lines = g.L.map((row) => {
         const l = { p: row[0], n: row[1], g: game };
         K.forEach((k, i) => { l[k] = row[i + 2]; });
-        l.reb = l.oreb + l.dreb;
+        l.reb = l.oreb + l.dreb; l.twom = l.fgm - l.tpm; l.twoa = l.fga - l.tpa;
         const tens = [l.pts, l.reb, l.ast, l.stl, l.blk].filter((v) => v >= 10).length;
         l.dd = tens >= 2 ? 1 : 0; l.td = tens >= 3 ? 1 : 0;
         return l;
@@ -444,7 +444,7 @@
     const per = (k) => f1(TA[k] / sn);
     h += '<div class="card"><div><h2>Team Averages</h2><div class="sub">Per game' + (T.partialStats ? ' · tracked players only' : '') + '</div></div>' +
       '<div class="tiles">' + tile(T.partialStats ? f1(pf) : per('pts'), 'PTS') + tile(per('reb'), 'REB') + tile(per('ast'), 'AST') + tile(per('stl'), 'STL') + tile(per('blk'), 'BLK') + tile(per('to'), 'TO') + '</div>' +
-      shotBar('Field goals', TA.fgm, TA.fga, f1(TA.fgm / sn) + '/' + f1(TA.fga / sn)) + shotBar('3 pointers', TA.tpm, TA.tpa, f1(TA.tpm / sn) + '/' + f1(TA.tpa / sn)) + shotBar('Free throws', TA.ftm, TA.fta, f1(TA.ftm / sn) + '/' + f1(TA.fta / sn)) +
+      shotBar('Field goals', TA.fgm, TA.fga, f1(TA.fgm / sn) + '/' + f1(TA.fga / sn)) + shotBar('2 pointers', TA.fgm - TA.tpm, TA.fga - TA.tpa, f1((TA.fgm - TA.tpm) / sn) + '/' + f1((TA.fga - TA.tpa) / sn)) + shotBar('3 pointers', TA.tpm, TA.tpa, f1(TA.tpm / sn) + '/' + f1(TA.tpa / sn)) + shotBar('Free throws', TA.ftm, TA.fta, f1(TA.ftm / sn) + '/' + f1(TA.fta / sn)) +
       (T.partialStats ? '<div class="note small">' + esc(T.partialNote || '') + '</div>' : '') + '</div>';
 
     // roster
@@ -591,8 +591,8 @@
   };
 
   function playerOverview(pid, list, A, team, teamsPlayed, season, inPhase, teamGames) {
-    let h = '<div class="tiles wide">' + tile(f1(metric('pts', A)), 'PPG') + tile(f1(metric('reb', A)), 'RPG') + tile(f1(metric('ast', A)), 'APG') +
-      tile(f1(metric('fgp', A)), 'FG%') + tile(f1(metric('tpp', A)), '3P%') + tile(f1(metric('ftp', A)), 'FT%') + '</div>';
+    let h = '<div class="tiles wide s7">' + tile(f1(metric('pts', A)), 'PPG') + tile(f1(metric('reb', A)), 'RPG') + tile(f1(metric('ast', A)), 'APG') +
+      tile(f1(metric('fgp', A)), 'FG%') + tile(f1(metric('twop', A)), '2P%') + tile(f1(metric('tpp', A)), '3P%') + tile(f1(metric('ftp', A)), 'FT%') + '</div>';
     // donut
     const tab = qv('dt', 'pts');
     const P = isDark() ? ['#2F6BFF', '#8FD0FF', '#E6F0FF'] : ['#1B3A8C', '#2F6BFF', '#8FD0FF'];
@@ -603,9 +603,10 @@
     if (tab === 'pts') { segs = [{ label: '2 Pointers', v: pg(2 * A.twom), color: P[0] }, { label: '3 Pointers', v: pg(3 * A.tpm), color: P[1] }, { label: 'Free Throws', v: pg(A.ftm), color: P[2] }]; center = f1(metric('pts', A)); centerLbl = 'PPG'; head = 'Shot type'; foot = A.pts + ' total points'; }
     else if (tab === 'reb') { segs = [{ label: 'Offensive', v: pg(A.oreb), color: P[0] }, { label: 'Defensive', v: pg(A.dreb), color: P[1] }]; center = f1(metric('reb', A)); centerLbl = 'RPG'; head = 'Reb type'; foot = A.reb + ' total rebounds'; }
     else if (tab === 'fg') segs = shots(A.fgm, A.fga, 'FG%');
+    else if (tab === '2pt') segs = shots(A.twom, A.twoa, '2P%');
     else if (tab === '3pt') segs = shots(A.tpm, A.tpa, '3P%');
     else segs = shots(A.ftm, A.fta, 'FT%');
-    h += '<div class="card"><h2>Season Averages</h2>' + seg([['pts', 'PTS'], ['reb', 'REB'], ['fg', 'FG'], ['3pt', '3PT'], ['ft', 'FT']].map((x) => ({ label: x[1], on: tab === x[0], attr: tog({ dt: x[0] === 'pts' ? null : x[0] }) }))) +
+    h += '<div class="card"><h2>Season Averages</h2>' + seg([['pts', 'PTS'], ['reb', 'REB'], ['fg', 'FG'], ['2pt', '2PT'], ['3pt', '3PT'], ['ft', 'FT']].map((x) => ({ label: x[1], on: tab === x[0], attr: tog({ dt: x[0] === 'pts' ? null : x[0] }) }))) +
       '<div class="donut-row">' + donut(segs, center, centerLbl) + '<div class="legend"><div class="lh"><span>' + head + '</span><span>Per game</span></div>' +
       segs.map((s) => '<div class="li"><span class="dot" style="background:' + s.color + '"></span><span>' + s.label + '</span><b>' + f1(s.v) + '</b></div>').join('') + '<div class="note small">' + foot + '</div></div></div></div>';
 
@@ -712,8 +713,8 @@
       rows.map((r) => '<div class="trow' + (r.strong ? ' strong' : '') + '" style="grid-template-columns:' + cols + '"><span class="stick">' + r.badge.replace('s30', 's24') + '<span><span class="t1" style="font-size:13px">' + esc(r.season) + '</span><span class="t2" style="font-size:11px">' + esc(r.team) + '</span></span></span><span>' + r.S.n + '</span>' +
         keys.map((k) => '<span>' + fmtStat(k, r.S, mode) + '</span>').join('') + '</div>').join('') + '</div></div><div class="note small px">Swipe the table sideways for more columns. Career and season rows use the filters above.</div></div>';
     h += '<div class="card"><div><h2>Career Highs</h2><div class="sub">Tap one to open that box score</div></div><div class="tiles">' + highList(list).map(highTile).join('') + '</div></div>';
-    const sr = (label, ls) => { const S = agg(ls); return S.n ? '<div class="trow" style="grid-template-columns:minmax(0,1fr) 30px 40px 36px 36px 44px 44px;min-height:48px;font-size:14px"><span style="text-align:left;font-weight:600">' + label + '</span><span>' + S.n + '</span><b>' + f1(metric('pts', S)) + '</b><span>' + f1(metric('reb', S)) + '</span><span>' + f1(metric('ast', S)) + '</span><span>' + f1(metric('fgp', S)) + '</span><span>' + f1(metric('tpp', S)) + '</span></div>' : ''; };
-    h += '<div class="card list"><div class="head"><div><h2>Splits</h2><div class="sub">Per game</div></div></div><div class="trow th" style="grid-template-columns:minmax(0,1fr) 30px 40px 36px 36px 44px 44px"><span style="text-align:left">SPLIT</span><span>GP</span><span>PTS</span><span>REB</span><span>AST</span><span>FG%</span><span>3P%</span></div>' +
+    const sr = (label, ls) => { const S = agg(ls); return S.n ? '<div class="trow" style="grid-template-columns:minmax(0,1fr) 28px 38px 34px 34px 42px 42px 42px;min-height:48px;font-size:14px"><span style="text-align:left;font-weight:600">' + label + '</span><span>' + S.n + '</span><b>' + f1(metric('pts', S)) + '</b><span>' + f1(metric('reb', S)) + '</span><span>' + f1(metric('ast', S)) + '</span><span>' + f1(metric('fgp', S)) + '</span><span>' + f1(metric('twop', S)) + '</span><span>' + f1(metric('tpp', S)) + '</span></div>' : ''; };
+    h += '<div class="card list"><div class="head"><div><h2>Splits</h2><div class="sub">Per game</div></div></div><div class="trow th" style="grid-template-columns:minmax(0,1fr) 28px 38px 34px 34px 42px 42px 42px"><span style="text-align:left">SPLIT</span><span>GP</span><span>PTS</span><span>REB</span><span>AST</span><span>FG%</span><span>2P%</span><span>3P%</span></div>' +
       sr('Wins', list.filter((l) => l.g.win)) + sr('Losses', list.filter((l) => l.g.res === 'L')) + (list.some((l) => l.g.draw) ? sr('Draws', list.filter((l) => l.g.draw)) : '') +
       sr('Regular season', list.filter((l) => !l.g.po)) + sr('Finals', list.filter((l) => l.g.po)) + '</div>';
     h += quarterCard(pid, list);
@@ -739,13 +740,13 @@
     const label = (i) => (half ? 'H' : 'Q') + (i + 1);
     const pc = (m, a) => (a ? Math.round(m / a * 100) + '%' : '–');
     const pg = (v, n) => (n ? (Math.round(v / n * 10) / 10).toFixed(1) : '–');
-    const cols = 'minmax(0,1fr) 44px 44px 44px 50px 50px 50px';
+    const cols = 'minmax(0,1fr) 40px 40px 40px 46px 46px 46px 46px';
     const row = (name, t) => '<div class="trow" style="grid-template-columns:' + cols + ';min-height:48px;font-size:14px"><span style="text-align:left;font-weight:600">' + name + '</span>' +
-      '<span>' + pg(t.pts, t.n) + '</span><span>' + pg(t.oreb + t.dreb, t.n) + '</span><span>' + pg(t.ast, t.n) + '</span><span>' + pc(t.fgm, t.fga) + '</span><span>' + pc(t.tpm, t.tpa) + '</span>' +
+      '<span>' + pg(t.pts, t.n) + '</span><span>' + pg(t.oreb + t.dreb, t.n) + '</span><span>' + pg(t.ast, t.n) + '</span><span>' + pc(t.fgm, t.fga) + '</span><span>' + pc(t.fgm - t.tpm, t.fga - t.tpa) + '</span><span>' + pc(t.tpm, t.tpa) + '</span>' +
       '<span class="pm ' + (t.pm > 0 ? 'up' : t.pm < 0 ? 'dn' : '') + '">' + (t.n ? pmTxt(Math.round(t.pm / t.n * 10) / 10) : '–') + '</span></div>';
     const best = sums.map((t, i) => ({ i, v: t && t.n ? t.pts / t.n : -1 })).sort((a, b) => b.v - a.v)[0];
     return '<div class="card list"><div class="head"><div><h2>By Quarter</h2><div class="sub">Per game · ' + ql.length + ' tracker game' + (ql.length > 1 ? 's' : '') + (best && best.v > 0 ? ' · best scoring ' + (half ? 'half' : 'quarter') + ': ' + label(best.i) : '') + '</div></div></div>' +
-      '<div class="trow th" style="grid-template-columns:' + cols + '"><span style="text-align:left">' + (half ? 'HALF' : 'QTR') + '</span><span>PTS</span><span>REB</span><span>AST</span><span>FG%</span><span>3P%</span><span>+/-</span></div>' +
+      '<div class="trow th" style="grid-template-columns:' + cols + '"><span style="text-align:left">' + (half ? 'HALF' : 'QTR') + '</span><span>PTS</span><span>REB</span><span>AST</span><span>FG%</span><span>2P%</span><span>3P%</span><span>+/-</span></div>' +
       sums.map((t, i) => (t ? row(label(i), t) : '')).join('') + (ot.n ? row('OT', ot) : '') +
       '<div class="note small px">Only games entered with MyStat Tracker have quarter stats.</div></div>';
   }
@@ -756,14 +757,14 @@
     const sorted = list.slice().sort((a, b) => (sort === 'date' ? b.g.date - a.g.date : sv(b) - sv(a) || b.g.date - a.g.date));
     const shown = showAll ? sorted : sorted.slice(0, 15);
     const anyT = list.some((l) => l.pm != null);
-    const colKey = ['pts', 'reb', 'oreb', 'ast', 'stl', 'blk', 'to', 'pf', 'fgm', 'tpm', 'ftm', 'fgp'].concat(anyT ? ['pm'] : []);
-    const cols = '170px repeat(8, 40px) repeat(3, 52px) 52px' + (anyT ? ' 44px' : '');
+    const colKey = ['pts', 'reb', 'oreb', 'ast', 'stl', 'blk', 'to', 'pf', 'fgm', 'twom', 'tpm', 'ftm', 'fgp'].concat(anyT ? ['pm'] : []);
+    const cols = '170px repeat(8, 40px) repeat(4, 52px) 52px' + (anyT ? ' 44px' : '');
     let h = '<div class="card flush"><div class="head px" style="align-items:flex-end"><div><h2>Game Log</h2><div class="sub">' + list.length + ' games</div></div>' +
-      '<label class="ctl">Sort by<select data-param="sort">' + [['date', 'Newest'], ['pts', 'Points'], ['reb', 'Rebounds'], ['ast', 'Assists'], ['stl', 'Steals'], ['blk', 'Blocks'], ['to', 'Turnovers'], ['fgm', 'FG made'], ['tpm', '3PT made'], ['ftm', 'FT made'], ['fgp', 'FG %']].concat(list.some((l) => l.pm != null) ? [['pm', '+/-']] : [])
+      '<label class="ctl">Sort by<select data-param="sort">' + [['date', 'Newest'], ['pts', 'Points'], ['reb', 'Rebounds'], ['ast', 'Assists'], ['stl', 'Steals'], ['blk', 'Blocks'], ['to', 'Turnovers'], ['fgm', 'FG made'], ['twom', '2PT made'], ['tpm', '3PT made'], ['ftm', 'FT made'], ['fgp', 'FG %']].concat(list.some((l) => l.pm != null) ? [['pm', '+/-']] : [])
         .map((o) => '<option value="' + o[0] + '"' + (o[0] === sort ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select></label></div>' +
-      '<div class="xscroll"><div><div class="trow th" style="grid-template-columns:' + cols + '"><span class="stick">GAME</span><span>PTS</span><span>REB</span><span>OR</span><span>AST</span><span>STL</span><span>BLK</span><span>TO</span><span>PF</span><span>FG</span><span>3P</span><span>FT</span><span>FG%</span>' + (anyT ? '<span>+/-</span>' : '') + '</div>';
+      '<div class="xscroll"><div><div class="trow th" style="grid-template-columns:' + cols + '"><span class="stick">GAME</span><span>PTS</span><span>REB</span><span>OR</span><span>AST</span><span>STL</span><span>BLK</span><span>TO</span><span>PF</span><span>FG</span><span>2P</span><span>3P</span><span>FT</span><span>FG%</span>' + (anyT ? '<span>+/-</span>' : '') + '</div>';
     shown.forEach((l) => {
-      const v = [l.pts, l.reb, l.oreb, l.ast, l.stl, l.blk, l.to, l.pf, l.fgm + '-' + l.fga, l.tpm + '-' + l.tpa, l.ftm + '-' + l.fta, l.fga ? Math.round((l.fgm / l.fga) * 100) : '–'].concat(anyT ? [l.pm == null ? '–' : pmTxt(l.pm)] : []);
+      const v = [l.pts, l.reb, l.oreb, l.ast, l.stl, l.blk, l.to, l.pf, l.fgm + '-' + l.fga, l.twom + '-' + l.twoa, l.tpm + '-' + l.tpa, l.ftm + '-' + l.fta, l.fga ? Math.round((l.fgm / l.fga) * 100) : '–'].concat(anyT ? [l.pm == null ? '–' : pmTxt(l.pm)] : []);
       h += '<a class="trow" style="grid-template-columns:' + cols + ';min-height:56px" href="' + href(['game', l.g.t, l.g.id], {}) + '"><span class="stick">' + teamBadge(l.g.t, 's24') +
         '<span><span class="t1" style="font-size:13px;max-width:120px">' + esc(vsName(l.g)) + '</span><span class="t2" style="font-size:11px"><span class="res-' + wlClass(l.g) + '">' + resL(l.g) + '</span> ' + l.g.us + '–' + l.g.them + ' · ' + fmtD(l.g.date) + ' ' + String(l.g.date.getFullYear()).slice(2) + ' ' + ddTag(l) + '</span></span></span>' +
         v.map((x, i) => '<span' + (colKey[i] === sort ? ' class="hl"' : '') + '>' + x + '</span>').join('') + '</a>';
@@ -783,7 +784,7 @@
     const diff = (k) => { const d = metric(k, OS) - metric(k, A); return '<div class="d ' + (Math.abs(d) < 0.05 ? '' : (k === 'to' ? d < 0 : d > 0) ? 'up' : 'down') + '">' + (d >= 0 ? '+' : '') + f1(d) + '</div>'; };
     let h = '<div class="card"><h2>Versus</h2><div class="scroller">' + chips(keys.map((k) => ({ label: map[k][0].g.o, on: k === sel, attr: tog({ opp: k }) })), 'tall') + '</div>' +
       '<div class="head" style="align-items:baseline"><span style="font-family:var(--display);font-size:32px;font-weight:700;line-height:1">' + esc(name) + '</span><span class="note">' + OS.n + ' GP · ' + recS(OS) + '</span></div>' +
-      '<div class="tiles">' + [['pts', 'PPG'], ['reb', 'RPG'], ['ast', 'APG'], ['fgp', 'FG%'], ['tpp', '3P%'], ['ftp', 'FT%']].map((x) => tile(f1(metric(x[0], OS)), x[1], diff(x[0]))).join('') + '</div>' +
+      '<div class="tiles s7">' + [['pts', 'PPG'], ['reb', 'RPG'], ['ast', 'APG'], ['fgp', 'FG%'], ['twop', '2P%'], ['tpp', '3P%'], ['ftp', 'FT%']].map((x) => tile(f1(metric(x[0], OS)), x[1], diff(x[0]))).join('') + '</div>' +
       '<div class="note small">Small number under each stat: difference from his average in all selected games.</div></div>';
     h += '<div class="card list"><div class="head"><h2>Every game vs ' + esc(name) + '</h2></div><div class="trow th" style="grid-template-columns:minmax(0,1fr) 32px 32px 32px 52px"><span style="text-align:left">GAME</span><span>PTS</span><span>REB</span><span>AST</span><span>FG</span></div>' +
       OL.slice().reverse().map((l) => '<a class="trow" style="grid-template-columns:minmax(0,1fr) 32px 32px 32px 52px" href="' + href(['game', l.g.t, l.g.id], {}) + '"><span class="lft">' + teamBadge(l.g.t, 's28') + '<span><span class="t1">' + fmtDY(l.g.date) + '</span><span class="t2"><span class="res-' + wlClass(l.g) + '">' + resL(l.g) + '</span> ' + l.g.us + '–' + l.g.them + ' · ' + esc(D.seasonName(l.g.s)) + '</span></span></span>' +
@@ -806,7 +807,7 @@
     const diff = (k) => { const d = metric(k, CS) - metric(k, A); return '<div class="d ' + (Math.abs(d) < 0.05 ? '' : (k === 'to' ? d < 0 : d > 0) ? 'up' : 'down') + '">' + (d >= 0 ? '+' : '') + f1(d) + '</div>'; };
     let h = '<div class="card"><h2>Courts</h2><div class="scroller">' + chips(keys.map((k) => ({ label: k, on: k === sel, attr: tog({ court: k }) })), 'tall') + '</div>' +
       '<div class="head" style="align-items:baseline"><span style="font-family:var(--display);font-size:32px;font-weight:700;line-height:1">' + esc(sel) + '</span><span class="note">' + CS.n + ' GP · ' + recS(CS) + '</span></div>' +
-      '<div class="tiles">' + [['pts', 'PPG'], ['reb', 'RPG'], ['ast', 'APG'], ['fgp', 'FG%'], ['tpp', '3P%'], ['ftp', 'FT%']].map((x) => tile(f1(metric(x[0], CS)), x[1], diff(x[0]))).join('') + '</div>' +
+      '<div class="tiles s7">' + [['pts', 'PPG'], ['reb', 'RPG'], ['ast', 'APG'], ['fgp', 'FG%'], ['twop', '2P%'], ['tpp', '3P%'], ['ftp', 'FT%']].map((x) => tile(f1(metric(x[0], CS)), x[1], diff(x[0]))).join('') + '</div>' +
       '<div class="note small">Small number under each stat: difference from their average in all selected games.' + (unknown ? ' ' + unknown + ' of these games have no court recorded yet.' : '') + '</div></div>';
     h += '<div class="card list"><div class="head"><h2>Every game on ' + esc(sel) + '</h2></div><div class="trow th" style="grid-template-columns:minmax(0,1fr) 32px 32px 32px 52px"><span style="text-align:left">GAME</span><span>PTS</span><span>REB</span><span>AST</span><span>FG</span></div>' +
       CL.slice().reverse().map((l) => '<a class="trow" style="grid-template-columns:minmax(0,1fr) 32px 32px 32px 52px" href="' + href(['game', l.g.t, l.g.id], {}) + '"><span class="lft">' + teamBadge(l.g.t, 's28') + '<span><span class="t1">' + esc(vsName(l.g)) + '</span><span class="t2"><span class="res-' + wlClass(l.g) + '">' + resL(l.g) + '</span> ' + l.g.us + '–' + l.g.them + ' · ' + fmtDY(l.g.date) + '</span></span></span>' +
@@ -830,7 +831,7 @@
   const CATS = [
     { k: 'pts', l: 'PTS', long: 'Points' }, { k: 'reb', l: 'REB', long: 'Rebounds' }, { k: 'ast', l: 'AST', long: 'Assists' },
     { k: 'stl', l: 'STL', long: 'Steals' }, { k: 'blk', l: 'BLK', long: 'Blocks' }, { k: 'tpm', l: '3PM', long: '3 pointers made' },
-    { k: 'fgp', l: 'FG%', long: 'Field goal %', m: 'fgm', a: 'fga', min: 20 }, { k: 'tpp', l: '3P%', long: '3 point %', m: 'tpm', a: 'tpa', min: 10 },
+    { k: 'fgp', l: 'FG%', long: 'Field goal %', m: 'fgm', a: 'fga', min: 20 }, { k: 'twop', l: '2P%', long: '2 point %', m: 'twom', a: 'twoa', min: 15 }, { k: 'tpp', l: '3P%', long: '3 point %', m: 'tpm', a: 'tpa', min: 10 },
     { k: 'ftp', l: 'FT%', long: 'Free throw %', m: 'ftm', a: 'fta', min: 10 }, { k: 'efg', l: 'eFG%', long: 'Effective FG %', a: 'fga', min: 20 },
     { k: 'ts', l: 'TS%', long: 'True shooting %', a: 'fga', min: 20 }, { k: 'oreb', l: 'OREB', long: 'Offensive rebounds' },
     { k: 'dreb', l: 'DREB', long: 'Defensive rebounds' }, { k: 'fgm', l: 'FGM', long: 'Field goals made' }, { k: 'fga', l: 'FGA', long: 'Field goal attempts' },
@@ -1468,17 +1469,17 @@
     }
     const qchips = nq > 1 ? '<div class="scroller" style="margin-top:8px">' + chips([{ label: 'Full game', on: !bq, attr: tog({ sq: null }) }].concat(Array.from({ length: nq }, (_, i) => ({ label: qlab(i + 1), on: bq === i + 1, attr: tog({ sq: i + 1 }) })))) + '</div>' : '';
     const TF = XT && g.X.tech && Object.keys(g.X.tech).length ? g.X.tech : null;
-    const cols = '200px ' + (XM ? A + ' ' : '') + [A, A, A, A, A, A, W, A, W, A, W, A, A, A, A].join(' ') + (TF ? ' ' + A : '') + (XT ? ' ' + A : '');
+    const cols = '200px ' + (XM ? A + ' ' : '') + [A, A, A, A, A, A, W, A, W, A, W, A, W, A, A, A, A].join(' ') + (TF ? ' ' + A : '') + (XT ? ' ' + A : '');
     const pc = (m, a) => (a ? Math.round((m / a) * 100) + '%' : '–');
-    const cells = (x, tot) => (XM ? '<span>' + (tot || x.min == null ? '' : Math.round(x.min)) + '</span>' : '') + '<b class="pts">' + x.pts + '</b>' + [x.reb, x.ast, x.stl, x.blk, x.to, x.fgm + '-' + x.fga, pc(x.fgm, x.fga), x.tpm + '-' + x.tpa, pc(x.tpm, x.tpa), x.ftm + '-' + x.fta, pc(x.ftm, x.fta), x.oreb, x.dreb, x.pf].concat(TF ? [bq ? x.tech || 0 : tot ? Object.values(TF).reduce((a, b) => a + b, 0) : (TF[x.p] || 0)] : []).map((v) => '<span>' + v + '</span>').join('') +
+    const cells = (x, tot) => (XM ? '<span>' + (tot || x.min == null ? '' : Math.round(x.min)) + '</span>' : '') + '<b class="pts">' + x.pts + '</b>' + [x.reb, x.ast, x.stl, x.blk, x.to, x.fgm + '-' + x.fga, pc(x.fgm, x.fga), (x.fgm - x.tpm) + '-' + (x.fga - x.tpa), pc(x.fgm - x.tpm, x.fga - x.tpa), x.tpm + '-' + x.tpa, pc(x.tpm, x.tpa), x.ftm + '-' + x.fta, pc(x.ftm, x.fta), x.oreb, x.dreb, x.pf].concat(TF ? [bq ? x.tech || 0 : tot ? Object.values(TF).reduce((a, b) => a + b, 0) : (TF[x.p] || 0)] : []).map((v) => '<span>' + v + '</span>').join('') +
       (XT ? (tot || x.pm == null ? '<span></span>' : '<span class="pm ' + (x.pm > 0 ? 'up' : x.pm < 0 ? 'dn' : '') + '">' + pmTxt(x.pm) + '</span>') : '');
     h += '<div class="card flush box" style="gap:10px"><div class="px"><h2 style="font-size:18px">Box Score' + (bq ? ' · ' + qlab(bq) : '') + '</h2><div class="note small">Swipe sideways for every column · tap a player for their page</div>' + qchips + '</div><div class="xscroll"><div>' +
-      '<div class="trow th" style="grid-template-columns:' + cols + '"><span class="stick">PLAYER</span>' + (XM ? '<span>MIN</span>' : '') + ['PTS', 'REB', 'AST', 'STL', 'BLK', 'TO', 'FG', 'FG%', '3PT', '3P%', 'FT', 'FT%', 'OREB', 'DREB', 'PF'].concat(TF ? ['TF'] : [], XT ? ['+/-'] : []).map((c) => '<span>' + c + '</span>').join('') + '</div>' +
+      '<div class="trow th" style="grid-template-columns:' + cols + '"><span class="stick">PLAYER</span>' + (XM ? '<span>MIN</span>' : '') + ['PTS', 'REB', 'AST', 'STL', 'BLK', 'TO', 'FG', 'FG%', '2PT', '2P%', '3PT', '3P%', 'FT', 'FT%', 'OREB', 'DREB', 'PF'].concat(TF ? ['TF'] : [], XT ? ['+/-'] : []).map((c) => '<span>' + c + '</span>').join('') + '</div>' +
       BL.slice().sort((a, b) => b.pts - a.pts).map((l) => '<a class="trow" style="grid-template-columns:' + cols + '" href="' + href(['player', l.p], { team: g.t }) + '"><span class="stick">' + avatar(l.p, 'sq44', g.t) +
         '<span><span class="t1" style="font-size:14px;white-space:normal;line-height:1.2">' + esc(D.players[l.p].name) + '</span><span class="t2" style="font-size:12px">#' + esc(l.n) + ' ' + (bq ? '' : ddTag(l)) + '</span></span></span>' + cells(l) + '</a>').join('') +
       '<div class="trow strong total" style="grid-template-columns:' + cols + '"><span class="stick">' + (T.partialStats ? 'TRACKED TOTALS' : 'TEAM TOTALS') + '</span>' + cells(BS, true) + '</div>' +
       '</div></div></div>';
-    h += '<div class="card"><h2 style="font-size:18px">Team Shooting</h2>' + shotBar('Field goals', S.fgm, S.fga, S.fgm + '/' + S.fga) + shotBar('3 pointers', S.tpm, S.tpa, S.tpm + '/' + S.tpa) + shotBar('Free throws', S.ftm, S.fta, S.ftm + '/' + S.fta) +
+    h += '<div class="card"><h2 style="font-size:18px">Team Shooting</h2>' + shotBar('Field goals', S.fgm, S.fga, S.fgm + '/' + S.fga) + shotBar('2 pointers', S.fgm - S.tpm, S.fga - S.tpa, (S.fgm - S.tpm) + '/' + (S.fga - S.tpa)) + shotBar('3 pointers', S.tpm, S.tpa, S.tpm + '/' + S.tpa) + shotBar('Free throws', S.ftm, S.fta, S.ftm + '/' + S.fta) +
       '<div class="tiles">' + tile(S.reb, 'Reb') + tile(S.oreb + ' / ' + S.dreb, 'Off / Def') + tile(S.ast, 'Ast') + tile(S.stl, 'Stl') + tile(S.blk, 'Blk') + tile(S.to, 'TO') + '</div>' +
       '<div class="note small">' + (T.partialStats ? esc(T.partialNote) + ' ' : '') + 'Opponent stats aren’t tracked, only their final score.</div></div>' +
       (g.X ? trackedGameCards(g) : '') + '</div>';

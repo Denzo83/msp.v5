@@ -390,3 +390,9 @@ img { display: block; }
 .rshare button { width: 100%; min-height: 42px; border-radius: 12px; border: none; background: rgba(255,255,255,.16); color: #fff; font-size: 14px; font-weight: 700; }
 .rline { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .rline .rtag { margin-right: 0; }
+
+/* 7 tiles: 3 on the first row, the 4 shooting % on the second */
+.tiles.s7 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+.tiles.s7 > * { grid-column: span 3; padding-left: 10px; padding-right: 8px; }
+.tiles.s7 > :nth-child(-n+3) { grid-column: span 4; }
+@media (min-width: 900px) { .tiles.wide.s7 { grid-template-columns: repeat(7, minmax(0, 1fr)); } .tiles.wide.s7 > * { grid-column: auto; } }

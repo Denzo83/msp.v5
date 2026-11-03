@@ -553,11 +553,11 @@ function vBox() {
   const T = blank();
   const cols = g.clockOn ? ['MIN'] : [];
   const anyTech = ids.some((id) => SP[id].tech > 0);
-  const head = ['Player'].concat(cols, ['PTS', 'FG', 'FG%', '3P', '3P%', 'FT', 'FT%', 'OREB', 'DREB', 'REB', 'AST', 'STL', 'BLK', 'TO', 'PF'], anyTech ? ['TF'] : [], ['+/-']);
+  const head = ['Player'].concat(cols, ['PTS', 'FG', 'FG%', '2P', '2P%', '3P', '3P%', 'FT', 'FT%', 'OREB', 'DREB', 'REB', 'AST', 'STL', 'BLK', 'TO', 'PF'], anyTech ? ['TF'] : [], ['+/-']);
   const line = (name, p, tot) => {
     const c = [esc(name)];
     if (g.clockOn) c.push(tot ? '' : String(Math.round(p.sec / 60)));
-    c.push(String(p.pts), p.fgm + '-' + p.fga, pct(p.fgm, p.fga), p.tpm + '-' + p.tpa, pct(p.tpm, p.tpa), p.ftm + '-' + p.fta, pct(p.ftm, p.fta),
+    c.push(String(p.pts), p.fgm + '-' + p.fga, pct(p.fgm, p.fga), (p.fgm - p.tpm) + '-' + (p.fga - p.tpa), pct(p.fgm - p.tpm, p.fga - p.tpa), p.tpm + '-' + p.tpa, pct(p.tpm, p.tpa), p.ftm + '-' + p.fta, pct(p.ftm, p.fta),
       String(p.oreb), String(p.dreb), String(p.oreb + p.dreb), String(p.ast), String(p.stl), String(p.blk), String(p.to), String(p.pf));
     if (anyTech) c.push(String(p.tech));
     c.push(tot ? '' : sgn(p.pm));
@@ -579,9 +579,9 @@ function vBox() {
   const qpills = '<div class="scroller">' + [['all', 'Full game']].concat(QK.map((q) => [q, periodLabel(g, q)])).map((f) => '<button class="pill' + (ui.qf === f[0] ? ' on' : '') + '" data-act="qf" data-arg="' + f[0] + '">' + f[1] + '</button>').join('') + '</div>';
   // team shooting by quarter (full-game view only)
   const byQ = Q || QK.length < 2 ? '' : '<div class="sec"><div class="between"><h2 class="h2">By quarter</h2><span class="small muted">Tap a row for that ' + (g.periods === 2 ? 'half' : 'quarter') + '</span></div><div class="tblwrap"><table class="box"><thead><tr>' +
-    ['', 'Score', 'FG', 'FG%', '3P', '3P%', 'FT', 'REB', 'AST', 'TO'].map((h) => '<th scope="col">' + h + '</th>').join('') + '</tr></thead><tbody>' +
+    ['', 'Score', 'FG', 'FG%', '2P%', '3P', '3P%', 'FT', 'REB', 'AST', 'TO'].map((h) => '<th scope="col">' + h + '</th>').join('') + '</tr></thead><tbody>' +
     QK.map((q) => { const qs = quarterStats(g, q), t = blank(); Object.values(qs.P).forEach((p) => { Object.keys(t).forEach((k) => { t[k] += p[k] || 0; }); });
-      return '<tr data-act="qf" data-arg="' + q + '" style="cursor:pointer"><td>' + periodLabel(g, q) + '</td><td class="pts">' + qs.score.us + '–' + qs.score.them + '</td><td>' + t.fgm + '-' + t.fga + '</td><td>' + pct(t.fgm, t.fga) + '</td><td>' + t.tpm + '-' + t.tpa + '</td><td>' + pct(t.tpm, t.tpa) + '</td><td>' + t.ftm + '-' + t.fta + '</td><td>' + (t.oreb + t.dreb) + '</td><td>' + t.ast + '</td><td>' + t.to + '</td></tr>'; }).join('') +
+      return '<tr data-act="qf" data-arg="' + q + '" style="cursor:pointer"><td>' + periodLabel(g, q) + '</td><td class="pts">' + qs.score.us + '–' + qs.score.them + '</td><td>' + t.fgm + '-' + t.fga + '</td><td>' + pct(t.fgm, t.fga) + '</td><td>' + pct(t.fgm - t.tpm, t.fga - t.tpa) + '</td><td>' + t.tpm + '-' + t.tpa + '</td><td>' + pct(t.tpm, t.tpa) + '</td><td>' + t.ftm + '-' + t.fta + '</td><td>' + (t.oreb + t.dreb) + '</td><td>' + t.ast + '</td><td>' + t.to + '</td></tr>'; }).join('') +
     '</tbody></table></div>' + (g.trackAll ? '' : '<span class="small muted">Tracked players only. The score includes everyone.</span>') + '</div>';
   const dots = shots.filter((s) => !s.made).map((s) => '<path d="M' + (s.x - 1.8) + ' ' + (s.y - 1.8) + 'L' + (s.x + 1.8) + ' ' + (s.y + 1.8) + 'M' + (s.x - 1.8) + ' ' + (s.y + 1.8) + 'L' + (s.x + 1.8) + ' ' + (s.y - 1.8) + '" style="fill:none;stroke:#F87171;stroke-width:1.1;stroke-linecap:round"></path>').join('') +
     shots.filter((s) => s.made).map((s) => '<circle cx="' + s.x + '" cy="' + s.y + '" r="2.1" style="fill:none;stroke:#4ADE80;stroke-width:0.9"></circle>').join('');
