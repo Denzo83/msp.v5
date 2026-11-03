@@ -881,6 +881,21 @@
           '<span class="track thin"><div style="width:' + Math.max(0, (x.v / topV) * 100).toFixed(1) + '%"></div></span><span class="note small">' + sub + '</span></span><span class="big" style="font-size:26px;min-width:56px">' + show(cat, x.v) + '</span></a>';
       }).join('') + (list.length ? '' : '<div class="note" style="padding:20px 0;text-align:center">Nobody has 3+ games here yet. Turn off “3+ games only” to see everyone.</div>') +
       '<div class="note small" style="padding:12px 0;border-top:1px solid var(--line)">' + (qual ? 'Only players with 3 or more games are ranked, so one big night doesn’t top the list. Shooting % also needs 20 FG, 10 3PT or 10 FT attempts. Turn off “3+ games only” to see everyone.' : 'Showing everyone, including players with very few games.') + '</div></div>';
+    if (cat.k === 'td') {
+      // near misses: the best three of PTS/REB/AST/STL/BLK, ranked by how far short of 10 each they fell
+      const TDK = [['pts', 'PTS'], ['reb', 'REB'], ['ast', 'AST'], ['stl', 'STL'], ['blk', 'BLK']];
+      const near = linesOf(G).filter((l) => !l.td).map((l) => {
+        const top3 = TDK.map((k) => ({ k: k[1], v: l[k[0]] })).sort((x, y) => y.v - x.v).slice(0, 3);
+        return { l, top3, short: top3.reduce((t, x) => t + Math.max(0, 10 - x.v), 0), sum: top3.reduce((t, x) => t + x.v, 0) };
+      }).sort((x, y) => x.short - y.short || y.sum - x.sum).slice(0, 3);
+      if (near.length) {
+        h += '<div class="card list"><div class="head"><div><h2>Closest 3</h2><div class="sub">The games that came nearest to a triple-double</div></div></div>' +
+          near.map((n, i) => '<a class="lrow" style="min-height:60px" href="' + href(['game', n.l.g.t, n.l.g.id], {}) + '"><span class="rank">' + (i + 1) + '</span>' + avatar(n.l.p, 's40', n.l.g.t) +
+            '<span class="grow"><b style="font-size:14px">' + esc(D.players[n.l.p].name) + '</b><span class="note small">' + esc(n.top3.map((x) => x.v + ' ' + x.k).join(' · ')) + '</span>' +
+            '<span class="note small">' + esc(vsName(n.l.g) + ' · ' + fmtDY(n.l.g.date) + ' · ' + D.teams[n.l.g.t].short) + '</span></span>' +
+            '<span style="display:flex;flex-direction:column;align-items:flex-end"><span class="big" style="font-size:26px">' + n.short + '</span><span class="note small" style="font-weight:700">SHORT</span></span></a>').join('') + '</div>';
+      }
+    }
     h += '<div class="card"><div><h2>Category Leaders</h2><div class="sub">Tap one to see the full list</div></div><div class="tiles two">' +
       CATS.filter((c) => !c.tracked || c.k === cat.k).map((c) => { const b = rank(c)[0]; return '<a class="tile" ' + tog({ cat: c.k === 'pts' ? null : c.k }) + ' style="border:1px solid ' + (c.k === cat.k ? 'var(--acc)' : 'transparent') + '"><span class="l">' + esc(c.long) + '</span><span class="v">' + (b ? show(c, b.v) : '–') + '</span><span class="s" style="font-weight:600;color:var(--text)">' + (b ? esc(D.players[b.p.pid].name) : 'Nobody qualifies') + '</span></a>'; }).join('') + '</div></div>';
     h += '</div>';
