@@ -308,7 +308,7 @@ function vHome() {
 function newSetup() {
   const seasons = BUNDLE.seasons || [];
   const team = 'pretty-good';
-  const s = { team, opp: '', date: today(), season: seasons.length ? seasons[seasons.length - 1].name : '', final: false, venue: 'Court 1', periods: 4, len: 10, clockOn: true, trackAll: true, playing: [], starters: [], extra: [] };
+  const s = { team, opp: '', date: today(), season: seasons.length ? seasons[seasons.length - 1].name : '', final: false, venue: 'Court 1', periods: 4, len: 10, size: 5, clockOn: true, trackAll: true, playing: [], starters: [], extra: [] };
   applyTeamDefaults(s);
   return s;
 }
@@ -342,7 +342,7 @@ function vSetup() {
       '<span class="box' + (on ? ' on' : '') + '">' + I.tick + '</span><span style="font-size:15px;font-weight:600">' + esc(r.name) + (r.isNew ? ' <span class="badge">new</span>' : '') + '</span></button>' +
       '<button class="st' + (st ? ' on' : '') + '" data-act="togStart" data-arg="' + esc(r.id) + '" aria-pressed="' + st + '"' + (on ? '' : ' disabled') + '>' + word + '</button></div>';
   }).join('');
-  const n = s.starters.length, need = Math.min(5, s.playing.length);
+  const SZ = s.size || 5, n = s.starters.length, need = Math.min(SZ, s.playing.length);
   const countText = s.trackAll ? n + ' of ' + need + ' starters picked' : s.playing.length + ' tracked · ' + n + ' on court';
   const tog = (key, label, sub) => '<button class="tog' + (s[key] ? ' on' : '') + '" data-act="setupTog" data-arg="' + key + '" aria-pressed="' + !!s[key] + '"><span class="l"><b>' + label + '</b><span>' + sub + '</span></span><span class="sw"></span></button>';
   return '<div class="scr"><header class="hdr"><button class="round" aria-label="Back" data-act="home">' + I.back + '</button><div class="ttl"><span class="kick">MyStat Tracker</span><span class="big">New game</span></div></header>' +
@@ -355,6 +355,7 @@ function vSetup() {
     '<div class="sec"><h2 class="h2">Court</h2><div class="g2">' + [['Court A Main', 'Main court'], ['Court 1', 'Court 1'], ['Court 2', 'Court 2'], ['Court 3', 'Court 3']].map((c) => '<button class="chip' + (s.venue === c[0] ? ' on' : '') + '" data-act="setVenue" data-arg="' + c[0] + '">' + c[1] + '</button>').join('') + '</div></div>' +
     '<div class="sec"><h2 class="h2">Format</h2><div class="g2">' +
     '<button class="chip' + (s.periods === 4 ? ' on' : '') + '" data-act="setPeriods" data-arg="4">4 quarters</button><button class="chip' + (s.periods === 2 ? ' on' : '') + '" data-act="setPeriods" data-arg="2">2 halves</button></div>' +
+    '<div class="g3">' + [5, 4, 3].map((k) => '<button class="chip' + (SZ === k ? ' on' : '') + '" data-act="setSize" data-arg="' + k + '">' + k + ' on ' + k + '</button>').join('') + '</div>' +
     '<div class="row"><label for="f-len" class="muted" style="flex:1">Minutes per ' + (s.periods === 2 ? 'half' : 'quarter') + '</label><input id="f-len" class="field" style="width:96px;text-align:center" type="number" inputmode="numeric" min="1" max="40" data-bind="len" value="' + s.len + '"></div></div>' +
     '<div class="sec"><h2 class="h2">Options</h2>' +
     tog('final', 'Finals game', 'A semi final or grand final.') +
@@ -489,10 +490,10 @@ function vSubs() {
     return '<button class="srow' + (on ? (isCourt ? ' off' : ' in') : '') + '" data-act="' + (isCourt ? 'subOff' : 'subOn') + '" data-arg="' + esc(id) + '" aria-pressed="' + on + '"><span class="n"><b>' + esc(pname(g, id)) + '</b><span>' + sub + '</span></span><span class="mk">' + (on ? (isCourt ? 'Coming off' : 'Going on') : '') + '</span></button>';
   };
   const no = ui.off.length, ni = ui.on.length, after = S.court.length - no + ni;
-  const ok = (no > 0 || ni > 0) && after <= 5;
+  const SZ = g.size || 5, ok = (no > 0 || ni > 0) && after <= SZ;
   let label = 'Pick players to swap';
   if (no || ni) {
-    if (after > 5) label = 'Too many on court (' + after + '). Pick ' + (after - 5) + ' more coming off';
+    if (after > SZ) label = 'Too many on court (' + after + '). Pick ' + (after - SZ) + ' more coming off';
     else if (g.trackAll && no !== ni) label = 'Confirm (leaves ' + after + ' on court)';
     else label = 'Confirm ' + Math.max(no, ni) + ' change' + (Math.max(no, ni) > 1 ? 's' : '');
   }
@@ -779,18 +780,19 @@ const ACT = {
   open: (id) => { ui.gid = id; ui.logFilter = 'all'; ui.who = 'all'; const g = cur(); go(g.status === 'live' ? 'track' : 'box'); },
   setTeam: (id) => { const s = ui.setup; if (s.team === id) return; s.team = id; s.extra = []; applyTeamDefaults(s); render(); },
   setVenue: (v) => { ui.setup.venue = v; render(); },
+  setSize: (k) => { const s = ui.setup; s.size = Number(k); s.starters = s.starters.slice(0, s.size); render(); },
   setPeriods: (n) => { ui.setup.periods = Number(n); if (Number(n) === 2 && ui.setup.len === 10) ui.setup.len = 20; else if (Number(n) === 4 && ui.setup.len === 20) ui.setup.len = 10; render(); },
-  setupTog: (k) => { const s = ui.setup; s[k] = !s[k]; if (k === 'trackAll') s.starters = s.trackAll ? s.starters.slice(0, 5) : s.starters; render(); },
+  setupTog: (k) => { const s = ui.setup; s[k] = !s[k]; if (k === 'trackAll') s.starters = s.trackAll ? s.starters.slice(0, s.size || 5) : s.starters; render(); },
   togPlay: (id) => {
     const s = ui.setup, i = s.playing.indexOf(id);
     if (i >= 0) { s.playing.splice(i, 1); s.starters = s.starters.filter((x) => x !== id); }
-    else { s.playing.push(id); if (s.starters.length < 5) s.starters.push(id); }
+    else { s.playing.push(id); if (s.starters.length < (s.size || 5)) s.starters.push(id); }
     render();
   },
   togStart: (id) => {
     const s = ui.setup, i = s.starters.indexOf(id);
     if (i >= 0) s.starters.splice(i, 1);
-    else { if (s.starters.length >= 5) { toast('Only 5 can start. Untick one first.'); return; } s.starters.push(id); }
+    else { if (s.starters.length >= (s.size || 5)) { toast('Only ' + (s.size || 5) + ' can start. Untick one first.'); return; } s.starters.push(id); }
     render();
   },
   addSetupPlayer: () => {
@@ -807,13 +809,13 @@ const ACT = {
   startGame: () => {
     const s = ui.setup, roster = setupRoster(s).filter((r) => s.playing.indexOf(r.id) >= 0);
     if (!roster.length) { toast(s.trackAll ? 'Tick who is playing first' : 'Tick at least one tracked player'); return; }
-    const need = Math.min(5, roster.length);
+    const need = Math.min(s.size || 5, roster.length);
     if (s.trackAll && s.starters.length !== need) { toast('Pick ' + need + ' starters (' + s.starters.length + ' picked)'); return; }
     if (!s.opp.trim()) { toast('Add the opponent’s name'); document.getElementById('f-opp').focus(); return; }
     const len = Math.max(1, Math.min(40, Number(s.len) || 10));
     const nums = (BUNDLE.nums || {})[s.team] || {};
     const g = { app: 'mystat-tracker', v: APP_VERSION, id: uid(), team: s.team, opp: s.opp.trim(), date: s.date || today(), season: (s.season || '').trim(), final: !!s.final, venue: s.venue || '',
-      periods: s.periods, len, clockOn: !!s.clockOn, trackAll: !!s.trackAll,
+      periods: s.periods, len, size: s.size || 5, clockOn: !!s.clockOn, trackAll: !!s.trackAll,
       roster: roster.map((r) => ({ id: r.id, name: r.name, num: nums[r.id] || '', isNew: !!r.isNew })),
       events: [], seq: 0, clock: { q: 1, rem: len * 60, running: false, at: 0 }, status: 'live', created: Date.now(), updated: Date.now() };
     DB.games[g.id] = g; DB.order.unshift(g.id);
@@ -869,8 +871,8 @@ const ACT = {
   subOff: (id) => { const i = ui.off.indexOf(id); if (i >= 0) ui.off.splice(i, 1); else ui.off.push(id); render(); },
   subOn: (id) => { const i = ui.on.indexOf(id); if (i >= 0) ui.on.splice(i, 1); else ui.on.push(id); render(); },
   confirmSubs: () => {
-    const S = replay(cur()), outs = ui.off.slice(), ins = ui.on.slice();
-    if (!(outs.length || ins.length) || S.court.length - outs.length + ins.length > 5) return;
+    const g = cur(), S = replay(g), outs = ui.off.slice(), ins = ui.on.slice();
+    if (!(outs.length || ins.length) || S.court.length - outs.length + ins.length > (g.size || 5)) return;
     add({ t: 'sub', in: ins, out: outs });
     ui.off = []; ui.on = [];
     go('track');
@@ -938,7 +940,7 @@ function exportFile() {
   g.roster.forEach((r) => { const p = S.P[r.id]; box[r.id] = Object.assign({}, p, { min: g.clockOn ? Math.round(p.sec / 60) : null }); delete box[r.id].stint; });
   const out = {
     format: 'mystat-tracker', version: APP_VERSION, exported: new Date().toISOString(),
-    game: { team: g.team, opponent: g.opp, date: g.date, season: g.season, final: g.final, venue: g.venue || '', periods: g.periods, periodMinutes: g.len, clock: g.clockOn, trackAll: g.trackAll, status: g.status,
+    game: { team: g.team, opponent: g.opp, date: g.date, season: g.season, final: g.final, venue: g.venue || '', periods: g.periods, periodMinutes: g.len, size: g.size || 5, clock: g.clockOn, trackAll: g.trackAll, status: g.status,
       score: { us: S.us, them: S.them }, byPeriod: S.qs },
     roster: g.roster, events: g.events,
     summary: { box, starters: S.starters, extras: S.x, maxLead: S.maxLead, maxDeficit: S.maxDef, leadChanges: S.changes, ties: S.ties }

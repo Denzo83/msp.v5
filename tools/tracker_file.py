@@ -256,7 +256,7 @@ def tracked_block(data, S, idmap):
     return {
         'app': 'mystat-tracker',
         'trackAll': bool(g.get('trackAll', True)),
-        'periods': g['periods'], 'periodMinutes': g['periodMinutes'], 'clock': clock_on,
+        'periods': g['periods'], 'size': g.get('size', 5), 'periodMinutes': g['periodMinutes'], 'clock': clock_on,
         'byPeriod': [[S['qs'][q]['us'], S['qs'][q]['them']] for q in qs],
         'starters': [m(p) for p in S['starters']],
         'pm': {m(pid): S['P'][pid]['pm'] for pid in S['P'] if m(pid) in players},

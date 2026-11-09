@@ -1446,7 +1446,7 @@
       '<div><div class="score">' + g.us + '<i>–</i>' + g.them + '</div><span class="resbadge" style="background:var(--' + resBg(g) + '-bg)">' + resWord(g) + '</span>' +
       (g.round === 'gf' && g.win ? '<span class="champs">Champions</span><img class="box-trophy" src="assets/trophy.png" alt="Championship trophy" title="' + esc(D.seasonName(g.s)) + ' champions">' : '') + '</div>' +
       '<div><span class="sq" style="background:rgba(0,0,0,.25);color:#fff">' + esc(initials(g.o)) + '</span>' + esc(g.o) + '</div></div>' +
-      '<div style="text-align:center;font-size:13px;opacity:.92">' + fmtDY(g.date) + (g.venue ? ' · ' + esc(g.venue) : '') + '</div>' +
+      '<div style="text-align:center;font-size:13px;opacity:.92">' + fmtDY(g.date) + (g.venue ? ' · ' + esc(g.venue) : '') + (g.X && g.X.size && g.X.size !== 5 ? ' · ' + g.X.size + ' on ' + g.X.size : '') + '</div>' +
       (g.official ? '<div class="scorenote" role="note">' + esc(g.official.note) + '</div>' : '') + '</header>';
     h += '<div class="wrap" style="padding-top:16px"><div class="grid2"><a class="pbtn' + (prev ? '' : ' off') + '" href="' + (prev ? href(['game', g.t, prev.id], {}) : '#') + '">' + (prev ? 'Previous · ' + esc(prev.o) : 'No earlier game') + '</a>' +
       '<a class="pbtn' + (next ? '' : ' off') + '" href="' + (next ? href(['game', g.t, next.id], {}) : '#') + '">' + (next ? 'Next · ' + esc(next.o) : 'No later game') + '</a></div>';
