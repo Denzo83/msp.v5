@@ -9,7 +9,7 @@ from pathlib import Path
 from tracker_file import load, replay, tracked_block
 
 ROOT = Path(__file__).resolve().parent.parent
-KEYS = ('shots', 'byQ', 'tech', 'techs')
+KEYS = ('shots', 'byQ', 'tech', 'techs', 'pa')
 
 for gf in sorted((ROOT / 'data' / 'games').glob('*/*.json')):
     game = json.loads(gf.read_text(encoding='utf-8'))

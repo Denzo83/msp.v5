@@ -69,7 +69,7 @@ def build(quiet=False):
         if g.get('tracked'):
             tr = g['tracked']
             games[-1]['X'] = {k: tr[k] for k in ('trackAll', 'periods', 'size', 'clock', 'byPeriod', 'starters', 'pm', 'min', 'dunks', 'assisted', 'types', 'shots',
-                                                  'assists', 'extras', 'lineups', 'flow', 'leadChanges', 'ties', 'maxLead', 'maxDeficit', 'bestRun', 'tech', 'byQ') if k in tr}
+                                                  'assists', 'extras', 'lineups', 'flow', 'leadChanges', 'ties', 'maxLead', 'maxDeficit', 'bestRun', 'tech', 'byQ', 'pa') if k in tr}
 
     order = {'summer': 0, 'autumn': 1, 'fall': 1, 'winter': 2, 'spring': 3}
     season_list = sorted(seasons, key=lambda k: (k.split('-')[0], order.get(k.partition('-')[2], 9), k))

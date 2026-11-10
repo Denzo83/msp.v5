@@ -60,7 +60,7 @@
       const ru = game.official ? game.official.us : g.us, rt = game.official ? game.official.them : g.them;
       game.res = ru > rt ? 'W' : ru < rt ? 'L' : 'D';
       game.win = game.res === 'W'; game.draw = game.res === 'D';
-      if (game.X) game.lines.forEach((l) => { l.pm = (game.X.pm || {})[l.p]; l.min = game.X.min ? game.X.min[l.p] : null; });
+      if (game.X) game.lines.forEach((l) => { l.pm = (game.X.pm || {})[l.p]; l.min = game.X.min ? game.X.min[l.p] : null; if (game.X.pa) l.pa = game.X.pa[l.p] || 0; });
       return game;
     });
     games.sort((a, b) => a.date - b.date || (a.t < b.t ? -1 : 1));
@@ -133,13 +133,15 @@
     SUMK.forEach((k) => { s[k] = 0; });
     lines.forEach((l) => { SUMK.forEach((k) => { s[k] += l[k]; }); if (l.g && l.g.win) s.w++; if (l.g && l.g.draw) s.d++; if (l.pm != null) { s.pm += l.pm; s.tn++; } s.dd += l.dd || 0; s.td += l.td || 0; });
     s.reb = s.oreb + s.dreb; s.twom = s.fgm - s.tpm; s.twoa = s.fga - s.tpa;
+    s.pa = 0; s.pan = 0; s.paast = 0;
+    lines.forEach((l) => { if (l.pa != null) { s.pa += l.pa; s.pan++; s.paast += l.ast; } });
     return s;
   }
   const PCT = { fgp: 1, twop: 1, tpp: 1, ftp: 1, efg: 1, ts: 1 };
   const LABEL = {
     gp: 'GP', pts: 'PTS', reb: 'REB', oreb: 'OREB', dreb: 'DREB', ast: 'AST', stl: 'STL', blk: 'BLK', to: 'TO', pf: 'PF',
     fgm: 'FGM', fga: 'FGA', fgp: 'FG%', twom: '2PM', twoa: '2PA', twop: '2P%', tpm: '3PM', tpa: '3PA', tpp: '3P%',
-    pm: '+/-', dd: 'DD', td: 'TD', ftm: 'FTM', fta: 'FTA', ftp: 'FT%', efg: 'eFG%', ts: 'TS%', astto: 'AST/TO', stocks: 'STL+BLK', pra: 'PTS+REB+AST'
+    pm: '+/-', dd: 'DD', td: 'TD', ftm: 'FTM', fta: 'FTA', ftp: 'FT%', efg: 'eFG%', ts: 'TS%', astto: 'AST/TO', pa: 'PA', stocks: 'STL+BLK', pra: 'PTS+REB+AST'
   };
   function metric(k, S) {
     if (!S.n) return 0;
@@ -154,6 +156,7 @@
       case 'efg': return S.fga ? ((S.fgm + 0.5 * S.tpm) / S.fga) * 100 : 0;
       case 'ts': return (S.fga + 0.44 * S.fta) ? (S.pts / (2 * (S.fga + 0.44 * S.fta))) * 100 : 0;
       case 'astto': return S.to ? S.ast / S.to : S.ast;
+      case 'pa': return S.pan ? S.pa / S.pan : 0;
       default: return S[k] / S.n;
     }
   }
@@ -835,7 +838,7 @@
     { k: 'ftp', l: 'FT%', long: 'Free throw %', m: 'ftm', a: 'fta', min: 10 }, { k: 'efg', l: 'eFG%', long: 'Effective FG %', a: 'fga', min: 20 },
     { k: 'ts', l: 'TS%', long: 'True shooting %', a: 'fga', min: 20 }, { k: 'oreb', l: 'OREB', long: 'Offensive rebounds' },
     { k: 'dreb', l: 'DREB', long: 'Defensive rebounds' }, { k: 'fgm', l: 'FGM', long: 'Field goals made' }, { k: 'fga', l: 'FGA', long: 'Field goal attempts' },
-    { k: 'ftm', l: 'FTM', long: 'Free throws made' }, { k: 'astto', l: 'AST/TO', long: 'Assist to turnover', min: 10 },
+    { k: 'ftm', l: 'FTM', long: 'Free throws made' }, { k: 'astto', l: 'AST/TO', long: 'Assist to turnover', min: 10 }, { k: 'pa', l: 'PA', long: 'Potential assists', pa: true },
     { k: 'to', l: 'TO', long: 'Turnovers' }, { k: 'pf', l: 'PF', long: 'Fouls' }, { k: 'pm', l: '+/-', long: 'Plus-minus', tracked: true }, { k: 'dd', l: 'DD', long: 'Double-doubles', total: true }, { k: 'td', l: 'TD', long: 'Triple-doubles', total: true }, { k: 'gp', l: 'GP', long: 'Games played' }
   ];
   VIEWS.leaders = function () {
@@ -852,7 +855,7 @@
     const isP = (c) => !!PCT[c.k];
     const value = (c, S) => (c.total ? S[c.k] : c.k === 'gp' || isP(c) || c.k === 'astto' ? metric(c.k, S) : mode === 'tot' ? S[c.k] : metric(c.k, S));
     const show = (c, v) => (c.total ? String(v) : c.k === 'pm' ? (v > 0 ? '+' : v < 0 ? '−' : '') + (mode === 'tot' ? String(Math.abs(Math.round(v))) : f1(Math.abs(v))) : isP(c) ? f1(v) + '%' : c.k === 'astto' ? v.toFixed(2) : c.k === 'gp' || mode === 'tot' ? String(Math.round(v)) : f1(v));
-    const qualifies = (c, S) => c.tracked ? S.tn > 0 : !qual || (S.n >= 3 && (!c.min || (c.a ? S[c.a] >= c.min : c.k === 'astto' ? S.ast + S.to >= c.min : true)));
+    const qualifies = (c, S) => c.pa ? S.pan > 0 : c.tracked ? S.tn > 0 : !qual || (S.n >= 3 && (!c.min || (c.a ? S[c.a] >= c.min : c.k === 'astto' ? S.ast + S.to >= c.min : true)));
     const rank = (c) => players.filter((p) => (c.total ? p.S[c.k] > 0 : qualifies(c, p.S))).map((p) => ({ p, v: value(c, p.S) })).sort((a, b) => b.v - a.v);
     const list = rank(cat), topV = list.length ? list[0].v || 1 : 1;
     const tag = (t) => '<span class="tag" style="background:' + D.teams[t].color + '">' + D.teams[t].short + '</span>';
@@ -873,7 +876,7 @@
     h += '<div class="card list"><div class="head"><div><h2>' + esc(cat.long) + '</h2><div class="sub">' + (team === 'all' ? 'All teams combined' : esc(D.teams[team].name)) + ' · ' + (season === 'all' ? 'All seasons' : esc(D.seasonName(season))) + ' · ' + G.length + ' games' + (cat.tracked ? ' · only games entered with MyStat Tracker' : '') + '</div></div></div>' +
       list.map((x, i) => {
         const S = x.p.S;
-        let sub = (cat.tracked ? S.tn + ' tracked' : S.n) + ' GP';
+        let sub = (cat.pa ? S.pan + ' tracked' : cat.tracked ? S.tn + ' tracked' : S.n) + ' GP';
         if (cat.m) sub += ' · ' + S[cat.m] + '/' + S[cat.a];
         else if (cat.total) sub += ' · ' + (S[cat.k] / S.n * 100).toFixed(0) + '% of games';
         else if (mode === 'pg' && cat.k !== 'gp' && !isP(cat) && cat.k !== 'astto') sub += ' · ' + S[cat.k] + ' total';
@@ -1350,11 +1353,12 @@
   function trackedPlayerData(pid, list) {
     const tl = list.filter((l) => l.g.X);
     const shots = [], to = {}, from = {}, types = {}, mates = {};
-    let pm = 0, mins = 0, withMin = 0, dunks = 0, astM = 0, ast3 = 0, fgm = 0, tpm = 0, on = 0, off = 0, onOff = 0;
+    let pm = 0, mins = 0, withMin = 0, dunks = 0, astM = 0, ast3 = 0, fgm = 0, tpm = 0, on = 0, off = 0, onOff = 0, pa = 0, pan = 0, paast = 0;
     tl.forEach((l) => {
       const X = l.g.X;
       (X.shots || []).forEach((s) => { if (s[0] === pid) shots.push(s.slice(0, 10).concat([l.g, s[10] || 0])); });
       pm += l.pm || 0; if (l.min != null) { mins += l.min; withMin++; }
+      if (l.pa != null) { pa += l.pa; pan++; paast += l.ast; }
       dunks += (X.dunks || {})[pid] || 0;
       const as = (X.assisted || {})[pid]; if (as) { astM += as[0]; ast3 += as[1]; }
       fgm += l.fgm; tpm += l.tpm;
@@ -1370,7 +1374,7 @@
       });
       on += gOn; off += (l.g.us - l.g.them) - gOn; onOff++;
     });
-    return { tl, n: tl.length, shots, to, from, types, mates, pm, mins, withMin, dunks, astM, ast3, fgm, tpm, on, off, onOff };
+    return { tl, n: tl.length, shots, to, from, types, mates, pm, mins, withMin, dunks, astM, ast3, fgm, tpm, on, off, onOff, pa, pan, paast };
   }
 
   function trackedPlayerCards(pid, list) {
@@ -1383,6 +1387,7 @@
       (T.withMin ? tile(f1(T.mins / T.withMin), 'Minutes', '<div class="s">Per game</div>') : tile(T.dunks, 'Dunks')) +
       tile(T.fgm ? Math.round(T.astM / T.fgm * 100) + '%' : '–', 'Assisted makes', '<div class="s">' + T.astM + ' of ' + T.fgm + '</div>') +
       tile(fb, 'Fast break pts') + tile(sc, '2nd chance pts') +
+      (T.pan ? tile(f1(T.pa / T.pan), 'Potential ast', '<div class="s">Per game · ' + (T.pa ? Math.round(T.paast / T.pa * 100) : 0) + '% became assists</div>') : '') +
       (best ? tile(Math.round(best.p * 100) + '%', 'Best area', '<div class="s">' + esc(Z12[best.k].name) + '</div>') : tile(T.shots.length, 'Shots charted')) + '</div></div>';
     if (T.shots.length) h += '<div class="card"><div class="head"><h2>Shot Chart</h2><a class="more" ' + tog({ tab: 'shots' }) + '>More</a></div>' + courtSvg(T.shots, 'Shot chart for ' + nameOf(pid)) + '</div>';
     return h;
@@ -1469,12 +1474,13 @@
     }
     const qchips = nq > 1 ? '<div class="scroller" style="margin-top:8px">' + chips([{ label: 'Full game', on: !bq, attr: tog({ sq: null }) }].concat(Array.from({ length: nq }, (_, i) => ({ label: qlab(i + 1), on: bq === i + 1, attr: tog({ sq: i + 1 }) })))) + '</div>' : '';
     const TF = XT && g.X.tech && Object.keys(g.X.tech).length ? g.X.tech : null;
-    const cols = '200px ' + (XM ? A + ' ' : '') + [A, A, A, A, A, A, W, A, W, A, W, A, W, A, A, A, A].join(' ') + (TF ? ' ' + A : '') + (XT ? ' ' + A : '');
+    const PA = XT && g.X.pa ? g.X.pa : null; // potential assists (full game only)
+    const cols = '200px ' + (XM ? A + ' ' : '') + [A, A, A].concat(PA ? [A] : [], [A, A, A, W, A, W, A, W, A, W, A, A, A, A]).join(' ') + (TF ? ' ' + A : '') + (XT ? ' ' + A : '');
     const pc = (m, a) => (a ? Math.round((m / a) * 100) + '%' : '–');
-    const cells = (x, tot) => (XM ? '<span>' + (tot || x.min == null ? '' : Math.round(x.min)) + '</span>' : '') + '<b class="pts">' + x.pts + '</b>' + [x.reb, x.ast, x.stl, x.blk, x.to, x.fgm + '-' + x.fga, pc(x.fgm, x.fga), (x.fgm - x.tpm) + '-' + (x.fga - x.tpa), pc(x.fgm - x.tpm, x.fga - x.tpa), x.tpm + '-' + x.tpa, pc(x.tpm, x.tpa), x.ftm + '-' + x.fta, pc(x.ftm, x.fta), x.oreb, x.dreb, x.pf].concat(TF ? [bq ? x.tech || 0 : tot ? Object.values(TF).reduce((a, b) => a + b, 0) : (TF[x.p] || 0)] : []).map((v) => '<span>' + v + '</span>').join('') +
+    const cells = (x, tot) => (XM ? '<span>' + (tot || x.min == null ? '' : Math.round(x.min)) + '</span>' : '') + '<b class="pts">' + x.pts + '</b>' + [x.reb, x.ast].concat(PA ? [bq ? '–' : tot ? Object.values(PA).reduce((a, b) => a + b, 0) : (PA[x.p] || 0)] : [], [x.stl, x.blk, x.to, x.fgm + '-' + x.fga, pc(x.fgm, x.fga), (x.fgm - x.tpm) + '-' + (x.fga - x.tpa), pc(x.fgm - x.tpm, x.fga - x.tpa), x.tpm + '-' + x.tpa, pc(x.tpm, x.tpa), x.ftm + '-' + x.fta, pc(x.ftm, x.fta), x.oreb, x.dreb, x.pf]).concat(TF ? [bq ? x.tech || 0 : tot ? Object.values(TF).reduce((a, b) => a + b, 0) : (TF[x.p] || 0)] : []).map((v) => '<span>' + v + '</span>').join('') +
       (XT ? (tot || x.pm == null ? '<span></span>' : '<span class="pm ' + (x.pm > 0 ? 'up' : x.pm < 0 ? 'dn' : '') + '">' + pmTxt(x.pm) + '</span>') : '');
     h += '<div class="card flush box" style="gap:10px"><div class="px"><h2 style="font-size:18px">Box Score' + (bq ? ' · ' + qlab(bq) : '') + '</h2><div class="note small">Swipe sideways for every column · tap a player for their page</div>' + qchips + '</div><div class="xscroll"><div>' +
-      '<div class="trow th" style="grid-template-columns:' + cols + '"><span class="stick">PLAYER</span>' + (XM ? '<span>MIN</span>' : '') + ['PTS', 'REB', 'AST', 'STL', 'BLK', 'TO', 'FG', 'FG%', '2PT', '2P%', '3PT', '3P%', 'FT', 'FT%', 'OREB', 'DREB', 'PF'].concat(TF ? ['TF'] : [], XT ? ['+/-'] : []).map((c) => '<span>' + c + '</span>').join('') + '</div>' +
+      '<div class="trow th" style="grid-template-columns:' + cols + '"><span class="stick">PLAYER</span>' + (XM ? '<span>MIN</span>' : '') + ['PTS', 'REB', 'AST'].concat(PA ? ['PA'] : [], ['STL', 'BLK', 'TO', 'FG', 'FG%', '2PT', '2P%', '3PT', '3P%', 'FT', 'FT%', 'OREB', 'DREB', 'PF']).concat(TF ? ['TF'] : [], XT ? ['+/-'] : []).map((c) => '<span>' + c + '</span>').join('') + '</div>' +
       BL.slice().sort((a, b) => b.pts - a.pts).map((l) => '<a class="trow" style="grid-template-columns:' + cols + '" href="' + href(['player', l.p], { team: g.t }) + '"><span class="stick">' + avatar(l.p, 'sq44', g.t) +
         '<span><span class="t1" style="font-size:14px;white-space:normal;line-height:1.2">' + esc(D.players[l.p].name) + '</span><span class="t2" style="font-size:12px">#' + esc(l.n) + ' ' + (bq ? '' : ddTag(l)) + '</span></span></span>' + cells(l) + '</a>').join('') +
       '<div class="trow strong total" style="grid-template-columns:' + cols + '"><span class="stick">' + (T.partialStats ? 'TRACKED TOTALS' : 'TEAM TOTALS') + '</span>' + cells(BS, true) + '</div>' +

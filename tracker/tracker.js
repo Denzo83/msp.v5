@@ -102,7 +102,7 @@ function remaining(g) { const c = g.clock; return c.running ? Math.max(0, c.rem 
 function setClock(g, rem, running) { g.clock.rem = rem; g.clock.running = running; g.clock.at = Date.now(); }
 
 /* ---------- replay: works out every stat from the events ---------- */
-function blank() { return { fgm: 0, fga: 0, tpm: 0, tpa: 0, ftm: 0, fta: 0, oreb: 0, dreb: 0, pf: 0, stl: 0, to: 0, blk: 0, ast: 0, pts: 0, pm: 0, stint: 0, sec: 0, dunk: 0, tech: 0 }; }
+function blank() { return { fgm: 0, fga: 0, tpm: 0, tpa: 0, ftm: 0, fta: 0, oreb: 0, dreb: 0, pf: 0, stl: 0, to: 0, blk: 0, ast: 0, pts: 0, pm: 0, stint: 0, sec: 0, dunk: 0, tech: 0, pa: 0 }; }
 function replay(g, upto) {
   const P = {};
   g.roster.forEach((r) => { P[r.id] = blank(); });
@@ -163,9 +163,11 @@ function replay(g, upto) {
           S.sc = null; S.pot = false;
         }
         if (e.x != null) S.shots.push({ p: e.p, x: e.x, y: e.y, made: e.made, pts: e.pts, g: e.zg, q: e.q });
+        if (!e.made && e.past && S.P[e.past]) S.P[e.past].pa++;
         break;
       case 'ft':
         if (!p) break;
+        if (e.past && S.P[e.past]) S.P[e.past].pa++;
         p.fta++;
         if (e.made) {
           p.ftm++; p.pts++;
@@ -212,6 +214,7 @@ function describe(g, e) {
       if (e.zone) t.push(e.zone);
       if (e.st) t.push(e.st);
       if (e.made) t.push(e.ast ? 'ast ' + shortN(g, e.ast) : 'unassisted');
+      else if (e.past) t.push('pass ' + (e.past === 'tm' ? 'teammate' : shortN(g, e.past)));
       if (e.fb) t.push('fast break');
       if (e.sc) t.push('2nd chance');
       if (e.made && e.pot) t.push('off turnover');
@@ -219,7 +222,7 @@ function describe(g, e) {
       if (!e.made && e.blkd) t.push('blocked');
       return n + ' ' + e.pts + 'PT ' + (e.made ? 'make' : 'miss') + (t.length ? ' · ' + t.join(' · ') : '');
     }
-    case 'ft': return n + ' FT ' + (e.made ? 'made' : 'missed') + (e.sc ? ' · 2nd chance' : '');
+    case 'ft': return n + ' FT ' + (e.made ? 'made' : 'missed') + (e.sc ? ' · 2nd chance' : '') + (e.past ? ' · foul drawn off ' + (e.past === 'tm' ? 'a teammate’s' : shortN(g, e.past) + '’s') + ' pass' : '');
     case 'oreb': return n + ' offensive rebound';
     case 'dreb': return n + ' defensive rebound';
     case 'stl': return n + ' steal';
@@ -425,7 +428,7 @@ function flowHeader(title, kick, back) {
 
 function vCourt() {
   const g = cur(), pd = ui.pend, d = ui.draft;
-  const total = pd.made ? 3 : 2;
+  const total = 3;
   let mk = '';
   if (d.x != null) {
     mk = '<circle cx="' + d.x + '" cy="' + d.y + '" r="7" style="fill:none;stroke:' + (pd.made ? '#4ADE80' : '#F87171') + ';stroke-width:0.6;opacity:0.7"></circle>' +
@@ -451,11 +454,11 @@ function vDetails() {
   else tg.push(['blkd', 'Blocked', 'The shot was blocked']);
   tg.push(['sc', '2nd chance', S.sc ? 'Auto-on: after ' + shortN(g, S.sc) + '’s offensive rebound' : 'Came straight after an offensive rebound']);
   const togs = tg.map((t) => '<button class="tog' + (d[t[0]] ? ' on' : '') + '" data-act="draftTog" data-arg="' + t[0] + '" aria-pressed="' + !!d[t[0]] + '"><span class="l"><b>' + t[1] + '</b><span>' + esc(t[2]) + '</span></span><span class="sw"></span></button>').join('');
-  return '<div class="scr">' + flowHeader(pd.pts + 'PT ' + (pd.made ? 'make' : 'miss'), pname(g, pd.p) + ' · step 2 of ' + (pd.made ? 3 : 2), 'toCourt') +
+  return '<div class="scr">' + flowHeader(pd.pts + 'PT ' + (pd.made ? 'make' : 'miss'), pname(g, pd.p) + ' · step 2 of 3', 'toCourt') +
     '<div class="body"><div class="row" style="flex-wrap:wrap"><span class="tag">' + esc(d.zone || 'No location') + '</span>' + (pd.made && d.pot ? '<span class="win o" style="font-size:12px">Counts as points off a turnover</span>' : '') + '</div>' +
     '<div class="sec"><div class="between"><h2 class="h2">Shot type</h2><span class="small muted">Optional</span></div><div class="g3">' + chips + '</div></div>' +
     '<div class="sec"><h2 class="h2">Tags</h2>' + togs + '</div>' +
-    '<div style="margin-top:auto"><button class="btn full" style="min-height:56px;font-size:17px" data-act="' + (pd.made ? 'toAssist' : 'saveShot') + '">' + (pd.made ? 'Next: who assisted?' : 'Log the miss') + '</button></div></div></div>';
+    '<div style="margin-top:auto"><button class="btn full" style="min-height:56px;font-size:17px" data-act="toAssist">' + (pd.made ? 'Next: who assisted?' : 'Next: potential assist?') + '</button></div></div></div>';
 }
 
 function vAssist() {
@@ -475,10 +478,10 @@ function vAssist() {
     return '<button class="mate" data-act="saveShot" data-arg="' + esc(id) + '"><span class="av">' + esc(ini) + '</span><span class="n"><b>' + esc(pname(g, id)) + '</b><span>' + S.P[id].ast + ' ast so far</span></span>' + I.chev + '</button>';
   }).join('');
   const tm = g.trackAll ? '' : '<button class="mate" data-act="saveShot" data-arg="tm"><span class="av">TM</span><span class="n"><b>An untracked teammate</b><span>Counts as assisted, no player credited</span></span>' + I.chev + '</button>';
-  return '<div class="scr">' + flowHeader(pd.pts + 'PT make', pname(g, pd.p) + ' · step 3 of 3', 'toDetails') +
-    '<div class="body" style="gap:10px"><h2 style="margin:0;font-family:var(--disp);font-size:30px;font-weight:800;line-height:1">Who assisted ' + esc(first(g, pd.p)) + '’s ' + pd.pts + '?</h2>' +
-    '<p class="muted" style="margin:0 0 4px;font-size:14px">' + (g.trackAll ? 'Only teammates on the court right now are shown.' : 'Tracked teammates on the court, or someone untracked.') + '</p>' +
-    mates + tm + '<button class="btn dash full" style="min-height:60px;margin-top:4px" data-act="saveShot" data-arg="">No assist</button></div></div>';
+  return '<div class="scr">' + flowHeader(pd.pts + 'PT ' + (pd.made ? 'make' : 'miss'), pname(g, pd.p) + ' · step 3 of 3', 'toDetails') +
+    '<div class="body" style="gap:10px"><h2 style="margin:0;font-family:var(--disp);font-size:30px;font-weight:800;line-height:1">' + (pd.made ? 'Who assisted ' + esc(first(g, pd.p)) + '’s ' + pd.pts + '?' : 'Who passed for ' + esc(first(g, pd.p)) + '’s miss?') + '</h2>' +
+    '<p class="muted" style="margin:0 0 4px;font-size:14px">' + (pd.made ? '' : 'Counts as a potential assist: the pass that set up the shot. ') + (g.trackAll ? 'Only teammates on the court right now are shown.' : 'Tracked teammates on the court, or someone untracked.') + '</p>' +
+    mates + tm + '<button class="btn dash full" style="min-height:60px;margin-top:4px" data-act="saveShot" data-arg="">' + (pd.made ? 'No assist' : 'No pass') + '</button></div></div>';
 }
 
 function vSubs() {
@@ -553,13 +556,15 @@ function vBox() {
   ids.sort((a, b) => { const sa = S.starters.indexOf(a), sb = S.starters.indexOf(b); return (sa < 0 ? 99 : sa) - (sb < 0 ? 99 : sb) || SP[b].pts - SP[a].pts; });
   const T = blank();
   const cols = g.clockOn ? ['MIN'] : [];
-  const anyTech = ids.some((id) => SP[id].tech > 0);
-  const head = ['Player'].concat(cols, ['PTS', 'FG', 'FG%', '2P', '2P%', '3P', '3P%', 'FT', 'FT%', 'OREB', 'DREB', 'REB', 'AST', 'STL', 'BLK', 'TO', 'PF'], anyTech ? ['TF'] : [], ['+/-']);
+  const anyTech = ids.some((id) => SP[id].tech > 0), paOn = g.events.some((e) => 'past' in e);
+  const head = ['Player'].concat(cols, ['PTS', 'FG', 'FG%', '2P', '2P%', '3P', '3P%', 'FT', 'FT%', 'OREB', 'DREB', 'REB', 'AST'].concat(paOn ? ['PA'] : [], ['STL', 'BLK', 'TO', 'PF']), anyTech ? ['TF'] : [], ['+/-']);
   const line = (name, p, tot) => {
     const c = [esc(name)];
     if (g.clockOn) c.push(tot ? '' : String(Math.round(p.sec / 60)));
     c.push(String(p.pts), p.fgm + '-' + p.fga, pct(p.fgm, p.fga), (p.fgm - p.tpm) + '-' + (p.fga - p.tpa), pct(p.fgm - p.tpm, p.fga - p.tpa), p.tpm + '-' + p.tpa, pct(p.tpm, p.tpa), p.ftm + '-' + p.fta, pct(p.ftm, p.fta),
-      String(p.oreb), String(p.dreb), String(p.oreb + p.dreb), String(p.ast), String(p.stl), String(p.blk), String(p.to), String(p.pf));
+      String(p.oreb), String(p.dreb), String(p.oreb + p.dreb), String(p.ast));
+    if (paOn) c.push(String(p.ast + p.pa));
+    c.push(String(p.stl), String(p.blk), String(p.to), String(p.pf));
     if (anyTech) c.push(String(p.tech));
     c.push(tot ? '' : sgn(p.pm));
     return '<tr' + (tot ? ' class="tot"' : '') + '>' + c.map((v, i) => '<td' + (i === (g.clockOn ? 2 : 1) ? ' class="pts"' : '') + '>' + v + '</td>').join('') + '</tr>';
@@ -637,6 +642,14 @@ function vSheet() {
       '<button class="btn ghost full" data-act="finish">Finish game</button>' +
       '<button class="btn ghost full" data-act="home">All games (this one stays saved)</button>' +
       '<button class="btn ghost full" data-act="closeSheet">Cancel</button>';
+  } else if (ui.sheet === 'pa') {
+    const e = g.events.find((x) => x.n === ui.paFor);
+    if (!e) { ui.sheet = null; return ''; }
+    const S = replay(g);
+    const mates = S.court.filter((id) => id !== e.p).map((id) => '<button class="btn ghost full" data-act="setPA" data-arg="' + esc(id) + '">' + esc(pname(g, id)) + '</button>').join('') +
+      (g.trackAll ? '' : '<button class="btn ghost full" data-act="setPA" data-arg="tm">An untracked teammate</button>');
+    inner = '<span class="big" style="font-size:24px">Foul drawn off a pass?</span><span class="muted">' + esc(shortN(g, e.p)) + ' went to the line. If a teammate’s pass set it up, it counts as their potential assist.</span>' +
+      mates + '<button class="btn full" data-act="setPA" data-arg="">No pass</button>';
   } else if (ui.sheet === 'tech') {
     const n = ui.sel ? pname(g, ui.sel) : '';
     inner = '<span class="big" style="font-size:24px">Technical foul</span><span class="muted">' + esc(n) + '. Kept separate from personal fouls (it still adds a team foul). Log the opponent’s free throws with +1 FT.</span>' +
@@ -701,7 +714,11 @@ function startShot(arg) {
   const pts = Number(arg.charAt(0)), made = arg.charAt(1) === 'm';
   if (!ui.sel) return;
   if (pts === 1) {
-    add({ t: 'ft', p: ui.sel, made, sc: !!S.sc, pot: S.pot });
+    const last = g.events.filter((e) => e.t !== 'period' && e.t !== 'sub').slice(-1)[0];
+    const cont = last && last.p === ui.sel && (last.t === 'ft' || (last.t === 'shot' && last.made && last.and1));
+    const e = { t: 'ft', p: ui.sel, made, sc: !!S.sc, pot: S.pot };
+    add(e);
+    if (!cont && S.court.length > 1) { ui.paFor = e.n; ui.sheet = 'pa'; }
     render(); return;
   }
   ui.pend = { p: ui.sel, pts, made };
@@ -714,6 +731,7 @@ function saveShot(ast) {
   if (d.x != null) { e.x = d.x; e.y = d.y; e.zone = d.zone; e.zg = d.zg; }
   if (d.st) e.st = d.st;
   if (pd.made && ast) e.ast = ast;
+  if (!pd.made) e.past = ast || '';
   if (d.fb) e.fb = true;
   if (d.sc) e.sc = true;
   if (pd.made && d.pot) e.pot = true;
@@ -846,6 +864,7 @@ const ACT = {
   evMenu: (n) => { ui.evn = n; ui.sheet = 'ev'; render(); },
   moveBreak: (k) => { moveBreak(cur(), ui.evn, Number(k)); ui.sheet = null; },
   noop: () => {},
+  setPA: (id) => { const g = cur(), e = g.events.find((x) => x.n === ui.paFor); if (e) { e.past = id || ''; persist(); } ui.sheet = null; ui.paFor = null; render(); },
   qf: (q) => { ui.qf = q === 'all' ? 'all' : Number(q); render(); },
   undo: () => undo(),
   clockToggle: () => { const g = cur(); setClock(g, remaining(g), !g.clock.running); persist(); render(); },

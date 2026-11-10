@@ -25,7 +25,7 @@ def load(path):
 
 def _blank():
     p = {k: 0 for k in STATS}
-    p.update(pm=0, sec=0, dunk=0, astm=0, ast3m=0, tech=0)
+    p.update(pm=0, sec=0, dunk=0, astm=0, ast3m=0, tech=0, pa=0)
     return p
 
 
@@ -112,6 +112,9 @@ def replay(data):
         elif t == 'addplayer':
             P.setdefault(e['id'], _blank())
         elif t == 'shot' and p:
+            # potential assist: the pass that set up a missed shot (makes count through 'ast')
+            if not e.get('made') and e.get('past') in P:
+                P[e['past']]['pa'] += 1
             ty = S['types'].setdefault(e['p'], {}).setdefault(e.get('st') or f'No type set ({e["pts"]}PT)', [0, 0, e['pts']])
             ty[1] += 1
             if e.get('made'):
@@ -149,8 +152,12 @@ def replay(data):
                 S['sc'], S['pot'] = None, False
             if e.get('x') is not None:
                 S['shots'].append([e['p'], e['x'], e['y'], 1 if e.get('made') else 0, e['pts'], e.get('zg', ''), e.get('st', ''),
-                                   1 if e.get('fb') else 0, 1 if e.get('sc') else 0, e.get('ast', '') if e.get('made') else '', e.get('q', 1)])
+                                   1 if e.get('fb') else 0, 1 if e.get('sc') else 0, e.get('ast', '') if e.get('made') else '', e.get('q', 1),
+                                   e.get('past', '') if not e.get('made') else ''])
         elif t == 'ft' and p:
+            # potential assist: the pass that drew the shooting foul (asked on the first FT of a trip)
+            if e.get('past') in P:
+                P[e['past']]['pa'] += 1
             p['fta'] += 1
             if e.get('made'):
                 p['ftm'] += 1
@@ -267,7 +274,9 @@ def tracked_block(data, S, idmap):
         # per player: {shot type: [made, attempts, points per make]}
         'types': {m(pid): v for pid, v in S['types'].items()},
         # [player, x, y, made, pts, zone group, shot type, fast break, 2nd chance, assister, period]
-        'shots': [[m(s[0])] + s[1:9] + [m(s[9]) if s[9] and s[9] != 'tm' else s[9], s[10]] for s in S['shots']],
+        'shots': [[m(s[0])] + s[1:9] + [m(s[9]) if s[9] and s[9] != 'tm' else s[9], s[10], m(s[11]) if s[11] and s[11] != 'tm' else s[11]] for s in S['shots']],
+        # potential assists = assists + passes that led to a missed shot or a trip to the line (only once the tracker asks for them)
+        'pa': ({m(pid): S['P'][pid]['ast'] + S['P'][pid]['pa'] for pid in S['P'] if m(pid) in players} if any('past' in e for e in data['events']) else None),
         'techs': [dict(t, p=m(t['p'])) for t in S['techs']],
         # per player: one row per quarter, columns as in BYQ
         'byQ': {'keys': BYQ, 'p': {m(pid): rows for pid, rows in S['byq'].items() if m(pid) in players and any(any(r) for r in rows)}},
