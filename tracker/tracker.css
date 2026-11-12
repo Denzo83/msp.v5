@@ -213,3 +213,5 @@ table.box td.pts { font-weight: 700; }
 .ev.dragging { position: relative; z-index: 5; box-shadow: 0 8px 24px rgba(0,0,0,.5); border-color: #5B9BFF; }
 .ev.drop-a { box-shadow: 0 -3px 0 #5B9BFF; }
 .ev.drop-b { box-shadow: 0 3px 0 #5B9BFF; }
+.restb.miss { height: 42px; font-size: 16px; border-color: #5a3a3a; color: #FF9B9B; }
+.sec .g3 { margin-top: 2px; }

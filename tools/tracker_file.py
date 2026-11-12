@@ -200,12 +200,18 @@ def replay(data):
                 if e['p'] not in S['out']:
                     S['out'].append(e['p'])
                 S['court'] = [pid for pid in S['court'] if pid != e['p']]
+        elif t == 'restmiss':
+            # untracked teammate missed; the tracked passer gets a potential assist
+            if e.get('past') in P:
+                P[e['past']]['pa'] += 1
         elif t == 'opp':
             score(e['pts'], False, e['q'])
             S['sc'], S['pot'] = None, False
         elif t == 'oppto':
             S['pot'], S['sc'] = True, None
         elif t == 'rest':
+            if e.get('past') in P:  # foul drawn off a tracked player's pass
+                P[e['past']]['pa'] += 1
             if e.get('ast') and e['ast'] in P:
                 P[e['ast']]['ast'] += 1
                 assist(e['ast'], 'rest')
