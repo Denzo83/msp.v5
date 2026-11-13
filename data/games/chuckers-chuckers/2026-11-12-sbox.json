@@ -22,10 +22,10 @@
       "oreb": 2,
       "dreb": 3,
       "pf": 1,
-      "stl": 5,
+      "stl": 6,
       "to": 0,
       "blk": 1,
-      "ast": 4,
+      "ast": 5,
       "pts": 2
     }
   ],
@@ -231,7 +231,7 @@
       ]
     ],
     "pa": {
-      "findlay-wendtman": 14
+      "findlay-wendtman": 15
     },
     "techs": [],
     "byQ": {
@@ -323,8 +323,8 @@
             0,
             0,
             0,
-            0,
-            0,
+            1,
+            1,
             0,
             0,
             0,
@@ -338,7 +338,7 @@
     "tech": {},
     "assists": {
       "findlay-wendtman": {
-        "rest": 4
+        "rest": 5
       }
     },
     "extras": {
