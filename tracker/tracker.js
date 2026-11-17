@@ -560,11 +560,11 @@ function vBox() {
   const T = blank();
   const cols = g.clockOn ? ['MIN'] : [];
   const anyTech = ids.some((id) => SP[id].tech > 0), paOn = g.events.some((e) => 'past' in e);
-  const head = ['Player'].concat(cols, ['PTS', 'FG', 'FG%', '2P', '2P%', '3P', '3P%', 'FT', 'FT%', 'OREB', 'DREB', 'REB', 'AST'].concat(paOn ? ['PA'] : [], ['STL', 'BLK', 'TO', 'PF']), anyTech ? ['TF'] : [], ['+/-']);
+  const head = ['Player'].concat(cols, ['PTS', 'FG', 'FG%', '2P', '2P%', '3P', '3P%', 'FT', 'FT%', 'TS%', 'OREB', 'DREB', 'REB', 'AST'].concat(paOn ? ['PA'] : [], ['STL', 'BLK', 'TO', 'PF']), anyTech ? ['TF'] : [], ['+/-']);
   const line = (name, p, tot) => {
     const c = [esc(name)];
     if (g.clockOn) c.push(tot ? '' : String(Math.round(p.sec / 60)));
-    c.push(String(p.pts), p.fgm + '-' + p.fga, pct(p.fgm, p.fga), (p.fgm - p.tpm) + '-' + (p.fga - p.tpa), pct(p.fgm - p.tpm, p.fga - p.tpa), p.tpm + '-' + p.tpa, pct(p.tpm, p.tpa), p.ftm + '-' + p.fta, pct(p.ftm, p.fta),
+    c.push(String(p.pts), p.fgm + '-' + p.fga, pct(p.fgm, p.fga), (p.fgm - p.tpm) + '-' + (p.fga - p.tpa), pct(p.fgm - p.tpm, p.fga - p.tpa), p.tpm + '-' + p.tpa, pct(p.tpm, p.tpa), p.ftm + '-' + p.fta, pct(p.ftm, p.fta), pct(p.pts, 2 * (p.fga + 0.44 * p.fta)),
       String(p.oreb), String(p.dreb), String(p.oreb + p.dreb), String(p.ast));
     if (paOn) c.push(String(p.ast + p.pa));
     c.push(String(p.stl), String(p.blk), String(p.to), String(p.pf));
