@@ -84,11 +84,24 @@ def build(quiet=False):
         'games': sorted(games, key=lambda g: (g['d'], g['t'])),
     }
     save_json(BUNDLE_FILE, bundle, compact=True)
+    stamp_assets()
     if not quiet:
         print(f'Built data/bundle.json: {len(games)} games, {len(players)} players, {len(season_list)} seasons')
     for w in warnings:
         print(f'  check: {w}')
     return bundle
+
+
+def stamp_assets():
+    """Put a content hash on app.js / app.css in index.html so phones load the new code as soon as it changes."""
+    import hashlib, re
+    root = BUNDLE_FILE.parent.parent
+    index = root / 'index.html'
+    html = index.read_text(encoding='utf-8')
+    for name in ('app.js', 'app.css'):
+        h = hashlib.sha1((root / 'assets' / name).read_bytes()).hexdigest()[:10]
+        html = re.sub(r'assets/' + re.escape(name) + r'(\?v=[0-9a-f]+)?"', f'assets/{name}?v={h}"', html)
+    index.write_text(html, encoding='utf-8')
 
 
 if __name__ == '__main__':
