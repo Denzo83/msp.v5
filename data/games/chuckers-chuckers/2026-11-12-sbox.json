@@ -408,6 +408,15 @@
     "bestRun": {
       "us": 5,
       "them": 8
+    },
+    "pab": {
+      "findlay-wendtman": {
+        "rest": [
+          5,
+          10,
+          0
+        ]
+      }
     }
   },
   "venue": "Court 5",

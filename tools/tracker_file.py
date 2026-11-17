@@ -40,7 +40,7 @@ def replay(data):
         'qs': {}, 'lineups': {}, 'flow': [0], 'ties': 0, 'changes': 0, 'leader': 0, 'max_lead': 0, 'max_def': 0,
         'run_t': None, 'run_p': 0, 'best_run': {'us': 0, 'them': 0},
         'x': {'paint': 0, 'sc': 0, 'fb': 0, 'pot': 0, 'astFg': 0, 'fgm': 0, 'bench': 0, 'rest': 0},
-        'shots': [], 'assists': {}, 'types': {}, 'out': [], 'techs': [],
+        'shots': [], 'assists': {}, 'pab': {}, 'types': {}, 'out': [], 'techs': [],
     }
 
     def lineup():
@@ -98,6 +98,12 @@ def replay(data):
     def assist(passer, scorer):
         S['assists'].setdefault(passer, {})
         S['assists'][passer][scorer] = S['assists'][passer].get(scorer, 0) + 1
+        pab(passer, scorer, 0)
+
+    def pab(passer, target, kind):
+        # potential assist breakdown: passer -> target -> [made (assist), missed shot, FT trip]
+        row = S['pab'].setdefault(passer, {}).setdefault(target, [0, 0, 0])
+        row[kind] += 1
 
     snaps = []
     for e in data['events']:
@@ -115,6 +121,7 @@ def replay(data):
             # potential assist: the pass that set up a missed shot (makes count through 'ast')
             if not e.get('made') and e.get('past') in P:
                 P[e['past']]['pa'] += 1
+                pab(e['past'], e['p'], 1)
             ty = S['types'].setdefault(e['p'], {}).setdefault(e.get('st') or f'No type set ({e["pts"]}PT)', [0, 0, e['pts']])
             ty[1] += 1
             if e.get('made'):
@@ -158,6 +165,7 @@ def replay(data):
             # potential assist: the pass that drew the shooting foul (asked on the first FT of a trip)
             if e.get('past') in P:
                 P[e['past']]['pa'] += 1
+                pab(e['past'], e['p'], 2)
             p['fta'] += 1
             if e.get('made'):
                 p['ftm'] += 1
@@ -204,6 +212,7 @@ def replay(data):
             # untracked teammate missed; the tracked passer gets a potential assist
             if e.get('past') in P:
                 P[e['past']]['pa'] += 1
+                pab(e['past'], 'rest', 2 if e.get('pts') == 1 else 1)
         elif t == 'opp':
             score(e['pts'], False, e['q'])
             S['sc'], S['pot'] = None, False
@@ -212,6 +221,7 @@ def replay(data):
         elif t == 'rest':
             if e.get('past') in P:  # foul drawn off a tracked player's pass
                 P[e['past']]['pa'] += 1
+                pab(e['past'], 'rest', 2)
             if e.get('ast') and e['ast'] in P:
                 P[e['ast']]['ast'] += 1
                 assist(e['ast'], 'rest')
@@ -283,6 +293,8 @@ def tracked_block(data, S, idmap):
         'shots': [[m(s[0])] + s[1:9] + [m(s[9]) if s[9] and s[9] != 'tm' else s[9], s[10], m(s[11]) if s[11] and s[11] != 'tm' else s[11]] for s in S['shots']],
         # potential assists = assists + passes that led to a missed shot or a trip to the line (only once the tracker asks for them)
         'pa': ({m(pid): S['P'][pid]['ast'] + S['P'][pid]['pa'] for pid in S['P'] if m(pid) in players} if any('past' in e for e in data['events']) else None),
+        # potential assist breakdown: passer -> target -> [assisted makes, missed shots, FT trips]
+        'pab': ({m(a): {('rest' if b == 'rest' else m(b)): n for b, n in v.items()} for a, v in S['pab'].items()} if any('past' in e for e in data['events']) else None),
         'techs': [dict(t, p=m(t['p'])) for t in S['techs']],
         # per player: one row per quarter, columns as in BYQ
         'byQ': {'keys': BYQ, 'p': {m(pid): rows for pid, rows in S['byq'].items() if m(pid) in players and any(any(r) for r in rows)}},

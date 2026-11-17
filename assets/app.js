@@ -1260,6 +1260,19 @@
       '<text x="6" y="11" style="fill:var(--sub);font-size:10px">' + esc(us) + ' ahead</text><text x="6" y="' + (H - 3) + '" style="fill:var(--sub);font-size:10px">' + esc(them) + ' ahead</text>' +
       '<polyline points="' + flow.map((v, i) => px(i).toFixed(1) + ',' + py(v).toFixed(1)).join(' ') + '" style="fill:none;stroke:var(--acc);stroke-width:2.2;stroke-linejoin:round;stroke-linecap:round"/></svg>';
   }
+  // potential assist breakdown rows: [target, [made, missed, ft]]
+  function paRows(rows) {
+    const cols = 'minmax(0,1fr) 40px 44px 44px 40px 50px';
+    return '<div class="trow th" style="grid-template-columns:' + cols + '"><span style="text-align:left">TO</span><span>PA</span><span>AST</span><span>MISS</span><span>FT</span><span>CONV</span></div>' +
+      rows.map(([b, r]) => { const n = r[0] + r[1] + r[2];
+        return '<div class="trow" style="grid-template-columns:' + cols + ';min-height:46px;font-size:14px"><span style="text-align:left;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(b === 'rest' ? 'Untracked' : shortOf(b)) + '</span><b>' + n + '</b><span>' + r[0] + '</span><span>' + r[1] + '</span><span>' + r[2] + '</span><span>' + (n ? Math.round(r[0] / n * 100) + '%' : '–') + '</span></div>'; }).join('');
+  }
+  function paBar(m, x, f) {
+    const n = m + x + f || 1;
+    return '<div style="display:flex;height:10px;border-radius:6px;overflow:hidden;background:var(--line);margin:8px 0 4px">' +
+      '<span style="width:' + (m / n * 100) + '%;background:var(--win)"></span><span style="width:' + (x / n * 100) + '%;background:var(--loss)"></span><span style="width:' + (f / n * 100) + '%;background:#F2B544"></span></div>' +
+      '<div class="note small" style="display:flex;gap:12px;flex-wrap:wrap"><span><b style="color:var(--win)">●</b> ' + m + ' became assists</span><span><b style="color:var(--loss)">●</b> ' + x + ' missed shots</span><span><b style="color:#F2B544">●</b> ' + f + ' drew FT trips</span></div>';
+  }
   function nameOf(pid) { return pid === 'rest' ? 'Untracked teammates' : ((D.players[pid] || { name: pid }).name); }
   function shortOf(pid) { return pid === 'rest' ? 'Untracked' : (D.players[pid] ? D.players[pid].short || D.players[pid].name : pid); }
   // a donut with a legend, NBA style. segs: [{label, v, sub?}]
@@ -1313,6 +1326,18 @@
         '<a class="lrow" style="min-height:62px" href="' + href(['player', y.a], { team: g.t }) + '">' + avatar(y.a, 's40', g.t) + '<span class="grow"><b style="font-size:14px">' + esc(nameOf(y.a)) + '</b><span class="note small" style="line-height:1.35">to ' +
         esc(y.to.map((t) => shortOf(t[0]) + (t[1] > 1 ? ' ×' + t[1] : '')).join(', ')) + '</span></span><span class="big" style="font-size:24px">' + y.n + '</span></a>').join('') + '</div>';
     }
+    const pabP = Object.entries(X.pab || {}).map(([a, m]) => {
+      const rows = Object.entries(m).sort((p, q) => (q[1][0] + q[1][1] + q[1][2]) - (p[1][0] + p[1][1] + p[1][2]));
+      const t = rows.reduce((s, [, r]) => [s[0] + r[0], s[1] + r[1], s[2] + r[2]], [0, 0, 0]);
+      return { a, rows, t, n: t[0] + t[1] + t[2] };
+    }).filter((y) => y.n).sort((p, q) => q.n - p.n);
+    if (pabP.length) {
+      const pick = qv('pa') && pabP.some((y) => y.a === qv('pa')) ? qv('pa') : pabP[0].a, Y = pabP.find((y) => y.a === pick);
+      h += '<div class="card list"><div class="head"><div><h2 style="font-size:18px">Potential Assists</h2><div class="sub">Passes that led to a shot or free throws · tap a player for who they passed to</div></div></div>' +
+        pabP.map((y) => '<a class="lrow" style="min-height:58px' + (y.a === pick ? ';background:var(--card2)' : '') + '" ' + tog({ pa: y.a }) + '>' + avatar(y.a, 's40', g.t) + '<span class="grow"><b style="font-size:14px">' + esc(nameOf(y.a)) + '</b><span class="note small">' +
+          y.t[0] + ' ast · ' + y.t[1] + ' missed · ' + y.t[2] + ' FT trips · ' + Math.round(y.t[0] / y.n * 100) + '% converted</span></span><span class="big" style="font-size:24px">' + y.n + '</span></a>').join('') +
+        '<div class="px" style="padding-top:6px"><b style="font-size:14px">' + esc(nameOf(Y.a)) + '’s passes</b>' + paBar(Y.t[0], Y.t[1], Y.t[2]) + '</div>' + paRows(Y.rows) + '</div>';
+    }
     const full = X.trackAll === false ? 1 : 5;
     const lus = (X.lineups || []).filter((L) => L[0].length >= full).slice().sort((a, b) => (b[2] - b[3]) - (a[2] - a[3]) || b[1] - a[1]).slice(0, 6);
     if (lus.length) {
@@ -1353,12 +1378,14 @@
   function trackedPlayerData(pid, list) {
     const tl = list.filter((l) => l.g.X);
     const shots = [], to = {}, from = {}, types = {}, mates = {};
+    const pab = {};
     let pm = 0, mins = 0, withMin = 0, dunks = 0, astM = 0, ast3 = 0, fgm = 0, tpm = 0, on = 0, off = 0, onOff = 0, pa = 0, pan = 0, paast = 0;
     tl.forEach((l) => {
       const X = l.g.X;
       (X.shots || []).forEach((s) => { if (s[0] === pid) shots.push(s.slice(0, 10).concat([l.g, s[10] || 0])); });
       pm += l.pm || 0; if (l.min != null) { mins += l.min; withMin++; }
       if (l.pa != null) { pa += l.pa; pan++; paast += l.ast; }
+      Object.entries(((X.pab || {})[pid]) || {}).forEach(([b, r]) => { const o = pab[b] || (pab[b] = [0, 0, 0]); o[0] += r[0]; o[1] += r[1]; o[2] += r[2]; });
       dunks += (X.dunks || {})[pid] || 0;
       const as = (X.assisted || {})[pid]; if (as) { astM += as[0]; ast3 += as[1]; }
       fgm += l.fgm; tpm += l.tpm;
@@ -1374,7 +1401,7 @@
       });
       on += gOn; off += (l.g.us - l.g.them) - gOn; onOff++;
     });
-    return { tl, n: tl.length, shots, to, from, types, mates, pm, mins, withMin, dunks, astM, ast3, fgm, tpm, on, off, onOff, pa, pan, paast };
+    return { tl, n: tl.length, shots, to, from, types, mates, pm, mins, withMin, dunks, astM, ast3, fgm, tpm, on, off, onOff, pa, pan, paast, pab };
   }
 
   function trackedPlayerCards(pid, list) {
@@ -1416,6 +1443,14 @@
     h += donutCard('How Their Makes Came', [{ label: 'Assisted', v: T.astM }, { label: 'Unassisted', v: T.fgm - T.astM }], T.fgm ? Math.round(T.astM / T.fgm * 100) + '%' : '–', 'ASSISTED',
       T.tpm ? T.ast3 + ' of ' + T.tpm + ' threes were assisted' : '');
     if (Object.keys(T.from).length) h += donutCard('Assisted By', Object.entries(T.from).sort((a, b) => b[1] - a[1]).map(([q, k]) => ({ label: nameOf(q), v: k })), String(Object.values(T.from).reduce((a, k) => a + k, 0)), 'ASSISTS');
+    // potential assists: what their passes led to, and who they were to
+    const pabE = Object.entries(T.pab).map(([b, r]) => [b, r]).sort((a, b) => (b[1][0] + b[1][1] + b[1][2]) - (a[1][0] + a[1][1] + a[1][2]));
+    if (pabE.length) {
+      const tot = pabE.reduce((t, [, r]) => [t[0] + r[0], t[1] + r[1], t[2] + r[2]], [0, 0, 0]), n = tot[0] + tot[1] + tot[2];
+      h += '<div class="card list"><div class="head"><div><h2>Potential Assists</h2><div class="sub">' + n + ' passes that led to a shot or free throws · ' + (n ? Math.round(tot[0] / n * 100) : 0) + '% became assists</div></div></div>' +
+        '<div class="px">' + paBar(tot[0], tot[1], tot[2]) + '</div>' + paRows(pabE) +
+        '<div class="note small px">CONV is how many of those passes became assists. Only games where the tracker asked for potential assists count.</div></div>';
+    }
     // shot types
     const ty = Object.entries(T.types).filter((t) => t[1][1]).sort((a, b) => b[1][1] - a[1][1]);
     if (ty.length) {
