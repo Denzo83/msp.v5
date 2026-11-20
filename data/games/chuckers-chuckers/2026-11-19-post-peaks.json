@@ -1,0 +1,727 @@
+{
+  "id": "2026-11-19-post-peaks",
+  "team": "chuckers-chuckers",
+  "date": "2026-11-19",
+  "season": "2026-spring",
+  "opponent": "Post peaks",
+  "home": true,
+  "us": 47,
+  "them": 70,
+  "playoff": false,
+  "source": "tracker",
+  "lines": [
+    {
+      "p": "kyle-denzin",
+      "n": "43",
+      "fgm": 5,
+      "fga": 13,
+      "tpm": 3,
+      "tpa": 10,
+      "ftm": 0,
+      "fta": 0,
+      "oreb": 1,
+      "dreb": 9,
+      "pf": 0,
+      "stl": 1,
+      "to": 1,
+      "blk": 0,
+      "ast": 1,
+      "pts": 13
+    },
+    {
+      "p": "findlay-wendtman",
+      "n": "22",
+      "fgm": 0,
+      "fga": 6,
+      "tpm": 0,
+      "tpa": 4,
+      "ftm": 0,
+      "fta": 0,
+      "oreb": 1,
+      "dreb": 4,
+      "pf": 1,
+      "stl": 1,
+      "to": 1,
+      "blk": 2,
+      "ast": 6,
+      "pts": 0
+    }
+  ],
+  "dnp": [],
+  "tracked": {
+    "app": "mystat-tracker",
+    "trackAll": false,
+    "periods": 4,
+    "size": 5,
+    "periodMinutes": 10,
+    "clock": false,
+    "byPeriod": [
+      [
+        6,
+        15
+      ],
+      [
+        20,
+        9
+      ],
+      [
+        17,
+        28
+      ],
+      [
+        4,
+        18
+      ]
+    ],
+    "starters": [
+      "findlay-wendtman",
+      "kyle-denzin"
+    ],
+    "pm": {
+      "findlay-wendtman": -18,
+      "kyle-denzin": -10
+    },
+    "min": null,
+    "dunks": {},
+    "assisted": {
+      "kyle-denzin": [
+        5,
+        3
+      ]
+    },
+    "types": {
+      "findlay-wendtman": {
+        "Catch & shoot": [
+          0,
+          3,
+          3
+        ],
+        "Off the dribble": [
+          0,
+          1,
+          3
+        ],
+        "Layup": [
+          0,
+          1,
+          2
+        ],
+        "Jumper": [
+          0,
+          1,
+          2
+        ]
+      },
+      "kyle-denzin": {
+        "Catch & shoot": [
+          2,
+          9,
+          3
+        ],
+        "Layup": [
+          1,
+          1,
+          2
+        ],
+        "Jumper": [
+          0,
+          1,
+          2
+        ],
+        "Floater": [
+          1,
+          1,
+          2
+        ],
+        "Off the dribble": [
+          1,
+          1,
+          3
+        ]
+      }
+    },
+    "shots": [
+      [
+        "findlay-wendtman",
+        6.2,
+        9.5,
+        0,
+        3,
+        "c3",
+        "Catch & shoot",
+        0,
+        0,
+        "",
+        1,
+        "tm"
+      ],
+      [
+        "kyle-denzin",
+        118,
+        86.8,
+        0,
+        3,
+        "w3",
+        "Catch & shoot",
+        0,
+        0,
+        "",
+        1,
+        "tm"
+      ],
+      [
+        "findlay-wendtman",
+        34.1,
+        75.5,
+        0,
+        3,
+        "w3",
+        "Off the dribble",
+        1,
+        0,
+        "",
+        1,
+        "tm"
+      ],
+      [
+        "kyle-denzin",
+        145.8,
+        15.3,
+        0,
+        3,
+        "c3",
+        "Catch & shoot",
+        0,
+        0,
+        "",
+        1,
+        "tm"
+      ],
+      [
+        "findlay-wendtman",
+        83.1,
+        22.8,
+        0,
+        2,
+        "paint",
+        "Layup",
+        1,
+        0,
+        "",
+        1,
+        "tm"
+      ],
+      [
+        "kyle-denzin",
+        81,
+        22.8,
+        1,
+        2,
+        "paint",
+        "Layup",
+        0,
+        0,
+        "tm",
+        1,
+        ""
+      ],
+      [
+        "findlay-wendtman",
+        139.2,
+        52.7,
+        0,
+        3,
+        "w3",
+        "Catch & shoot",
+        0,
+        0,
+        "",
+        1,
+        "tm"
+      ],
+      [
+        "kyle-denzin",
+        136.7,
+        58.9,
+        0,
+        3,
+        "w3",
+        "Catch & shoot",
+        0,
+        0,
+        "",
+        2,
+        "findlay-wendtman"
+      ],
+      [
+        "kyle-denzin",
+        134.2,
+        63.9,
+        0,
+        3,
+        "w3",
+        "Catch & shoot",
+        0,
+        0,
+        "",
+        2,
+        "findlay-wendtman"
+      ],
+      [
+        "findlay-wendtman",
+        48.2,
+        58.9,
+        0,
+        2,
+        "mid",
+        "Jumper",
+        0,
+        0,
+        "",
+        2,
+        "tm"
+      ],
+      [
+        "findlay-wendtman",
+        142.9,
+        29.4,
+        0,
+        3,
+        "c3",
+        "Catch & shoot",
+        0,
+        0,
+        "",
+        2,
+        "tm"
+      ],
+      [
+        "kyle-denzin",
+        105.1,
+        33.6,
+        0,
+        2,
+        "mid",
+        "Jumper",
+        0,
+        0,
+        "",
+        2,
+        "findlay-wendtman"
+      ],
+      [
+        "kyle-denzin",
+        144.2,
+        16.1,
+        0,
+        3,
+        "c3",
+        "Catch & shoot",
+        0,
+        0,
+        "",
+        2,
+        "findlay-wendtman"
+      ],
+      [
+        "kyle-denzin",
+        53.2,
+        19.5,
+        1,
+        2,
+        "paint",
+        "Floater",
+        0,
+        0,
+        "findlay-wendtman",
+        2,
+        ""
+      ],
+      [
+        "kyle-denzin",
+        144.2,
+        27.3,
+        1,
+        3,
+        "c3",
+        "Off the dribble",
+        0,
+        0,
+        "findlay-wendtman",
+        2,
+        ""
+      ],
+      [
+        "kyle-denzin",
+        144.2,
+        15.3,
+        1,
+        3,
+        "c3",
+        "Catch & shoot",
+        0,
+        0,
+        "tm",
+        3,
+        ""
+      ],
+      [
+        "kyle-denzin",
+        137.5,
+        57.7,
+        1,
+        3,
+        "w3",
+        "Catch & shoot",
+        0,
+        0,
+        "findlay-wendtman",
+        3,
+        ""
+      ],
+      [
+        "kyle-denzin",
+        38.6,
+        85.5,
+        0,
+        3,
+        "w3",
+        "Catch & shoot",
+        0,
+        0,
+        "",
+        3,
+        ""
+      ],
+      [
+        "kyle-denzin",
+        16.6,
+        70.1,
+        0,
+        3,
+        "w3",
+        "Catch & shoot",
+        0,
+        0,
+        "",
+        4,
+        "tm"
+      ]
+    ],
+    "pa": {
+      "findlay-wendtman": 17,
+      "kyle-denzin": 7
+    },
+    "pab": {
+      "findlay-wendtman": {
+        "rest": [
+          3,
+          7,
+          0
+        ],
+        "kyle-denzin": [
+          3,
+          4,
+          0
+        ]
+      },
+      "kyle-denzin": {
+        "rest": [
+          1,
+          5,
+          1
+        ]
+      }
+    },
+    "techs": [],
+    "byQ": {
+      "keys": [
+        "pts",
+        "fgm",
+        "fga",
+        "tpm",
+        "tpa",
+        "ftm",
+        "fta",
+        "oreb",
+        "dreb",
+        "ast",
+        "stl",
+        "blk",
+        "to",
+        "pf",
+        "tech",
+        "pm",
+        "sec"
+      ],
+      "p": {
+        "findlay-wendtman": [
+          [
+            0,
+            0,
+            4,
+            0,
+            3,
+            0,
+            0,
+            0,
+            2,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            -9,
+            0
+          ],
+          [
+            0,
+            0,
+            2,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            4,
+            0,
+            0,
+            0,
+            0,
+            0,
+            11,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            2,
+            1,
+            0,
+            0,
+            1,
+            0,
+            -11,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            -9,
+            0
+          ]
+        ],
+        "kyle-denzin": [
+          [
+            2,
+            1,
+            3,
+            0,
+            2,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            1,
+            0,
+            0,
+            -9,
+            0
+          ],
+          [
+            5,
+            2,
+            6,
+            1,
+            4,
+            0,
+            0,
+            1,
+            5,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            11,
+            0
+          ],
+          [
+            6,
+            2,
+            3,
+            2,
+            3,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            2,
+            0
+          ],
+          [
+            0,
+            0,
+            1,
+            0,
+            1,
+            0,
+            0,
+            0,
+            4,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            -14,
+            0
+          ]
+        ]
+      }
+    },
+    "tech": {},
+    "assists": {
+      "findlay-wendtman": {
+        "rest": 3,
+        "kyle-denzin": 3
+      },
+      "kyle-denzin": {
+        "rest": 1
+      }
+    },
+    "extras": {
+      "paint": 4,
+      "sc": 0,
+      "fb": 0,
+      "pot": 0,
+      "astFg": 5,
+      "fgm": 5,
+      "bench": 0,
+      "rest": 34
+    },
+    "lineups": [
+      [
+        [
+          "findlay-wendtman",
+          "kyle-denzin"
+        ],
+        0,
+        37,
+        42
+      ],
+      [
+        [
+          "findlay-wendtman"
+        ],
+        0,
+        6,
+        19
+      ],
+      [
+        [
+          "kyle-denzin"
+        ],
+        0,
+        4,
+        9
+      ]
+    ],
+    "flow": [
+      0,
+      -2,
+      -4,
+      -7,
+      -9,
+      -7,
+      -9,
+      -11,
+      -9,
+      -11,
+      -9,
+      -7,
+      -5,
+      -2,
+      -5,
+      -3,
+      -6,
+      -5,
+      -3,
+      -6,
+      -3,
+      -1,
+      2,
+      -1,
+      -3,
+      0,
+      -3,
+      -6,
+      -5,
+      -8,
+      -6,
+      -9,
+      -11,
+      -12,
+      -14,
+      -11,
+      -8,
+      -5,
+      -7,
+      -9,
+      -11,
+      -9,
+      -11,
+      -13,
+      -16,
+      -18,
+      -21,
+      -22,
+      -20,
+      -23,
+      -25,
+      -23
+    ],
+    "leadChanges": 2,
+    "ties": 1,
+    "maxLead": 2,
+    "maxDeficit": 25,
+    "bestRun": {
+      "us": 9,
+      "them": 13
+    }
+  },
+  "venue": "Court 3"
+}
