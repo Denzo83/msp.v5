@@ -360,7 +360,8 @@ function vSetup() {
     '<div class="sec"><h2 class="h2">Court</h2><div class="g2">' + [['Court A Main', 'Main court'], ['Court 1', 'Court 1'], ['Court 2', 'Court 2'], ['Court 3', 'Court 3'], ['Court 4', 'Court 4'], ['Court 5', 'Court 5']].map((c) => '<button class="chip' + (s.venue === c[0] ? ' on' : '') + '" data-act="setVenue" data-arg="' + c[0] + '">' + c[1] + '</button>').join('') + '</div></div>' +
     '<div class="sec"><h2 class="h2">Format</h2><div class="g2">' +
     '<button class="chip' + (s.periods === 4 ? ' on' : '') + '" data-act="setPeriods" data-arg="4">4 quarters</button><button class="chip' + (s.periods === 2 ? ' on' : '') + '" data-act="setPeriods" data-arg="2">2 halves</button></div>' +
-    '<div class="g3">' + [5, 4, 3].map((k) => '<button class="chip' + (SZ === k ? ' on' : '') + '" data-act="setSize" data-arg="' + k + '">' + k + ' on ' + k + '</button>').join('') + '</div>' +
+    '<span class="muted small">Us on court</span><div class="g3">' + [5, 4, 3].map((k) => '<button class="chip' + (SZ === k ? ' on' : '') + '" data-act="setSize" data-arg="' + k + '">' + k + '</button>').join('') + '</div>' +
+    '<span class="muted small">Them on court</span><div class="g3">' + [5, 4, 3].map((k) => '<button class="chip' + ((s.oppSize || SZ) === k ? ' on' : '') + '" data-act="setOppSize" data-arg="' + k + '">' + k + '</button>').join('') + '</div>' +
     '<div class="row"><label for="f-len" class="muted" style="flex:1">Minutes per ' + (s.periods === 2 ? 'half' : 'quarter') + '</label><input id="f-len" class="field" style="width:96px;text-align:center" type="number" inputmode="numeric" min="1" max="40" data-bind="len" value="' + s.len + '"></div></div>' +
     '<div class="sec"><h2 class="h2">Options</h2>' +
     tog('final', 'Finals game', 'A semi final or grand final.') +
@@ -811,6 +812,7 @@ const ACT = {
   setTeam: (id) => { const s = ui.setup; if (s.team === id) return; s.team = id; s.extra = []; applyTeamDefaults(s); render(); },
   setVenue: (v) => { ui.setup.venue = v; render(); },
   setSize: (k) => { const s = ui.setup; s.size = Number(k); s.starters = s.starters.slice(0, s.size); render(); },
+  setOppSize: (k) => { ui.setup.oppSize = Number(k); render(); },
   setPeriods: (n) => { ui.setup.periods = Number(n); if (Number(n) === 2 && ui.setup.len === 10) ui.setup.len = 20; else if (Number(n) === 4 && ui.setup.len === 20) ui.setup.len = 10; render(); },
   setupTog: (k) => { const s = ui.setup; s[k] = !s[k]; if (k === 'trackAll') s.starters = s.trackAll ? s.starters.slice(0, s.size || 5) : s.starters; render(); },
   togPlay: (id) => {
@@ -845,7 +847,7 @@ const ACT = {
     const len = Math.max(1, Math.min(40, Number(s.len) || 10));
     const nums = (BUNDLE.nums || {})[s.team] || {};
     const g = { app: 'mystat-tracker', v: APP_VERSION, id: uid(), team: s.team, opp: s.opp.trim(), date: s.date || today(), season: (s.season || '').trim(), final: !!s.final, venue: s.venue || '',
-      periods: s.periods, len, size: s.size || 5, clockOn: !!s.clockOn, trackAll: !!s.trackAll,
+      periods: s.periods, len, size: s.size || 5, oppSize: s.oppSize || s.size || 5, clockOn: !!s.clockOn, trackAll: !!s.trackAll,
       roster: roster.map((r) => ({ id: r.id, name: r.name, num: nums[r.id] || '', isNew: !!r.isNew })),
       events: [], seq: 0, clock: { q: 1, rem: len * 60, running: false, at: 0 }, status: 'live', created: Date.now(), updated: Date.now() };
     DB.games[g.id] = g; DB.order.unshift(g.id);
@@ -982,7 +984,7 @@ function exportFile() {
   g.roster.forEach((r) => { const p = S.P[r.id]; box[r.id] = Object.assign({}, p, { min: g.clockOn ? Math.round(p.sec / 60) : null }); delete box[r.id].stint; });
   const out = {
     format: 'mystat-tracker', version: APP_VERSION, exported: new Date().toISOString(),
-    game: { team: g.team, opponent: g.opp, date: g.date, season: g.season, final: g.final, venue: g.venue || '', periods: g.periods, periodMinutes: g.len, size: g.size || 5, clock: g.clockOn, trackAll: g.trackAll, status: g.status,
+    game: { team: g.team, opponent: g.opp, date: g.date, season: g.season, final: g.final, venue: g.venue || '', periods: g.periods, periodMinutes: g.len, size: g.size || 5, oppSize: g.oppSize || g.size || 5, clock: g.clockOn, trackAll: g.trackAll, status: g.status,
       score: { us: S.us, them: S.them }, byPeriod: S.qs },
     roster: g.roster, events: g.events,
     summary: { box, starters: S.starters, extras: S.x, maxLead: S.maxLead, maxDeficit: S.maxDef, leadChanges: S.changes, ties: S.ties }
